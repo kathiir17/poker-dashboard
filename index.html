@@ -1,0 +1,820 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Family Poker Night</title>
+<style>
+  :root {
+    --felt: #1a472a;
+    --gold: #c9a84c;
+    --felt-light: #1e5231;
+    --red: #8b2020;
+    --blue: #2c5282;
+    --bg: #ffffff;
+    --bg2: #f7f7f7;
+    --bg3: #efefef;
+    --border: #e0e0e0;
+    --border2: #d0d0d0;
+    --text: #111111;
+    --text2: #555555;
+    --text3: #888888;
+    --radius: 12px;
+    --radius-sm: 8px;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #141414;
+      --bg2: #1e1e1e;
+      --bg3: #2a2a2a;
+      --border: #2e2e2e;
+      --border2: #3a3a3a;
+      --text: #f0f0f0;
+      --text2: #aaaaaa;
+      --text3: #666666;
+    }
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); max-width: 640px; margin: 0 auto; }
+  input { background: var(--bg); color: var(--text); border: 0.5px solid var(--border2); border-radius: var(--radius-sm); padding: 7px 10px; font-size: 13px; width: 100%; font-family: inherit; }
+  input:focus { outline: 1px solid var(--felt); }
+  .hdr { background: var(--felt); color: var(--gold); padding: 14px 16px; display: flex; align-items: center; gap: 10px; }
+  .hdr-title { font-size: 17px; font-weight: 500; letter-spacing: 1px; }
+  .tabs { display: flex; border-bottom: 2px solid var(--felt); background: var(--bg2); overflow-x: auto; }
+  .tab { padding: 10px 14px; font-size: 13px; cursor: pointer; border: none; background: none; white-space: nowrap; font-weight: 500; color: var(--text2); border-bottom: 2px solid transparent; margin-bottom: -2px; font-family: inherit; }
+  .tab.on { color: var(--felt); border-bottom: 2px solid var(--felt); }
+  .pnl { display: none; padding: 1rem; }
+  .pnl.on { display: block; }
+  .card { background: var(--bg); border: 0.5px solid var(--border); border-radius: var(--radius); padding: 1rem 1.25rem; margin-bottom: 1rem; }
+  .stitle { font-size: 11px; font-weight: 500; color: var(--text3); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 10px; }
+  .btn { background: var(--felt); color: var(--gold); border: none; border-radius: var(--radius-sm); padding: 8px 16px; font-size: 13px; cursor: pointer; font-weight: 500; font-family: inherit; }
+  .btn:active { opacity: 0.85; }
+  .btn-blue { background: var(--blue); color: #bee3f8; }
+  .btn-ghost { background: var(--bg2); color: var(--text); border: 0.5px solid var(--border2); border-radius: var(--radius-sm); padding: 6px 12px; font-size: 13px; cursor: pointer; font-family: inherit; }
+  .btn-red { background: var(--red); color: #fcd; border: none; border-radius: var(--radius-sm); padding: 6px 12px; font-size: 13px; cursor: pointer; font-family: inherit; }
+  .btn-sm { padding: 4px 10px; font-size: 12px; }
+  .badge { display: inline-block; background: var(--felt); color: var(--gold); border-radius: 6px; padding: 3px 10px; font-size: 13px; font-weight: 500; min-width: 32px; text-align: center; }
+  .badge-zero { background: var(--bg2); color: var(--text3); }
+  .badge-inf { background: var(--felt); color: var(--gold); }
+  .av { width: 28px; height: 28px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 500; flex-shrink: 0; }
+  .lbl { font-size: 12px; color: var(--text2); margin-bottom: 4px; }
+  .divider { border: none; border-top: 0.5px solid var(--border); margin: 0; }
+  .row { display: flex; align-items: center; gap: 8px; padding: 7px 0; border-bottom: 0.5px solid var(--border); }
+  .row:last-child { border-bottom: none; }
+  .toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); background: var(--felt); color: var(--gold); padding: 8px 20px; border-radius: 20px; font-size: 13px; font-weight: 500; z-index: 999; pointer-events: none; opacity: 0; transition: opacity 0.3s; }
+  .toast.on { opacity: 1; }
+  .metric-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px; }
+  .metric { background: var(--bg2); border-radius: var(--radius-sm); padding: 12px 14px; }
+  .metric-lbl { font-size: 11px; color: var(--text3); margin-bottom: 4px; }
+  .metric-val { font-size: 18px; font-weight: 500; }
+  .metric-sub { font-size: 12px; color: var(--text3); margin-top: 2px; }
+  .bar-w { background: var(--bg2); border-radius: 4px; height: 6px; overflow: hidden; }
+  .bar-f { background: var(--felt); height: 6px; border-radius: 4px; }
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .warn-box { display: flex; align-items: center; gap: 6px; margin-bottom: 12px; padding: 8px 12px; background: var(--bg2); border-radius: var(--radius-sm); font-size: 12px; color: var(--text2); }
+  .confirm-box { border: 0.5px solid var(--red); border-radius: var(--radius); padding: 1rem 1.25rem; margin-bottom: 12px; }
+  .tag { display: inline-flex; align-items: center; gap: 5px; font-size: 12px; padding: 4px 10px; border-radius: 6px; cursor: pointer; border: 0.5px solid var(--border2); background: var(--bg2); color: var(--text); font-family: inherit; }
+  .tag:hover { background: var(--bg3); }
+  .win-banner { border: 1px solid var(--gold); border-radius: var(--radius-sm); padding: 10px 14px; margin-bottom: 12px; text-align: center; font-size: 14px; }
+  .tbl { width: 100%; border-collapse: collapse; font-size: 13px; }
+  .tbl th { text-align: left; padding: 6px 8px; font-size: 11px; color: var(--text3); border-bottom: 0.5px solid var(--border); font-weight: 500; }
+  .tbl td { padding: 7px 8px; border-bottom: 0.5px solid var(--border); }
+  .tbl tr:last-child td { border-bottom: none; }
+  .loading { padding: 3rem; text-align: center; color: var(--text3); font-size: 14px; }
+</style>
+</head>
+<body>
+
+<div class="hdr">
+  <span style="font-size:18px;letter-spacing:4px">♠ ♥ ♦ ♣</span>
+  <span class="hdr-title">Family poker night</span>
+</div>
+
+<div class="tabs" id="tabs">
+  <button class="tab on" onclick="goTab('scorer',this)">Session</button>
+  <button class="tab" onclick="goTab('lb',this)">Leaderboard</button>
+  <button class="tab" onclick="goTab('hist',this)">History</button>
+  <button class="tab" onclick="goTab('stats',this)">Stats</button>
+  <button class="tab" onclick="goTab('rules',this)">Rules</button>
+</div>
+
+<div class="pnl on" id="pnl-scorer"></div>
+<div class="pnl" id="pnl-lb"></div>
+<div class="pnl" id="pnl-hist"></div>
+<div class="pnl" id="pnl-stats"></div>
+<div class="pnl" id="pnl-rules"></div>
+<div class="toast" id="toast"></div>
+
+<script>
+// ── Supabase config ──────────────────────────────────────────
+const SB_URL = "https://toqiyymioqjhebyyqufn.supabase.co";
+const SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRvcWl5eW1pb3FqaGVieXlxdWZuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA5NDY2NzQsImV4cCI6MjA5NjUyMjY3NH0.b5C6gryuWkwN4h6QAvtApIbvMlZ7X3uSw-Jr7uIVWHo";
+const HEADERS = { "Content-Type": "application/json", "apikey": SB_KEY, "Authorization": "Bearer " + SB_KEY };
+
+async function dbLoad() {
+  const r = await fetch(`${SB_URL}/rest/v1/sessions?select=id,data&order=id.asc&limit=1`, { headers: HEADERS });
+  const rows = await r.json();
+  if (!rows.length) return null;
+  return { id: rows[0].id, sessions: rows[0].data || [] };
+}
+
+async function dbSave(id, sessions) {
+  await fetch(`${SB_URL}/rest/v1/sessions?id=eq.${id}`, {
+    method: "PATCH",
+    headers: HEADERS,
+    body: JSON.stringify({ data: sessions, updated_at: new Date().toISOString() })
+  });
+}
+
+// ── Scoring ──────────────────────────────────────────────────
+const BKT = [[0,0],[0.5,5],[0.8,8],[1.0,10],[1.2,13],[1.5,16],[2.0,19],[2.5,22],[3.0,25],[4.0,30],[5.0,35]];
+function interpPts(m) {
+  if (m <= 0) return 0;
+  if (m >= 5) return 35 + (m - 5) * 5;
+  for (let i = 1; i < BKT.length; i++) {
+    const [lm,lp] = BKT[i-1], [hm,hp] = BKT[i];
+    if (m <= hm) return lp + ((m-lm)/(hm-lm)) * (hp-lp);
+  }
+  return 35;
+}
+function rebuyMult(b) {
+  if (b <= 40) return 1.0;
+  if (b <= 60) return 0.9;
+  if (b <= 80) return 0.5;
+  if (b <= 100) return 0.25;
+  return 0.25 * Math.pow(0.5, Math.floor((b-100)/20)+1);
+}
+function calcScore(buyin, final) {
+  const mult = buyin > 0 ? final/buyin : 0;
+  const rawPts = interpPts(mult);
+  const rm = rebuyMult(buyin);
+  return { mult, rawPts, rm, pts: Math.round(rawPts * rm) };
+}
+
+// ── Colours ──────────────────────────────────────────────────
+const ALL_PLAYERS = ["Kathiir","Varunn","Ami","Aaron","Sanj","Vittu"];
+const AV_BG = ['#1a472a','#2980b9','#8b2020','#6b3fa0','#b5551a','#1a5276'];
+const AV_FG = ['#a8e6c0','#bee3f8','#fcd5d5','#e8d5f8','#fde8d5','#d5eef8'];
+const LINE_COLORS = ['#1a472a','#2980b9','#8b2020','#6b3fa0','#b5551a','#1a5276'];
+
+function avIdx(name) { const i = ALL_PLAYERS.indexOf(name); return i < 0 ? 0 : i % 6; }
+function avHTML(name, size=28) {
+  const i = avIdx(name);
+  return `<div class="av" style="width:${size}px;height:${size}px;font-size:${Math.round(size*0.38)}px;background:${AV_BG[i]};color:${AV_FG[i]}">${name.slice(0,2).toUpperCase()}</div>`;
+}
+function badge(pts) {
+  return `<span class="badge${pts===0?' badge-zero':''}">${pts}</span>`;
+}
+
+// ── State ────────────────────────────────────────────────────
+let DB_ID = null;
+let sessions = [];
+let scorerPlayers = [];
+let scorerRows = {};
+let activeChart = null;
+let formActive = null;
+let deleteIdx = null;
+let editIdx = null;
+
+const SEED = [
+  {name:"Session 1",date:"16/04/2026",results:[
+    {player:"Kathiir",buyin:20,final:61.1},{player:"Varunn",buyin:20,final:41.7},
+    {player:"Ami",buyin:40,final:50.6},{player:"Aaron",buyin:60,final:20},{player:"Sanj",buyin:60,final:27}]},
+  {name:"Session 2",date:"26/04/2026",results:[
+    {player:"Kathiir",buyin:40,final:12},{player:"Varunn",buyin:20,final:29.75},
+    {player:"Ami",buyin:40,final:61},{player:"Aaron",buyin:20,final:15.5},{player:"Sanj",buyin:20,final:21.75}]},
+  {name:"Session 3",date:"16/05/2026",results:[
+    {player:"Vittu",buyin:40,final:62.75},{player:"Varunn",buyin:40,final:16.5},
+    {player:"Ami",buyin:20,final:54.25},{player:"Aaron",buyin:40,final:9.75},{player:"Sanj",buyin:20,final:17}]},
+  {name:"Session 4",date:"23/05/2026",results:[
+    {player:"Varunn",buyin:20,final:35.5},{player:"Ami",buyin:20,final:46.5},
+    {player:"Aaron",buyin:20,final:36.75},{player:"Sanj",buyin:40,final:37},
+    {player:"Vittu",buyin:60,final:23.5},{player:"Kathiir",buyin:40,final:23.5}]},
+  {name:"Session 5",date:"06/06/2026",results:[
+    {player:"Varunn",buyin:40,final:29},{player:"Ami",buyin:60,final:22.75},
+    {player:"Aaron",buyin:60,final:22.5},{player:"Sanj",buyin:40,final:129},
+    {player:"Vittu",buyin:100,final:20},{player:"Kathiir",buyin:20,final:97}]}
+];
+
+function addPts(sess) {
+  return sess.map(s => ({ ...s, results: s.results.map(r => ({ ...r, pts: calcScore(r.buyin, r.final).pts })) }));
+}
+
+// ── Init ─────────────────────────────────────────────────────
+async function init() {
+  document.getElementById('pnl-scorer').innerHTML = `<div class="loading">Loading...</div>`;
+  try {
+    const row = await dbLoad();
+    if (row) {
+      DB_ID = row.id;
+      sessions = row.sessions.length ? row.sessions : addPts(SEED);
+      if (!row.sessions.length) await dbSave(DB_ID, sessions);
+    }
+  } catch(e) {
+    sessions = addPts(SEED);
+  }
+  renderScorer();
+  renderRules();
+}
+
+// ── Toast ────────────────────────────────────────────────────
+function toast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('on');
+  setTimeout(() => t.classList.remove('on'), 2200);
+}
+
+// ── Tabs ─────────────────────────────────────────────────────
+function goTab(id, el) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('on'));
+  document.querySelectorAll('.pnl').forEach(p => p.classList.remove('on'));
+  el.classList.add('on');
+  document.getElementById('pnl-'+id).classList.add('on');
+  if (id === 'lb') renderLB();
+  if (id === 'hist') renderHist();
+  if (id === 'stats') renderStats();
+}
+
+// ── Save ─────────────────────────────────────────────────────
+async function persist() {
+  if (DB_ID !== null) {
+    try { await dbSave(DB_ID, sessions); } catch(e) { toast('Save failed — check connection'); }
+  }
+}
+
+// ══════════════════════════════════════════════════════════════
+// SCORER
+// ══════════════════════════════════════════════════════════════
+function renderScorer() {
+  const el = document.getElementById('pnl-scorer');
+  const quickAdd = ALL_PLAYERS.filter(p => !scorerPlayers.includes(p));
+  el.innerHTML = `
+    <div class="card">
+      <div class="stitle">Session setup</div>
+      <div style="margin-bottom:10px">
+        <div class="lbl">Session name</div>
+        <input id="sess-name" placeholder="Session ${sessions.length+1}" style="max-width:280px">
+      </div>
+      <div style="display:flex;gap:8px;margin-bottom:8px">
+        <input id="np" placeholder="Type a name or pick below" style="flex:1">
+        <button class="btn btn-sm" onclick="addPlayer()">Add</button>
+      </div>
+      <div style="display:flex;flex-wrap:wrap;gap:6px">
+        ${quickAdd.map(p => `<button class="tag" onclick="addPlayerNamed('${p}')">${avHTML(p,18)} ${p}</button>`).join('')}
+      </div>
+    </div>
+    ${scorerPlayers.length ? `
+    <div class="card">
+      <div class="stitle">Players & results</div>
+      <div style="display:grid;grid-template-columns:1fr 80px 80px 36px;gap:6px;padding-bottom:6px;border-bottom:0.5px solid var(--border);margin-bottom:8px">
+        <span style="font-size:11px;color:var(--text3)">Player</span>
+        <span style="font-size:11px;color:var(--text3);text-align:center">Buy-in (£)</span>
+        <span style="font-size:11px;color:var(--text3);text-align:center">Final (£)</span>
+        <span></span>
+      </div>
+      <div id="plist">
+        ${scorerPlayers.map((p,i) => `
+          <div style="display:grid;grid-template-columns:1fr 80px 80px 36px;gap:6px;align-items:center;margin-bottom:8px">
+            <div style="display:flex;align-items:center;gap:7px">${avHTML(p)} <span style="font-size:13px">${p}</span></div>
+            <input type="number" id="bi${i}" value="${scorerRows[p]?.buyin||20}" min="20" step="20" style="text-align:center" oninput="scorerRows['${p}'].buyin=this.value">
+            <input type="number" id="fc${i}" value="${scorerRows[p]?.final||''}" min="0" step="0.1" placeholder="0" style="text-align:center" oninput="scorerRows['${p}'].final=this.value">
+            <button class="btn-red btn-sm" onclick="removePlayer('${p}')">✕</button>
+          </div>`).join('')}
+      </div>
+      <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap">
+        <button class="btn" onclick="calcScores()">Calculate</button>
+        <button class="btn btn-blue" onclick="saveSession()">Save session</button>
+      </div>
+    </div>` : ''}
+    <div id="res"></div>`;
+
+  document.getElementById('np').addEventListener('keydown', e => { if(e.key==='Enter') addPlayer(); });
+}
+
+function addPlayerNamed(name) {
+  if (scorerPlayers.includes(name)) { toast('Already added'); return; }
+  scorerPlayers.push(name);
+  scorerRows[name] = { buyin: 20, final: '' };
+  renderScorer();
+}
+
+function addPlayer() {
+  const n = document.getElementById('np').value.trim();
+  if (!n) return;
+  addPlayerNamed(n);
+}
+
+function removePlayer(name) {
+  scorerPlayers = scorerPlayers.filter(p => p !== name);
+  delete scorerRows[name];
+  renderScorer();
+}
+
+function readRows() {
+  return scorerPlayers.map((p,i) => {
+    const buyin = parseFloat(document.getElementById('bi'+i)?.value) || 20;
+    const final = parseFloat(document.getElementById('fc'+i)?.value) || 0;
+    return { player: p, buyin, final, ...calcScore(buyin, final) };
+  });
+}
+
+function calcScores() {
+  if (!scorerPlayers.length) { toast('Add players first'); return; }
+  const rows = readRows().sort((a,b) => b.pts-a.pts);
+  const winner = rows[0];
+  document.getElementById('res').innerHTML = `
+    <div class="win-banner">🎉 Winner: <strong>${winner.player}</strong> — ${winner.pts} pts</div>
+    <div class="card">
+      <div class="stitle">Calculated scores</div>
+      ${rows.map((r,i) => `
+        <div class="row">
+          <span style="width:18px;font-size:12px;color:var(--text3)">${i+1}</span>
+          ${avHTML(r.player,24)}
+          <span style="flex:1;font-size:13px">${r.player}</span>
+          <span style="font-size:11px;color:var(--text3)">${r.mult.toFixed(2)}x · ×${r.rm}</span>
+          ${badge(r.pts)}
+        </div>`).join('')}
+    </div>`;
+}
+
+async function saveSession() {
+  if (!scorerPlayers.length) { toast('Add players first'); return; }
+  const rows = readRows();
+  const d = new Date();
+  const date = `${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}/${d.getFullYear()}`;
+  const name = document.getElementById('sess-name').value.trim() || `Session ${sessions.length+1}`;
+  sessions.push({ name, date, results: rows.map(r => ({ player:r.player, buyin:r.buyin, final:r.final, pts:r.pts })) });
+  await persist();
+  scorerPlayers = []; scorerRows = {};
+  document.getElementById('res').innerHTML = '';
+  renderScorer();
+  toast('Session saved!');
+}
+
+// ══════════════════════════════════════════════════════════════
+// LEADERBOARD
+// ══════════════════════════════════════════════════════════════
+function buildPlayerMap() {
+  const map = {};
+  sessions.forEach(s => s.results.forEach(r => {
+    if (!map[r.player]) map[r.player] = { name:r.player, n:0, tot:0, best:0, sessions:[] };
+    map[r.player].n++;
+    map[r.player].tot += r.pts;
+    if (r.pts > map[r.player].best) map[r.player].best = r.pts;
+    map[r.player].sessions.push({ sname:s.name, pts:r.pts });
+  }));
+  sessions.forEach(s => {
+    const w = [...s.results].sort((a,b)=>b.pts-a.pts)[0];
+    if (w && map[w.player]) map[w.player].wins = (map[w.player].wins||0) + 1;
+  });
+  return Object.values(map).sort((a,b) => (b.tot/b.n)-(a.tot/a.n));
+}
+
+function renderLB() {
+  const all = buildPlayerMap();
+  const maxAvg = all[0] ? all[0].tot/all[0].n : 1;
+  const el = document.getElementById('pnl-lb');
+  el.innerHTML = `
+    <div class="card">
+      <div class="stitle">All-time standings — ranked by avg pts</div>
+      ${all.map((p,i) => {
+        const avg = p.tot/p.n;
+        const medal = i===0?'🥇':i===1?'🥈':i===2?'🥉':i+1;
+        return `
+          <div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:0.5px solid var(--border)">
+            <span style="width:22px;text-align:center;font-size:14px">${medal}</span>
+            ${avHTML(p.name)}
+            <div style="flex:1;min-width:0">
+              <div style="display:flex;justify-content:space-between;margin-bottom:4px">
+                <span style="font-size:14px;font-weight:500">${p.name}</span>
+                <span style="font-size:13px;font-weight:500;color:var(--felt)">${avg.toFixed(1)} avg</span>
+              </div>
+              <div class="bar-w"><div class="bar-f" style="width:${Math.round((avg/maxAvg)*100)}%"></div></div>
+              <div style="display:flex;justify-content:space-between;margin-top:3px">
+                <span style="font-size:11px;color:var(--text3)">${p.n} sessions · ${p.tot} total pts</span>
+                <span style="font-size:11px;color:var(--text3)">best ${p.best}</span>
+              </div>
+            </div>
+          </div>`;
+      }).join('')}
+    </div>
+    <div class="card">
+      <div class="stitle">Form — points per session</div>
+      <svg id="form-svg" viewBox="0 0 320 200" style="width:100%;display:block"></svg>
+      <div id="form-legend" style="display:flex;flex-wrap:wrap;gap:6px 10px;margin-top:10px"></div>
+      <div id="form-hint" style="font-size:11px;color:var(--text3);margin-top:6px;text-align:center"></div>
+    </div>`;
+  renderFormChart(all);
+}
+
+function renderFormChart(all) {
+  const W=320,H=200,padL=28,padR=12,padT=10,padB=28;
+  const iW=W-padL-padR, iH=H-padT-padB;
+  const n=sessions.length;
+  const allPts=sessions.flatMap(s=>s.results.map(r=>r.pts));
+  const maxPts=Math.max(...allPts,1);
+  const toX=i=>padL+i*(iW/Math.max(n-1,1));
+  const toY=v=>padT+iH-(v/maxPts)*iH;
+  const ticks=[0,10,20,30];
+  let svgContent = '';
+  ticks.forEach(v => {
+    svgContent += `<line x1="${padL}" x2="${W-padR}" y1="${toY(v)}" y2="${toY(v)}" stroke="var(--border)" stroke-width="0.5" stroke-dasharray="3,3"/>`;
+    svgContent += `<text x="${padL-4}" y="${toY(v)+4}" font-size="9" fill="var(--text3)" text-anchor="end">${v}</text>`;
+  });
+  sessions.forEach((s,i) => {
+    svgContent += `<text x="${toX(i)}" y="${H-6}" font-size="9" fill="var(--text3)" text-anchor="middle">S${i+1}</text>`;
+  });
+  all.forEach((p,pi) => {
+    const color = LINE_COLORS[pi%6];
+    const pts = sessions.map(s => { const r=s.results.find(r=>r.player===p.name); return r?r.pts:null; });
+    const isFaded = formActive && formActive !== p.name;
+    const opacity = isFaded ? 0.1 : 1;
+    const sw = formActive===p.name ? 2.5 : 1.5;
+    const dotR = formActive===p.name ? 4 : 3;
+    let segs=[],seg=[];
+    pts.forEach((v,i)=>{ if(v!==null)seg.push([i,v]); else { if(seg.length>=2)segs.push(seg); seg=[]; } });
+    if(seg.length>=2) segs.push(seg);
+    const dots=pts.map((v,i)=>v!==null?[i,v]:null).filter(Boolean);
+    svgContent += `<g style="opacity:${opacity};transition:opacity 0.2s">`;
+    segs.forEach(seg => {
+      const d=seg.map(([i,v],j)=>`${j===0?'M':'L'}${toX(i).toFixed(1)},${toY(v).toFixed(1)}`).join(' ');
+      svgContent += `<path d="${d}" fill="none" stroke="${color}" stroke-width="${sw}" stroke-linejoin="round" stroke-linecap="round"/>`;
+    });
+    dots.forEach(([i,v]) => { svgContent += `<circle cx="${toX(i).toFixed(1)}" cy="${toY(v).toFixed(1)}" r="${dotR}" fill="${color}"/>`; });
+    svgContent += `</g>`;
+  });
+  document.getElementById('form-svg').innerHTML = svgContent;
+  const legend = document.getElementById('form-legend');
+  legend.innerHTML = all.map((p,pi) => {
+    const color = LINE_COLORS[pi%6];
+    const isFaded = formActive && formActive !== p.name;
+    const isActive = formActive === p.name;
+    return `<button onclick="toggleForm('${p.name}')" style="display:flex;align-items:center;gap:6px;font-size:12px;cursor:pointer;border:none;padding:4px 8px;border-radius:6px;background:${isActive?'var(--bg2)':'transparent'};opacity:${isFaded?0.35:1};color:var(--text);font-family:inherit">
+      <span style="width:14px;height:${isActive?4:3}px;border-radius:2px;background:${color};display:inline-block"></span>${p.name}
+    </button>`;
+  }).join('');
+  document.getElementById('form-hint').textContent = formActive ? `Tap ${formActive} again to reset` : '';
+}
+
+function toggleForm(name) {
+  formActive = formActive === name ? null : name;
+  renderLB();
+}
+
+// ══════════════════════════════════════════════════════════════
+// HISTORY
+// ══════════════════════════════════════════════════════════════
+function renderHist() {
+  const el = document.getElementById('pnl-hist');
+  if (editIdx !== null) { renderEditForm(el); return; }
+  let html = `<div class="warn-box">🗑 The red button permanently deletes a session — you'll be asked to confirm first.</div>`;
+  if (deleteIdx !== null) {
+    html += `<div class="confirm-box">
+      <div style="font-size:14px;margin-bottom:10px">Delete <strong>${sessions[deleteIdx]?.name}</strong>? This cannot be undone.</div>
+      <div style="display:flex;gap:8px">
+        <button class="btn-ghost" onclick="deleteIdx=null;renderHist()">Cancel</button>
+        <button class="btn-red" onclick="confirmDelete()">Yes, delete</button>
+      </div>
+    </div>`;
+  }
+  [...sessions].reverse().forEach((s,ri) => {
+    const idx = sessions.length-1-ri;
+    const sorted = [...s.results].sort((a,b)=>b.pts-a.pts);
+    html += `<div class="card" style="margin-bottom:12px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+        <div>
+          <span style="font-weight:500;font-size:15px">${s.name}</span>
+          <span style="font-size:12px;color:var(--text3);margin-left:8px">${s.date}</span>
+        </div>
+        <div style="display:flex;gap:6px">
+          <button class="btn-ghost btn-sm" onclick="openEdit(${idx})">✎ Edit</button>
+          <button class="btn-red btn-sm" onclick="deleteIdx=${idx};renderHist()">🗑</button>
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 60px 60px 50px 44px;gap:6px;padding-bottom:5px;border-bottom:0.5px solid var(--border);margin-bottom:4px">
+        ${['Player','Buy-in','Final','Mult','Pts'].map(h=>`<span style="font-size:11px;color:var(--text3);text-align:center">${h}</span>`).join('')}
+      </div>
+      ${sorted.map((r,i) => {
+        const medal = i===0?'🥇':i===1?'🥈':i===2?'🥉':'';
+        const sc = calcScore(r.buyin,r.final);
+        return `<div style="display:grid;grid-template-columns:1fr 60px 60px 50px 44px;gap:6px;align-items:center;padding:6px 0;border-bottom:0.5px solid var(--border)">
+          <div style="display:flex;align-items:center;gap:6px">
+            <span style="width:18px;font-size:12px">${medal||` ${i+1}`}</span>
+            ${avHTML(r.player,22)}
+            <span style="font-size:13px">${r.player}</span>
+          </div>
+          <span style="font-size:12px;color:var(--text3);text-align:center">£${r.buyin}</span>
+          <span style="font-size:12px;color:var(--text3);text-align:center">£${r.final.toFixed(1)}</span>
+          <span style="font-size:12px;color:var(--text3);text-align:center">${sc.mult.toFixed(2)}x</span>
+          <div style="text-align:center">${badge(r.pts)}</div>
+        </div>`;
+      }).join('')}
+    </div>`;
+  });
+  el.innerHTML = html;
+}
+
+async function confirmDelete() {
+  sessions.splice(deleteIdx, 1);
+  deleteIdx = null;
+  await persist();
+  renderHist();
+  toast('Session deleted');
+}
+
+function openEdit(idx) { editIdx = idx; renderHist(); }
+
+function renderEditForm(el) {
+  const s = sessions[editIdx];
+  el.innerHTML = `
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+        <span style="font-weight:500;font-size:15px">Edit: ${s.name}</span>
+        <button class="btn-ghost" onclick="editIdx=null;renderHist()">✕</button>
+      </div>
+      <div class="two-col" style="margin-bottom:12px">
+        <div><div class="lbl">Session name</div><input id="e-name" value="${s.name}" style="margin-top:4px"></div>
+        <div><div class="lbl">Date</div><input id="e-date" value="${s.date}" style="margin-top:4px"></div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 70px 70px 44px;gap:6px;padding-bottom:6px;border-bottom:0.5px solid var(--border);margin-bottom:4px">
+        ${['Player','Buy-in','Final','Pts'].map(h=>`<span style="font-size:11px;color:var(--text3);text-align:center">${h}</span>`).join('')}
+      </div>
+      ${s.results.map((r,i) => {
+        const sc = calcScore(r.buyin,r.final);
+        return `<div style="display:grid;grid-template-columns:1fr 70px 70px 44px;gap:6px;align-items:center;padding:6px 0;border-bottom:0.5px solid var(--border)">
+          <div style="display:flex;align-items:center;gap:6px">${avHTML(r.player,22)}<span style="font-size:13px">${r.player}</span></div>
+          <input type="number" id="ebi${i}" value="${r.buyin}" min="20" step="20" style="text-align:center" oninput="liveEditPts(${i})">
+          <input type="number" id="efc${i}" value="${r.final}" min="0" step="0.1" style="text-align:center" oninput="liveEditPts(${i})">
+          <span id="epts${i}" style="text-align:center;font-weight:500;color:var(--felt);font-size:13px">${sc.pts}</span>
+        </div>`;
+      }).join('')}
+      <div style="display:flex;gap:8px;margin-top:12px;justify-content:flex-end">
+        <button class="btn-ghost" onclick="editIdx=null;renderHist()">Cancel</button>
+        <button class="btn" onclick="saveEdit()">Save changes</button>
+      </div>
+    </div>`;
+}
+
+function liveEditPts(i) {
+  const b = parseFloat(document.getElementById('ebi'+i).value)||20;
+  const f = parseFloat(document.getElementById('efc'+i).value)||0;
+  document.getElementById('epts'+i).textContent = calcScore(b,f).pts;
+}
+
+async function saveEdit() {
+  const s = sessions[editIdx];
+  const n = document.getElementById('e-name').value.trim();
+  const d = document.getElementById('e-date').value.trim();
+  if (n) s.name = n;
+  if (d) s.date = d;
+  s.results.forEach((r,i) => {
+    const b = parseFloat(document.getElementById('ebi'+i).value)||20;
+    const f = parseFloat(document.getElementById('efc'+i).value)||0;
+    r.buyin=b; r.final=f; r.pts=calcScore(b,f).pts;
+  });
+  editIdx = null;
+  await persist();
+  renderHist();
+  toast('Session updated!');
+}
+
+// ══════════════════════════════════════════════════════════════
+// STATS
+// ══════════════════════════════════════════════════════════════
+function renderStats() {
+  const all = buildPlayerMap();
+  const names = all.map(p=>p.name);
+  const short = n => n.slice(0,4);
+
+  const h2h = {};
+  names.forEach(a => { h2h[a]={}; names.forEach(b => { if(a!==b) h2h[a][b]={myPts:0,theirPts:0,n:0}; }); });
+  sessions.forEach(s => {
+    s.results.forEach(r => {
+      s.results.forEach(q => {
+        if (r.player!==q.player && h2h[r.player]?.[q.player]!==undefined) {
+          h2h[r.player][q.player].myPts+=r.pts;
+          h2h[r.player][q.player].theirPts+=q.pts;
+          h2h[r.player][q.player].n++;
+        }
+      });
+    });
+  });
+
+  let html = '';
+
+  all.forEach((p,pi) => {
+    const n=p.n, tot=p.tot, avg=tot/n;
+    const pSessions = sessions.filter(s=>s.results.find(r=>r.player===p.name))
+      .map(s=>({...s.results.find(r=>r.player===p.name),sname:s.name}));
+    const best=[...pSessions].sort((a,b)=>b.pts-a.pts)[0];
+    const worst=[...pSessions].sort((a,b)=>a.pts-b.pts)[0];
+    const totalIn=pSessions.reduce((s,x)=>s+x.buyin,0);
+    const totalOut=pSessions.reduce((s,x)=>s+x.final,0);
+    const pnl=totalOut-totalIn;
+    const wins=p.wins||0;
+    const winRate=Math.round((wins/n)*100);
+    const up=pSessions.filter(x=>x.final>x.buyin).length;
+    const down=pSessions.filter(x=>x.final<x.buyin).length;
+    const stddev=Math.sqrt(pSessions.reduce((s,x)=>s+Math.pow(x.pts-avg,2),0)/n);
+    const cLabel=stddev<3?'Very consistent':stddev<6?'Consistent':stddev<9?'Mixed':stddev<12?'Volatile':'Boom or bust';
+    const cColor=stddev<6?'var(--felt)':stddev<9?'var(--text)':stddev<12?'#b5551a':'var(--red)';
+    const color=LINE_COLORS[pi%6];
+    html += `
+      <div class="card" style="border-left:3px solid ${color}">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">
+          ${avHTML(p.name,36)}
+          <div>
+            <div style="font-size:16px;font-weight:500">${p.name}</div>
+            <div style="font-size:12px;color:var(--text3)">${n} session${n!==1?'s':''}</div>
+          </div>
+        </div>
+        <div class="two-col">
+          <div class="metric">
+            <div class="metric-lbl">Avg pts / session</div>
+            <div class="metric-val" style="color:var(--felt)">${avg.toFixed(1)}</div>
+          </div>
+          <div class="metric">
+            <div class="metric-lbl">Win rate</div>
+            <div class="metric-val">${winRate}%</div>
+            <div class="metric-sub">${wins} win${wins!==1?'s':''} from ${n}</div>
+            <div style="font-size:11px;margin-top:3px">
+              <span style="color:var(--felt);font-weight:500">${up} up</span>
+              <span style="color:var(--text3);margin:0 4px">·</span>
+              <span style="color:var(--red);font-weight:500">${down} down</span>
+              <span style="color:var(--text3);margin:0 4px">·</span>
+              <span style="color:var(--text3)">${n-up-down} even</span>
+            </div>
+          </div>
+        </div>
+        <div class="metric" style="margin-top:10px">
+          <div class="metric-lbl" style="margin-bottom:6px">Best / worst session</div>
+          <div style="display:flex;align-items:center;gap:8px">
+            <span>🥇</span>${badge(best.pts)}<span style="font-size:12px;color:var(--text3)">${best.sname}</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px;margin-top:6px">
+            <span>💀</span><span class="badge badge-zero">${worst.pts}</span><span style="font-size:12px;color:var(--text3)">${worst.sname}</span>
+          </div>
+        </div>
+        <div class="metric" style="margin-top:10px">
+          <div class="metric-lbl">Profit / loss</div>
+          <div style="display:flex;justify-content:space-between;align-items:center">
+            <span style="font-size:12px;color:var(--text3)">In <strong style="color:var(--text)">£${totalIn}</strong> · Out <strong style="color:var(--text)">£${totalOut.toFixed(1)}</strong></span>
+            <span style="font-size:18px;font-weight:500;color:${pnl>=0?'var(--felt)':'var(--red)'}">
+              ${pnl>=0?'+':''}£${pnl.toFixed(1)}
+            </span>
+          </div>
+        </div>
+        <div class="metric" style="margin-top:10px">
+          <div class="metric-lbl">Consistency</div>
+          <div style="display:flex;justify-content:space-between;align-items:center">
+            <span style="font-size:13px;color:var(--text3)">σ ${stddev.toFixed(1)} pts</span>
+            <span style="font-size:13px;font-weight:500;color:${cColor}">${cLabel}</span>
+          </div>
+        </div>
+      </div>`;
+  });
+
+  // H2H Matrix
+  html += `
+    <div class="card">
+      <div class="stitle">Head-to-head matrix</div>
+      <p style="font-size:12px;color:var(--text3);margin-bottom:12px;line-height:1.6">
+        Avg pts difference in shared sessions. <span style="color:var(--felt);font-weight:500">Green</span> = you averaged more. <span style="color:var(--red);font-weight:500">Red</span> = they averaged more.
+      </p>
+      <div style="overflow-x:auto">
+        <table style="border-collapse:collapse;width:100%;table-layout:fixed;min-width:280px">
+          <thead><tr>
+            <td style="width:44px;padding:4px 6px;border-bottom:0.5px solid var(--border)"></td>
+            ${names.map((n,i)=>`<th style="padding:4px 2px;font-size:10px;color:var(--text3);text-align:center;border-bottom:0.5px solid var(--border);font-weight:500">
+              <div style="display:flex;flex-direction:column;align-items:center;gap:3px">
+                <span style="width:8px;height:8px;border-radius:50%;background:${LINE_COLORS[i%6]};display:inline-block"></span>
+                ${short(n)}
+              </div>
+            </th>`).join('')}
+          </tr></thead>
+          <tbody>
+            ${names.map((row,ri)=>`
+              <tr>
+                <td style="padding:4px 6px;font-size:11px;font-weight:500;border-bottom:0.5px solid var(--border)">
+                  <div style="display:flex;align-items:center;gap:4px">
+                    <span style="width:8px;height:8px;border-radius:50%;background:${LINE_COLORS[ri%6]};display:inline-block;flex-shrink:0"></span>
+                    ${short(row)}
+                  </div>
+                </td>
+                ${names.map((col,ci)=>{
+                  if(row===col) return `<td style="padding:4px 2px;text-align:center;background:var(--bg2);border-bottom:0.5px solid var(--border)"><span style="font-size:10px;color:var(--text3)">—</span></td>`;
+                  const d=h2h[row]?.[col];
+                  if(!d||d.n===0) return `<td style="padding:4px 2px;text-align:center;border-bottom:0.5px solid var(--border)"><span style="font-size:10px;color:var(--text3)">—</span></td>`;
+                  const diff=(d.myPts/d.n)-(d.theirPts/d.n);
+                  const win=diff>0;
+                  return `<td style="padding:4px 2px;text-align:center;background:${win?'#1a472a18':'#8b202018'};border-bottom:0.5px solid var(--border)">
+                    <div style="font-size:11px;font-weight:500;color:${win?'var(--felt)':'var(--red)'}">${diff>0?'+':''}${diff.toFixed(1)}</div>
+                    <div style="font-size:9px;color:var(--text3)">${d.n}g</div>
+                  </td>`;
+                }).join('')}
+              </tr>`).join('')}
+          </tbody>
+        </table>
+      </div>
+    </div>`;
+
+  // Records
+  let bestR={pts:0,player:'',sname:'',mult:0};
+  let worstR={pts:999,player:'',sname:'',mult:0};
+  const seconds={};
+  let bigWin={profit:0,player:'',sname:''};
+  let expSess={total:0,name:''};
+  sessions.forEach(s=>{
+    const sorted=[...s.results].sort((a,b)=>b.pts-a.pts);
+    if(sorted.length>=2){const p=sorted[1].player;seconds[p]=(seconds[p]||0)+1;}
+    const total=s.results.reduce((sum,r)=>sum+r.buyin,0);
+    if(total>expSess.total) expSess={total,name:s.name};
+    s.results.forEach(r=>{
+      const sc=calcScore(r.buyin,r.final);
+      if(r.pts>bestR.pts) bestR={pts:r.pts,player:r.player,sname:s.name,mult:sc.mult};
+      if(r.pts<worstR.pts) worstR={pts:r.pts,player:r.player,sname:s.name,mult:sc.mult};
+      const profit=r.final-r.buyin;
+      if(profit>bigWin.profit) bigWin={profit,player:r.player,sname:s.name};
+    });
+  });
+  const mostSeconds=Object.entries(seconds).sort((a,b)=>b[1]-a[1])[0];
+  const facts=[
+    {icon:'🏆',label:'Highest ever score',value:`${bestR.pts} pts`,sub:`${bestR.player} · ${bestR.sname} · ${bestR.mult.toFixed(2)}x`},
+    {icon:'💀',label:'Lowest ever score',value:`${worstR.pts} pts`,sub:`${worstR.player} · ${worstR.sname} · ${worstR.mult.toFixed(2)}x`},
+    {icon:'🥈',label:'Most 2nd place finishes',value:`${mostSeconds?.[0]||'—'}`,sub:`${mostSeconds?.[1]||0} runner-up finish${mostSeconds?.[1]!==1?'es':''}`},
+    {icon:'💰',label:'Biggest single session win',value:`+£${bigWin.profit.toFixed(1)}`,sub:`${bigWin.player} · ${bigWin.sname}`},
+    {icon:'💸',label:'Most expensive session',value:`£${expSess.total} total buy-ins`,sub:expSess.name},
+  ];
+  html += `
+    <div class="card">
+      <div class="stitle">Records & fun facts</div>
+      ${facts.map(f=>`
+        <div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:0.5px solid var(--border)">
+          <span style="font-size:22px;flex-shrink:0">${f.icon}</span>
+          <div style="flex:1;min-width:0">
+            <div style="font-size:11px;color:var(--text3);margin-bottom:2px">${f.label}</div>
+            <div style="font-size:15px;font-weight:500">${f.value}</div>
+            <div style="font-size:12px;color:var(--text3);margin-top:1px">${f.sub}</div>
+          </div>
+        </div>`).join('')}
+    </div>`;
+
+  document.getElementById('pnl-stats').innerHTML = html;
+}
+
+// ══════════════════════════════════════════════════════════════
+// RULES
+// ══════════════════════════════════════════════════════════════
+function renderRules() {
+  const brackets=[[0,"0x","Bust — nothing left"],[5,"0.5x","Lost most of your money"],
+    [8,"0.8x","Lost money"],[10,"1x","Breakeven"],[13,"1.2x","Small profit"],
+    [16,"1.5x","Solid profit"],[19,"2x","Strong session"],[22,"2.5x","Very strong session"],
+    [25,"3x","Exceptional"],[30,"4x","Elite"],[35,"5x+","Legendary — uncapped, +5 pts per extra x"]];
+  const rebuys=[
+    {n:"0 rebuys",spend:"£20 in",mult:"×1.0",label:"No penalty",bg:"#1a472a",fg:"#c9a84c"},
+    {n:"1 rebuy",spend:"£40 in",mult:"×1.0",label:"No penalty",bg:"#1a472a",fg:"#c9a84c"},
+    {n:"2 rebuys",spend:"£60 in",mult:"×0.9",label:"Light penalty",bg:"#b5551a",fg:"#fde8d5"},
+    {n:"3 rebuys",spend:"£80 in",mult:"×0.5",label:"Heavy penalty",bg:"#8b2020",fg:"#fcd5d5"},
+    {n:"4 rebuys",spend:"£100 in",mult:"×0.25",label:"Severe",bg:"#6b0f0f",fg:"#fcd5d5"},
+    {n:"5+ rebuys",spend:"£120+",mult:"×0.125…",label:"Halves every rebuy",bg:"#3d0808",fg:"#fcd5d5"},
+  ];
+  document.getElementById('pnl-rules').innerHTML = `
+    <div class="card">
+      <div class="stitle">How points work</div>
+      <p style="font-size:13px;color:var(--text2);line-height:1.7">
+        Your multiplier is <strong>final chips ÷ total buy-in</strong>. That maps to bracket points via the table below, with smooth interpolation between brackets. Above 5x it's uncapped — every extra x earns 5 more points. Your bracket points are then multiplied by your rebuy penalty to get your final score.
+      </p>
+    </div>
+    <div class="card">
+      <div class="stitle">Multiplier → points</div>
+      ${brackets.map(([pts,mult,label])=>`
+        <div style="display:flex;align-items:center;gap:10px;padding:6px 0;border-bottom:0.5px solid var(--border)">
+          <span style="width:40px;font-size:12px;color:var(--text3);font-weight:500">${mult}</span>
+          ${mult==="5x+"?`<span class="badge badge-inf">∞</span>`:badge(pts)}
+          <span style="font-size:13px;color:var(--text2)">${label}</span>
+        </div>`).join('')}
+    </div>
+    <div class="card">
+      <div class="stitle">Rebuy penalty</div>
+      <p style="font-size:13px;color:var(--text2);line-height:1.7;margin-bottom:12px">
+        Everyone starts with <strong>£20</strong>. Each time you bust and top up, that's a rebuy. Two things punish rebuying: your denominator grows (making it harder to achieve a high multiplier), and the penalty below is applied on top of that.
+      </p>
+      ${rebuys.map(r=>`
+        <div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:0.5px solid var(--border)">
+          <div style="background:${r.bg};color:${r.fg};border-radius:6px;padding:4px 10px;font-size:12px;font-weight:500;min-width:88px;text-align:center">${r.n}</div>
+          <span style="font-size:12px;color:var(--text3);min-width:48px">${r.spend}</span>
+          <span style="font-size:14px;font-weight:500;min-width:52px">${r.mult}</span>
+          <span style="font-size:12px;color:var(--text3)">${r.label}</span>
+        </div>`).join('')}
+      <div style="margin-top:12px;padding:10px 12px;background:var(--bg2);border-radius:var(--radius-sm);font-size:13px;color:var(--text2);line-height:1.7">
+        <strong style="color:var(--text)">Example:</strong> you rebuy twice (£60 total). You end with £90. Multiplier = 90÷60 = 1.5x → 16 raw pts × 0.9 = <strong style="color:var(--text)">14 pts.</strong>
+        A player who ran £20→£30 (also 1.5x, no rebuys) gets <strong style="color:var(--text)">16 pts</strong> — the harder denominator and penalty explain the gap.
+      </div>
+    </div>`;
+}
+
+// ── Boot ─────────────────────────────────────────────────────
+init();
+</script>
+</body>
+</html>
