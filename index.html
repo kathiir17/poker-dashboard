@@ -5,82 +5,56 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Family Poker Night</title>
 <style>
-  :root {
-    --felt: #1a472a;
-    --gold: #c9a84c;
-    --felt-light: #1e5231;
-    --red: #8b2020;
-    --blue: #2c5282;
-    --bg: #ffffff;
-    --bg2: #f7f7f7;
-    --bg3: #efefef;
-    --border: #e0e0e0;
-    --border2: #d0d0d0;
-    --text: #111111;
-    --text2: #555555;
-    --text3: #888888;
-    --radius: 12px;
-    --radius-sm: 8px;
-  }
-  @media (prefers-color-scheme: dark) {
-    :root {
-      --bg: #141414;
-      --bg2: #1e1e1e;
-      --bg3: #2a2a2a;
-      --border: #2e2e2e;
-      --border2: #3a3a3a;
-      --text: #f0f0f0;
-      --text2: #aaaaaa;
-      --text3: #666666;
-    }
-  }
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); max-width: 640px; margin: 0 auto; }
-  input { background: var(--bg); color: var(--text); border: 0.5px solid var(--border2); border-radius: var(--radius-sm); padding: 7px 10px; font-size: 13px; width: 100%; font-family: inherit; }
-  input:focus { outline: 1px solid var(--felt); }
-  .hdr { background: var(--felt); color: var(--gold); padding: 14px 16px; display: flex; align-items: center; gap: 10px; }
-  .hdr-title { font-size: 17px; font-weight: 500; letter-spacing: 1px; }
-  .tabs { display: flex; border-bottom: 2px solid var(--felt); background: var(--bg2); overflow-x: auto; }
-  .tab { padding: 10px 14px; font-size: 13px; cursor: pointer; border: none; background: none; white-space: nowrap; font-weight: 500; color: var(--text2); border-bottom: 2px solid transparent; margin-bottom: -2px; font-family: inherit; }
-  .tab.on { color: var(--felt); border-bottom: 2px solid var(--felt); }
-  .pnl { display: none; padding: 1rem; }
-  .pnl.on { display: block; }
-  .card { background: var(--bg); border: 0.5px solid var(--border); border-radius: var(--radius); padding: 1rem 1.25rem; margin-bottom: 1rem; }
-  .stitle { font-size: 11px; font-weight: 500; color: var(--text3); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 10px; }
-  .btn { background: var(--felt); color: var(--gold); border: none; border-radius: var(--radius-sm); padding: 8px 16px; font-size: 13px; cursor: pointer; font-weight: 500; font-family: inherit; }
-  .btn:active { opacity: 0.85; }
-  .btn-blue { background: var(--blue); color: #bee3f8; }
-  .btn-ghost { background: var(--bg2); color: var(--text); border: 0.5px solid var(--border2); border-radius: var(--radius-sm); padding: 6px 12px; font-size: 13px; cursor: pointer; font-family: inherit; }
-  .btn-red { background: var(--red); color: #fcd; border: none; border-radius: var(--radius-sm); padding: 6px 12px; font-size: 13px; cursor: pointer; font-family: inherit; }
-  .btn-sm { padding: 4px 10px; font-size: 12px; }
-  .badge { display: inline-block; background: var(--felt); color: var(--gold); border-radius: 6px; padding: 3px 10px; font-size: 13px; font-weight: 500; min-width: 32px; text-align: center; }
-  .badge-zero { background: var(--bg2); color: var(--text3); }
-  .badge-inf { background: var(--felt); color: var(--gold); }
-  .av { width: 28px; height: 28px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 500; flex-shrink: 0; }
-  .lbl { font-size: 12px; color: var(--text2); margin-bottom: 4px; }
-  .divider { border: none; border-top: 0.5px solid var(--border); margin: 0; }
-  .row { display: flex; align-items: center; gap: 8px; padding: 7px 0; border-bottom: 0.5px solid var(--border); }
-  .row:last-child { border-bottom: none; }
-  .toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); background: var(--felt); color: var(--gold); padding: 8px 20px; border-radius: 20px; font-size: 13px; font-weight: 500; z-index: 999; pointer-events: none; opacity: 0; transition: opacity 0.3s; }
-  .toast.on { opacity: 1; }
-  .metric-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px; }
-  .metric { background: var(--bg2); border-radius: var(--radius-sm); padding: 12px 14px; }
-  .metric-lbl { font-size: 11px; color: var(--text3); margin-bottom: 4px; }
-  .metric-val { font-size: 18px; font-weight: 500; }
-  .metric-sub { font-size: 12px; color: var(--text3); margin-top: 2px; }
-  .bar-w { background: var(--bg2); border-radius: 4px; height: 6px; overflow: hidden; }
-  .bar-f { background: var(--felt); height: 6px; border-radius: 4px; }
-  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-  .warn-box { display: flex; align-items: center; gap: 6px; margin-bottom: 12px; padding: 8px 12px; background: var(--bg2); border-radius: var(--radius-sm); font-size: 12px; color: var(--text2); }
-  .confirm-box { border: 0.5px solid var(--red); border-radius: var(--radius); padding: 1rem 1.25rem; margin-bottom: 12px; }
-  .tag { display: inline-flex; align-items: center; gap: 5px; font-size: 12px; padding: 4px 10px; border-radius: 6px; cursor: pointer; border: 0.5px solid var(--border2); background: var(--bg2); color: var(--text); font-family: inherit; }
-  .tag:hover { background: var(--bg3); }
-  .win-banner { border: 1px solid var(--gold); border-radius: var(--radius-sm); padding: 10px 14px; margin-bottom: 12px; text-align: center; font-size: 14px; }
-  .tbl { width: 100%; border-collapse: collapse; font-size: 13px; }
-  .tbl th { text-align: left; padding: 6px 8px; font-size: 11px; color: var(--text3); border-bottom: 0.5px solid var(--border); font-weight: 500; }
-  .tbl td { padding: 7px 8px; border-bottom: 0.5px solid var(--border); }
-  .tbl tr:last-child td { border-bottom: none; }
-  .loading { padding: 3rem; text-align: center; color: var(--text3); font-size: 14px; }
+:root{
+  --felt:#1a472a; --gold:#c9a84c; --red:#8b2020; --blue:#2c5282;
+  --green:#1a7a3e; --redt:#c0392b;
+  --bg:#fff; --bg2:#f7f7f7; --bg3:#efefef; --border:#e4e4e4; --border2:#d0d0d0;
+  --text:#111; --text2:#555; --text3:#8a8a8a;
+}
+@media(prefers-color-scheme:dark){
+  :root{--bg:#141414;--bg2:#1e1e1e;--bg3:#2a2a2a;--border:#2e2e2e;--border2:#3a3a3a;
+        --text:#f0f0f0;--text2:#aaa;--text3:#6d6d6d;--green:#3fa05f;--redt:#e05a4a;}
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--text);max-width:640px;margin:0 auto;padding-bottom:40px}
+input,select{background:var(--bg);color:var(--text);border:0.5px solid var(--border2);border-radius:8px;padding:7px 10px;font-size:13px;width:100%;font-family:inherit}
+input:focus{outline:1px solid var(--felt)}
+.hdr{background:var(--felt);color:var(--gold);padding:14px 16px;display:flex;align-items:center;gap:10px}
+.hdr-title{font-size:17px;font-weight:500;letter-spacing:1px}
+.season-bar{background:var(--bg2);padding:9px 16px;border-bottom:0.5px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:10px}
+.season-select{display:flex;align-items:center;gap:8px}
+.season-select select{width:auto;min-width:130px;font-weight:500}
+.sys-toggle{display:flex;background:var(--bg3);border-radius:8px;padding:2px}
+.sys-toggle button{border:none;background:none;font-family:inherit;font-size:12px;font-weight:500;padding:6px 11px;border-radius:6px;cursor:pointer;color:var(--text2);white-space:nowrap}
+.sys-toggle button.on{background:var(--felt);color:var(--gold)}
+.tabs{display:flex;border-bottom:2px solid var(--felt);background:var(--bg2);overflow-x:auto}
+.tab{padding:10px 14px;font-size:13px;cursor:pointer;border:none;background:none;white-space:nowrap;font-weight:500;color:var(--text2);border-bottom:2px solid transparent;margin-bottom:-2px;font-family:inherit}
+.tab.on{color:var(--felt);border-bottom:2px solid var(--felt)}
+.pnl{display:none;padding:1rem}
+.pnl.on{display:block}
+.card{background:var(--bg);border:0.5px solid var(--border);border-radius:12px;padding:1rem 1.25rem;margin-bottom:1rem}
+.stitle{font-size:11px;font-weight:500;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px}
+.av{border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-weight:500;flex-shrink:0}
+.metric{background:var(--bg2);border-radius:8px;padding:10px 12px}
+.metric-lbl{font-size:11px;color:var(--text3);margin-bottom:4px}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.pos{color:var(--green)}.neg{color:var(--redt)}.neu{color:var(--text3)}
+.note{font-size:12px;color:var(--text3);line-height:1.6;margin-bottom:12px}
+table{border-collapse:collapse;width:100%}
+.btn{background:var(--felt);color:var(--gold);border:none;border-radius:8px;padding:8px 16px;font-size:13px;cursor:pointer;font-weight:500;font-family:inherit}
+.btn-blue{background:var(--blue);color:#bee3f8}
+.btn-ghost{background:var(--bg2);color:var(--text);border:0.5px solid var(--border2);border-radius:8px;padding:6px 12px;font-size:13px;cursor:pointer;font-family:inherit}
+.btn-red{background:var(--red);color:#fcd;border:none;border-radius:8px;padding:6px 12px;font-size:13px;cursor:pointer;font-family:inherit}
+.btn-sm{padding:4px 10px;font-size:12px}
+.tag{display:inline-flex;align-items:center;gap:5px;font-size:12px;padding:4px 10px;border-radius:6px;cursor:pointer;border:0.5px solid var(--border2);background:var(--bg2);color:var(--text);font-family:inherit}
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--felt);color:var(--gold);padding:8px 20px;border-radius:20px;font-size:13px;font-weight:500;z-index:999;pointer-events:none;opacity:0;transition:opacity .3s}
+.toast.on{opacity:1}
+.loading{padding:3rem;text-align:center;color:var(--text3);font-size:14px}
+.warn-box{display:flex;align-items:center;gap:6px;margin-bottom:12px;padding:8px 12px;background:var(--bg2);border-radius:8px;font-size:12px;color:var(--text2)}
+.confirm-box{border:0.5px solid var(--red);border-radius:12px;padding:1rem 1.25rem;margin-bottom:12px}
+.badge{display:inline-block;background:var(--felt);color:var(--gold);border-radius:6px;padding:3px 10px;font-size:13px;font-weight:500;min-width:32px;text-align:center}
+.win-banner{border:1px solid var(--gold);border-radius:8px;padding:10px 14px;margin-bottom:12px;text-align:center;font-size:14px}
+.pill{font-size:10px;padding:2px 8px;border-radius:10px;background:var(--bg3);color:var(--text3);font-weight:500}
 </style>
 </head>
 <body>
@@ -90,730 +64,558 @@
   <span class="hdr-title">Family poker night</span>
 </div>
 
+<div class="season-bar" id="season-bar"></div>
+
 <div class="tabs" id="tabs">
-  <button class="tab on" onclick="goTab('scorer',this)">Session</button>
-  <button class="tab" onclick="goTab('lb',this)">Leaderboard</button>
+  <button class="tab on" onclick="goTab('lb',this)">Leaderboard</button>
+  <button class="tab" onclick="goTab('scorer',this)">Session</button>
   <button class="tab" onclick="goTab('hist',this)">History</button>
   <button class="tab" onclick="goTab('stats',this)">Stats</button>
   <button class="tab" onclick="goTab('rules',this)">Rules</button>
 </div>
 
-<div class="pnl on" id="pnl-scorer"></div>
-<div class="pnl" id="pnl-lb"></div>
+<div class="pnl on" id="pnl-lb"><div class="loading">Loading...</div></div>
+<div class="pnl" id="pnl-scorer"></div>
 <div class="pnl" id="pnl-hist"></div>
 <div class="pnl" id="pnl-stats"></div>
 <div class="pnl" id="pnl-rules"></div>
 <div class="toast" id="toast"></div>
 
 <script>
-// ── Supabase config ──────────────────────────────────────────
-const SB_URL = "https://toqiyymioqjhebyyqufn.supabase.co";
-const SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRvcWl5eW1pb3FqaGVieXlxdWZuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA5NDY2NzQsImV4cCI6MjA5NjUyMjY3NH0.b5C6gryuWkwN4h6QAvtApIbvMlZ7X3uSw-Jr7uIVWHo";
-const HEADERS = { "Content-Type": "application/json", "apikey": SB_KEY, "Authorization": "Bearer " + SB_KEY };
+// ══════════════ SUPABASE ══════════════
+const SB_URL="https://toqiyymioqjhebyyqufn.supabase.co";
+const SB_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRvcWl5eW1pb3FqaGVieXlxdWZuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA5NDY2NzQsImV4cCI6MjA5NjUyMjY3NH0.b5C6gryuWkwN4h6QAvtApIbvMlZ7X3uSw-Jr7uIVWHo";
+const H={"Content-Type":"application/json","apikey":SB_KEY,"Authorization":"Bearer "+SB_KEY};
 
-async function dbLoad() {
-  const r = await fetch(`${SB_URL}/rest/v1/sessions?select=id,data&order=id.asc&limit=1`, { headers: HEADERS });
-  const rows = await r.json();
-  if (!rows.length) return null;
-  return { id: rows[0].id, sessions: rows[0].data || [] };
+async function dbLoad(){
+  const r=await fetch(`${SB_URL}/rest/v1/sessions?select=id,data&order=id.asc&limit=1`,{headers:H});
+  const rows=await r.json();
+  if(!rows.length)return null;
+  return {id:rows[0].id,data:rows[0].data};
+}
+async function dbSave(id,data){
+  await fetch(`${SB_URL}/rest/v1/sessions?id=eq.${id}`,{method:"PATCH",headers:H,
+    body:JSON.stringify({data,updated_at:new Date().toISOString()})});
 }
 
-async function dbSave(id, sessions) {
-  await fetch(`${SB_URL}/rest/v1/sessions?id=eq.${id}`, {
-    method: "PATCH",
-    headers: HEADERS,
-    body: JSON.stringify({ data: sessions, updated_at: new Date().toISOString() })
-  });
-}
-
-// ── Scoring ──────────────────────────────────────────────────
-const BKT = [[0,0],[0.5,5],[0.8,8],[1.0,10],[1.2,13],[1.5,16],[2.0,19],[2.5,22],[3.0,25],[4.0,30],[5.0,35]];
-function interpPts(m) {
-  if (m <= 0) return 0;
-  if (m >= 5) return 35 + (m - 5) * 5;
-  for (let i = 1; i < BKT.length; i++) {
-    const [lm,lp] = BKT[i-1], [hm,hp] = BKT[i];
-    if (m <= hm) return lp + ((m-lm)/(hm-lm)) * (hp-lp);
-  }
-  return 35;
-}
-function rebuyMult(b) {
-  if (b <= 40) return 1.0;
-  if (b <= 60) return 0.9;
-  if (b <= 80) return 0.5;
-  if (b <= 100) return 0.25;
-  return 0.25 * Math.pow(0.5, Math.floor((b-100)/20)+1);
-}
-function calcScore(buyin, final) {
-  const mult = buyin > 0 ? final/buyin : 0;
-  const rawPts = interpPts(mult);
-  const rm = rebuyMult(buyin);
-  return { mult, rawPts, rm, pts: Math.round(rawPts * rm) };
-}
-
-// ── Colours ──────────────────────────────────────────────────
-const ALL_PLAYERS = ["Kathiir","Varunn","Ami","Aaron","Sanj","Vittu"];
-const AV_BG = ['#1a472a','#2980b9','#8b2020','#6b3fa0','#b5551a','#1a5276'];
-const AV_FG = ['#a8e6c0','#bee3f8','#fcd5d5','#e8d5f8','#fde8d5','#d5eef8'];
-const LINE_COLORS = ['#1a472a','#2980b9','#8b2020','#6b3fa0','#b5551a','#1a5276'];
-
-function avIdx(name) { const i = ALL_PLAYERS.indexOf(name); return i < 0 ? 0 : i % 6; }
-function avHTML(name, size=28) {
-  const i = avIdx(name);
-  return `<div class="av" style="width:${size}px;height:${size}px;font-size:${Math.round(size*0.38)}px;background:${AV_BG[i]};color:${AV_FG[i]}">${name.slice(0,2).toUpperCase()}</div>`;
-}
-function badge(pts) {
-  return `<span class="badge${pts===0?' badge-zero':''}">${pts}</span>`;
-}
-
-// ── State ────────────────────────────────────────────────────
-let DB_ID = null;
-let sessions = [];
-let scorerPlayers = [];
-let scorerRows = {};
-let activeChart = null;
-let formActive = null;
-let deleteIdx = null;
-let editIdx = null;
-
-const SEED = [
-  {name:"Session 1",date:"16/04/2026",results:[
-    {player:"Kathiir",buyin:20,final:61.1},{player:"Varunn",buyin:20,final:41.7},
-    {player:"Ami",buyin:40,final:50.6},{player:"Aaron",buyin:60,final:20},{player:"Sanj",buyin:60,final:27}]},
-  {name:"Session 2",date:"26/04/2026",results:[
-    {player:"Kathiir",buyin:40,final:12},{player:"Varunn",buyin:20,final:29.75},
-    {player:"Ami",buyin:40,final:61},{player:"Aaron",buyin:20,final:15.5},{player:"Sanj",buyin:20,final:21.75}]},
-  {name:"Session 3",date:"16/05/2026",results:[
-    {player:"Vittu",buyin:40,final:62.75},{player:"Varunn",buyin:40,final:16.5},
-    {player:"Ami",buyin:20,final:54.25},{player:"Aaron",buyin:40,final:9.75},{player:"Sanj",buyin:20,final:17}]},
-  {name:"Session 4",date:"23/05/2026",results:[
-    {player:"Varunn",buyin:20,final:35.5},{player:"Ami",buyin:20,final:46.5},
-    {player:"Aaron",buyin:20,final:36.75},{player:"Sanj",buyin:40,final:37},
-    {player:"Vittu",buyin:60,final:23.5},{player:"Kathiir",buyin:40,final:23.5}]},
-  {name:"Session 5",date:"06/06/2026",results:[
-    {player:"Varunn",buyin:40,final:29},{player:"Ami",buyin:60,final:22.75},
-    {player:"Aaron",buyin:60,final:22.5},{player:"Sanj",buyin:40,final:129},
-    {player:"Vittu",buyin:100,final:20},{player:"Kathiir",buyin:20,final:97}]}
+// ══════════════ SEASON 1 SEED (canonical 10 sessions) ══════════════
+const SEASON1=[
+ {name:"Session 1",date:"16/04/2026",results:[
+  {player:"Kathiir",buyin:20,final:61.10},{player:"Varunn",buyin:20,final:41.70},
+  {player:"Ami",buyin:40,final:50.60},{player:"Sanj",buyin:60,final:27.00},{player:"Aaron",buyin:60,final:20.00}]},
+ {name:"Session 2",date:"26/04/2026",results:[
+  {player:"Varunn",buyin:20,final:29.75},{player:"Ami",buyin:40,final:61.00},
+  {player:"Sanj",buyin:20,final:21.75},{player:"Aaron",buyin:20,final:15.50},{player:"Kathiir",buyin:40,final:12.00}]},
+ {name:"Session 3",date:"16/05/2026",results:[
+  {player:"Ami",buyin:20,final:54.25},{player:"Vittu",buyin:40,final:62.75},
+  {player:"Sanj",buyin:20,final:17.00},{player:"Varunn",buyin:40,final:16.50},{player:"Aaron",buyin:40,final:9.75}]},
+ {name:"Session 4",date:"23/05/2026",results:[
+  {player:"Ami",buyin:20,final:46.50},{player:"Varunn",buyin:20,final:35.50},
+  {player:"Aaron",buyin:20,final:36.75},{player:"Sanj",buyin:40,final:37.00},
+  {player:"Kathiir",buyin:40,final:23.50},{player:"Vittu",buyin:60,final:23.50}]},
+ {name:"Session 5",date:"06/06/2026",results:[
+  {player:"Kathiir",buyin:20,final:97.00},{player:"Sanj",buyin:40,final:129.00},
+  {player:"Varunn",buyin:40,final:29.00},{player:"Ami",buyin:60,final:22.75},
+  {player:"Aaron",buyin:60,final:22.50},{player:"Vittu",buyin:100,final:20.00}]},
+ {name:"Session 6",date:"13/06/2026",results:[
+  {player:"Sanj",buyin:20,final:60.00},{player:"Varunn",buyin:20,final:23.50},
+  {player:"Vittu",buyin:40,final:39.50},{player:"Ami",buyin:40,final:20.00},{player:"Aaron",buyin:40,final:17.00}]},
+ {name:"Session 7",date:"14/06/2026",results:[
+  {player:"Sanj",buyin:20,final:96.25},{player:"Varunn",buyin:20,final:45.00},
+  {player:"Ami",buyin:20,final:20.75},{player:"Vittu",buyin:80,final:28.50},{player:"Aaron",buyin:60,final:12.00}]},
+ {name:"Session 8",date:"20/06/2026",results:[
+  {player:"Sanj",buyin:20,final:80.00},{player:"Varunn",buyin:20,final:41.25},
+  {player:"Ami",buyin:40,final:46.00},{player:"Vittu",buyin:40,final:13.25},{player:"Aaron",buyin:80,final:20.00}]},
+ {name:"Session 9",date:"24/06/2026",results:[
+  {player:"Vittu",buyin:20,final:45.00},{player:"Sanj",buyin:40,final:96.25},
+  {player:"Varunn",buyin:20,final:27.25},{player:"Aaron",buyin:20,final:25.25},
+  {player:"Ami",buyin:40,final:26.25},{player:"Kathiir",buyin:100,final:19.75}]},
+ {name:"Session 10",date:"03/07/2026",results:[
+  {player:"Sanj",buyin:20,final:84.00},{player:"Aaron",buyin:20,final:45.75},
+  {player:"Kev",buyin:60,final:40.30},{player:"Varunn",buyin:60,final:18.50},{player:"Vittu",buyin:40,final:11.75}]}
 ];
 
-function addPts(sess) {
-  return sess.map(s => ({ ...s, results: s.results.map(r => ({ ...r, pts: calcScore(r.buyin, r.final).pts })) }));
-}
+const K=3;
+const KNOWN=["Kathiir","Varunn","Ami","Aaron","Sanj","Vittu","Kev"];
+const CB=['#1a472a','#2980b9','#8b2020','#6b3fa0','#b5551a','#1a5276','#7a5c1e','#2d6a4f','#9c4221'];
+const CF=['#a8e6c0','#bee3f8','#fcd5d5','#e8d5f8','#fde8d5','#d5eef8','#f5e6c0','#c5e8d5','#f8d5c0'];
 
-// ── Init ─────────────────────────────────────────────────────
-async function init() {
-  document.getElementById('pnl-scorer').innerHTML = `<div class="loading">Loading...</div>`;
-  try {
-    const row = await dbLoad();
-    if (row) {
-      DB_ID = row.id;
-      sessions = row.sessions.length ? row.sessions : addPts(SEED);
-      if (!row.sessions.length) await dbSave(DB_ID, sessions);
+// ══════════════ SCORING ══════════════
+const BKT=[[0,0],[0.5,5],[0.8,8],[1.0,10],[1.2,13],[1.5,16],[2.0,19],[2.5,22],[3.0,25],[4.0,30],[5.0,35]];
+function interpPts(m){if(m<=0)return 0;if(m>=5)return 35+(m-5)*5;
+  for(let i=1;i<BKT.length;i++){const[lm,lp]=BKT[i-1],[hm,hp]=BKT[i];if(m<=hm)return lp+((m-lm)/(hm-lm))*(hp-lp);}return 35;}
+function rebuyMult(b){if(b<=40)return 1;if(b<=60)return .9;if(b<=80)return .5;if(b<=100)return .25;return .25*Math.pow(.5,Math.floor((b-100)/20)+1);}
+function oldPts(b,f){return Math.round(interpPts(b>0?f/b:0)*rebuyMult(b));}
+function pnl(r){return r.final-r.buyin;}
+
+// ══════════════ STATE ══════════════
+let DB_ID=null;
+let seasons=[];       // [{name, system, sessions:[]}]
+let curSeason=0;      // index
+let SYS='pnl';        // display system for archived seasons
+let TAB='lb';
+let formActive=null;
+let scorerPlayers=[], scorerRows={}, scorerName="", scorerResult=null;
+let editIdx=null, editData=null, deleteIdx=null;
+
+// ══════════════ INIT ══════════════
+async function init(){
+  try{
+    const row=await dbLoad();
+    if(row){
+      DB_ID=row.id;
+      const d=row.data;
+      // Detect format: new = array of seasons (objects with .sessions); old flat = array of sessions (objects with .results)
+      if(Array.isArray(d) && d.length && d[0] && d[0].sessions!==undefined){
+        seasons=d; // already new format
+      } else {
+        // empty or old flat format -> seed fresh season structure
+        seasons=[
+          {name:"Season 1",system:"old",sessions:SEASON1},
+          {name:"Season 2",system:"pnl",sessions:[]}
+        ];
+        await dbSave(DB_ID,seasons);
+      }
+    } else {
+      seasons=[
+        {name:"Season 1",system:"old",sessions:SEASON1},
+        {name:"Season 2",system:"pnl",sessions:[]}
+      ];
     }
-  } catch(e) {
-    sessions = addPts(SEED);
+  }catch(e){
+    seasons=[{name:"Season 1",system:"old",sessions:SEASON1},{name:"Season 2",system:"pnl",sessions:[]}];
   }
-  renderScorer();
-  renderRules();
+  curSeason=seasons.length-1;         // default to newest (active) season
+  SYS = seasons[curSeason].system;
+  renderSeasonBar();
+  render();
 }
 
-// ── Toast ────────────────────────────────────────────────────
-function toast(msg) {
-  const t = document.getElementById('toast');
-  t.textContent = msg; t.classList.add('on');
-  setTimeout(() => t.classList.remove('on'), 2200);
+async function persist(){
+  if(DB_ID!==null){try{await dbSave(DB_ID,seasons);}catch(e){toast("Save failed — check connection");}}
 }
 
-// ── Tabs ─────────────────────────────────────────────────────
-function goTab(id, el) {
-  document.querySelectorAll('.tab').forEach(t => t.classList.remove('on'));
-  document.querySelectorAll('.pnl').forEach(p => p.classList.remove('on'));
+function toast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('on');setTimeout(()=>t.classList.remove('on'),2200);}
+
+// ══════════════ SEASON BAR ══════════════
+function renderSeasonBar(){
+  const s=seasons[curSeason];
+  const isArchived = s.system==="old";
+  let html=`<div class="season-select">
+    <select onchange="switchSeason(this.value)">
+      ${seasons.map((se,i)=>`<option value="${i}" ${i===curSeason?'selected':''}>${se.name}${i===seasons.length-1?' (current)':''}</option>`).join('')}
+    </select>
+    <button class="btn-ghost btn-sm" onclick="newSeason()">+ New season</button>
+  </div>`;
+  // Only Season 1 (old system) gets the comparison toggle
+  if(isArchived){
+    html+=`<div class="sys-toggle">
+      <button class="${SYS==='pnl'?'on':''}" onclick="setSys('pnl')">Shrunk PnL</button>
+      <button class="${SYS==='old'?'on':''}" onclick="setSys('old')">Old points</button>
+    </div>`;
+  }
+  document.getElementById('season-bar').innerHTML=html;
+}
+
+function switchSeason(i){
+  curSeason=+i;
+  SYS = seasons[curSeason].system==="old" ? SYS : "pnl";
+  formActive=null; scorerResult=null; editIdx=null; deleteIdx=null;
+  renderSeasonBar(); render();
+}
+function setSys(s){SYS=s;renderSeasonBar();render();}
+
+async function newSeason(){
+  const n=seasons.length+1;
+  seasons.push({name:`Season ${n}`,system:"pnl",sessions:[]});
+  curSeason=seasons.length-1; SYS="pnl";
+  await persist();
+  renderSeasonBar(); render();
+  toast(`Season ${n} created`);
+}
+
+function goTab(id,el){
+  TAB=id;
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('on'));
+  document.querySelectorAll('.pnl').forEach(p=>p.classList.remove('on'));
   el.classList.add('on');
   document.getElementById('pnl-'+id).classList.add('on');
-  if (id === 'lb') renderLB();
-  if (id === 'hist') renderHist();
-  if (id === 'stats') renderStats();
+  render();
 }
 
-// ── Save ─────────────────────────────────────────────────────
-async function persist() {
-  if (DB_ID !== null) {
-    try { await dbSave(DB_ID, sessions); } catch(e) { toast('Save failed — check connection'); }
+// ══════════════ HELPERS ══════════════
+function curSessions(){return seasons[curSeason].sessions;}
+function isActiveSeason(){return curSeason===seasons.length-1;}
+function avIdx(n){const i=KNOWN.indexOf(n);return i<0?(hashName(n)%CB.length):i;}
+function hashName(n){let h=0;for(let i=0;i<n.length;i++)h=(h*31+n.charCodeAt(i))>>>0;return h;}
+function av(n,s=28){const i=avIdx(n);return `<div class="av" style="width:${s}px;height:${s}px;font-size:${Math.round(s*.38)}px;background:${CB[i]};color:${CF[i]}">${n.slice(0,2).toUpperCase()}</div>`;}
+function money(v,dp=2){const s=v>=0?'+':'−';return `${s}£${Math.abs(v).toFixed(dp)}`;}
+function cls(v){return v>0.004?'pos':v<-0.004?'neg':'neu';}
+function round50(v){return Math.round(v*2)/2;}
+
+function buildStats(){
+  const m={};
+  curSessions().forEach(s=>{
+    const ranked=s.results.map(r=>({...r,_p:pnl(r),_o:oldPts(r.buyin,r.final)}));
+    const sortP=[...ranked].sort((a,b)=>b._p-a._p);
+    const sortO=[...ranked].sort((a,b)=>b._o-a._o);
+    ranked.forEach(r=>{
+      if(!m[r.player])m[r.player]={name:r.player,n:0,pnlTot:0,oldTot:0,winsP:0,winsO:0,rows:[],in:0,out:0};
+      const e=m[r.player];e.n++;e.pnlTot+=r._p;e.oldTot+=r._o;e.in+=r.buyin;e.out+=r.final;
+      e.rows.push({sname:s.name,buyin:r.buyin,final:r.final,p:r._p,o:r._o});
+    });
+    if(sortP[0])m[sortP[0].player].winsP++;
+    if(sortO[0])m[sortO[0].player].winsO++;
+  });
+  return Object.values(m);
+}
+function ranked(){
+  const all=buildStats();const total=curSessions().length;
+  all.forEach(p=>{p.shrunk=p.pnlTot/(p.n+K);p.rawAvg=p.pnlTot/p.n;p.oldAvg=p.oldTot/p.n;
+    p.metric=SYS==='pnl'?p.shrunk:p.oldAvg;p.seasonTotal=total;});
+  return all.sort((a,b)=>b.metric-a.metric);
+}
+
+// ══════════════ RENDER DISPATCH ══════════════
+function render(){
+  if(TAB==='lb')renderLB();
+  if(TAB==='scorer')renderScorer();
+  if(TAB==='hist')renderHist();
+  if(TAB==='stats')renderStats();
+  if(TAB==='rules')renderRules();
+}
+
+// ══════════════ LEADERBOARD ══════════════
+function renderLB(){
+  const total=curSessions().length;
+  if(total===0){
+    document.getElementById('pnl-lb').innerHTML=`<div class="card"><div class="note" style="margin:0;text-align:center;padding:1rem 0">No sessions yet in ${seasons[curSeason].name}. Add one from the <strong>Session</strong> tab to get started.</div></div>`;
+    return;
   }
+  const all=ranked();const isPnl=SYS==='pnl';
+  const maxAbs=Math.max(...all.map(p=>Math.abs(p.metric)),1);
+  let html=`<div class="card">
+    <div class="stitle">${isPnl?'Standings — shrunk avg PnL':'Standings — avg points (old system)'}</div>
+    <div class="note">${isPnl
+      ? `Ranked by total PnL ÷ (sessions + ${K}). A player with few games sits closer to £0 until they've proven otherwise.`
+      : `Ranked by average bracket points. Scores floor at 0.`}</div>`;
+  all.forEach((p,i)=>{
+    const medal=i===0?'🥇':i===1?'🥈':i===2?'🥉':(i+1);
+    const headline=isPnl?money(round50(p.metric),2):p.metric.toFixed(1)+' pts';
+    const sub=isPnl?`${p.n}/${total} played · ${money(p.pnlTot,2)} total`:`${p.n}/${total} played · ${p.oldTot} total pts`;
+    html+=`<div style="display:flex;align-items:center;gap:10px;padding:11px 0;border-bottom:0.5px solid var(--border)">
+      <span style="width:22px;text-align:center;font-size:14px">${medal}</span>${av(p.name)}
+      <div style="flex:1;min-width:0">
+        <div style="display:flex;justify-content:space-between;align-items:baseline">
+          <span style="font-size:14px;font-weight:500">${p.name}</span>
+          <span style="font-size:15px;font-weight:600;${isPnl?'':'color:var(--felt)'}" class="${isPnl?cls(p.metric):''}">${headline}</span>
+        </div>
+        <div style="font-size:11px;color:var(--text3);margin-top:2px">${sub}</div>
+      </div></div>`;
+  });
+  html+=`</div>`;
+  html+=`<div class="card"><div class="stitle">${isPnl?'Shrunk avg PnL per session':'Avg points per session'}</div>${isPnl?barCentred(all,maxAbs):barSimple(all,maxAbs)}</div>`;
+  html+=`<div class="card"><div class="stitle">Form — ${isPnl?'PnL':'points'} per session</div>${formChart(all,isPnl)}
+    <div style="display:flex;flex-wrap:wrap;gap:6px 8px;margin-top:10px">
+      ${all.map(p=>{const c=CB[avIdx(p.name)];const act=formActive===p.name;const fade=formActive&&!act;
+        return `<button onclick="toggleForm('${p.name}')" style="display:flex;align-items:center;gap:6px;font-size:12px;cursor:pointer;border:none;padding:4px 8px;border-radius:6px;font-family:inherit;background:${act?'var(--bg2)':'transparent'};opacity:${fade?0.3:1};color:var(--text)">
+          <span style="width:14px;height:${act?4:3}px;border-radius:2px;background:${c};display:inline-block"></span>${p.name}</button>`;}).join('')}
+    </div>${formActive?`<div style="font-size:11px;color:var(--text3);margin-top:6px;text-align:center">Tap ${formActive} again to reset</div>`:''}</div>`;
+  document.getElementById('pnl-lb').innerHTML=html;
+}
+function toggleForm(n){formActive=formActive===n?null:n;renderLB();}
+
+function barCentred(all,maxAbs){
+  const W=320,rowH=30,padT=18,padB=8,labelW=52;const H=padT+all.length*rowH+padB;
+  const zone=W-labelW-8;const cx=labelW+zone/2;const scale=(zone/2-4)/maxAbs;
+  let s=`<svg viewBox="0 0 ${W} ${H}" style="width:100%;display:block">`;
+  s+=`<text x="${cx}" y="11" font-size="9" fill="var(--text3)" text-anchor="middle">£0</text>`;
+  s+=`<line x1="${cx}" x2="${cx}" y1="${padT-4}" y2="${H-padB}" stroke="var(--border2)" stroke-width="1"/>`;
+  all.forEach((p,i)=>{const y=padT+i*rowH;const v=p.metric;const w=Math.abs(v)*scale;const x=v>=0?cx:cx-w;
+    const col=v>=0?'#1a7a3e':'#c0392b';
+    s+=`<text x="${labelW-6}" y="${y+15}" font-size="11" fill="var(--text2)" text-anchor="end">${p.name.slice(0,6)}</text>`;
+    s+=`<rect x="${x}" y="${y+5}" width="${Math.max(w,1.5)}" height="15" rx="3" fill="${col}"/>`;
+    const tx=v>=0?cx+w+5:cx-w-5;const anc=v>=0?'start':'end';
+    s+=`<text x="${tx}" y="${y+16}" font-size="10" font-weight="600" fill="${col}" text-anchor="${anc}">${money(v,2)}</text>`;});
+  return s+`</svg>`;
+}
+function barSimple(all,max){
+  const W=320,rowH=30,padT=8,padB=8,labelW=52;const H=padT+all.length*rowH+padB;
+  const zone=W-labelW-48;const scale=zone/max;
+  let s=`<svg viewBox="0 0 ${W} ${H}" style="width:100%;display:block">`;
+  all.forEach((p,i)=>{const y=padT+i*rowH;const w=p.metric*scale;
+    s+=`<text x="${labelW-6}" y="${y+15}" font-size="11" fill="var(--text2)" text-anchor="end">${p.name.slice(0,6)}</text>`;
+    s+=`<rect x="${labelW}" y="${y+5}" width="${Math.max(w,1.5)}" height="15" rx="3" fill="#1a472a"/>`;
+    s+=`<text x="${labelW+w+5}" y="${y+16}" font-size="10" font-weight="600" fill="var(--text2)">${p.metric.toFixed(1)}</text>`;});
+  return s+`</svg>`;
+}
+function formChart(all,isPnl){
+  const SS=curSessions();const W=320,H=210,padL=34,padR=10,padT=10,padB=26;
+  const iW=W-padL-padR,iH=H-padT-padB;const n=SS.length;
+  const vals=SS.flatMap(s=>s.results.map(r=>isPnl?pnl(r):oldPts(r.buyin,r.final)));
+  let lo=Math.min(...vals,0),hi=Math.max(...vals,1);const span=hi-lo||1;lo-=span*0.06;hi+=span*0.06;
+  const toX=i=>padL+i*(iW/Math.max(n-1,1));const toY=v=>padT+iH-((v-lo)/(hi-lo))*iH;
+  let ticks=isPnl?[-80,-40,0,40,80,120]:[0,10,20,30];ticks=ticks.filter(t=>t>=lo&&t<=hi);
+  let s=`<svg viewBox="0 0 ${W} ${H}" style="width:100%;display:block">`;
+  ticks.forEach(t=>{const z=t===0;
+    s+=`<line x1="${padL}" x2="${W-padR}" y1="${toY(t)}" y2="${toY(t)}" stroke="${z?'var(--border2)':'var(--border)'}" stroke-width="${z?1:0.5}" ${z?'':'stroke-dasharray="3,3"'}/>`;
+    s+=`<text x="${padL-5}" y="${toY(t)+3.5}" font-size="8.5" fill="var(--text3)" text-anchor="end">${isPnl?(t<0?'−£'+Math.abs(t):'£'+t):t}</text>`;});
+  SS.forEach((_,i)=>{if(n<=1){s+=`<text x="${toX(i)}" y="${H-7}" font-size="8.5" fill="var(--text3)" text-anchor="middle">S${i+1}</text>`;}
+    else s+=`<text x="${toX(i)}" y="${H-7}" font-size="8.5" fill="var(--text3)" text-anchor="middle">S${i+1}</text>`;});
+  all.forEach(p=>{const c=CB[avIdx(p.name)];const act=formActive===p.name;const fade=formActive&&!act;
+    const pts=SS.map(s2=>{const r=s2.results.find(x=>x.player===p.name);return r?(isPnl?pnl(r):oldPts(r.buyin,r.final)):null;});
+    const segs=[];let seg=[];pts.forEach((v,i)=>{if(v!==null)seg.push([i,v]);else{if(seg.length>=2)segs.push(seg);seg=[];}});
+    if(seg.length>=2)segs.push(seg);
+    // also plot single isolated points as dots
+    const dots=pts.map((v,i)=>v!==null?[i,v]:null).filter(Boolean);
+    s+=`<g style="opacity:${fade?0.09:1}">`;
+    segs.forEach(sg=>{const d=sg.map(([i,v],j)=>`${j===0?'M':'L'}${toX(i).toFixed(1)},${toY(v).toFixed(1)}`).join(' ');
+      s+=`<path d="${d}" fill="none" stroke="${c}" stroke-width="${act?2.4:1.4}" stroke-linejoin="round" stroke-linecap="round"/>`;});
+    dots.forEach(([i,v])=>{s+=`<circle cx="${toX(i).toFixed(1)}" cy="${toY(v).toFixed(1)}" r="${act?3.6:2.4}" fill="${c}"/>`;});
+    s+=`</g>`;});
+  return s+`</svg>`;
 }
 
-// ══════════════════════════════════════════════════════════════
-// SCORER
-// ══════════════════════════════════════════════════════════════
-function renderScorer() {
-  const el = document.getElementById('pnl-scorer');
-  const quickAdd = ALL_PLAYERS.filter(p => !scorerPlayers.includes(p));
-  el.innerHTML = `
+// ══════════════ SESSION SCORER ══════════════
+function renderScorer(){
+  const el=document.getElementById('pnl-scorer');
+  if(!isActiveSeason()){
+    el.innerHTML=`<div class="card"><div class="note" style="margin:0;text-align:center;padding:1rem 0">${seasons[curSeason].name} is archived. Switch to the current season to add sessions.</div></div>`;
+    return;
+  }
+  const seen=new Set();curSessions().forEach(s=>s.results.forEach(r=>seen.add(r.player)));
+  KNOWN.forEach(p=>seen.add(p));
+  const quick=[...seen].filter(p=>!scorerPlayers.includes(p));
+  el.innerHTML=`
     <div class="card">
-      <div class="stitle">Session setup</div>
-      <div style="margin-bottom:10px">
-        <div class="lbl">Session name</div>
-        <input id="sess-name" placeholder="Session ${sessions.length+1}" style="max-width:280px">
-      </div>
+      <div class="stitle">New session — ${seasons[curSeason].name}</div>
+      <div style="margin-bottom:10px"><div style="font-size:12px;color:var(--text3);margin-bottom:4px">Session name</div>
+        <input id="sname" placeholder="Session ${curSessions().length+1}" value="${scorerName}" oninput="scorerName=this.value" style="max-width:280px"></div>
       <div style="display:flex;gap:8px;margin-bottom:8px">
-        <input id="np" placeholder="Type a name or pick below" style="flex:1">
-        <button class="btn btn-sm" onclick="addPlayer()">Add</button>
-      </div>
+        <input id="np" placeholder="Type a name or pick below" style="flex:1" onkeydown="if(event.key==='Enter')addP()">
+        <button class="btn btn-sm" onclick="addP()">Add</button></div>
       <div style="display:flex;flex-wrap:wrap;gap:6px">
-        ${quickAdd.map(p => `<button class="tag" onclick="addPlayerNamed('${p}')">${avHTML(p,18)} ${p}</button>`).join('')}
+        ${quick.map(p=>`<button class="tag" onclick="addPN('${p.replace(/'/g,"\\'")}')">${av(p,18)} ${p}</button>`).join('')}
       </div>
     </div>
-    ${scorerPlayers.length ? `
-    <div class="card">
+    ${scorerPlayers.length?`<div class="card">
       <div class="stitle">Players & results</div>
       <div style="display:grid;grid-template-columns:1fr 80px 80px 36px;gap:6px;padding-bottom:6px;border-bottom:0.5px solid var(--border);margin-bottom:8px">
         <span style="font-size:11px;color:var(--text3)">Player</span>
-        <span style="font-size:11px;color:var(--text3);text-align:center">Buy-in (£)</span>
-        <span style="font-size:11px;color:var(--text3);text-align:center">Final (£)</span>
-        <span></span>
-      </div>
-      <div id="plist">
-        ${scorerPlayers.map((p,i) => `
-          <div style="display:grid;grid-template-columns:1fr 80px 80px 36px;gap:6px;align-items:center;margin-bottom:8px">
-            <div style="display:flex;align-items:center;gap:7px">${avHTML(p)} <span style="font-size:13px">${p}</span></div>
-            <input type="number" id="bi${i}" value="${scorerRows[p]?.buyin||20}" min="20" step="20" style="text-align:center" oninput="scorerRows['${p}'].buyin=this.value">
-            <input type="number" id="fc${i}" value="${scorerRows[p]?.final||''}" min="0" step="0.1" placeholder="0" style="text-align:center" oninput="scorerRows['${p}'].final=this.value">
-            <button class="btn-red btn-sm" onclick="removePlayer('${p}')">✕</button>
-          </div>`).join('')}
-      </div>
+        <span style="font-size:11px;color:var(--text3);text-align:center">Buy-in £</span>
+        <span style="font-size:11px;color:var(--text3);text-align:center">Final £</span><span></span></div>
+      ${scorerPlayers.map(p=>`<div style="display:grid;grid-template-columns:1fr 80px 80px 36px;gap:6px;align-items:center;margin-bottom:8px">
+        <div style="display:flex;align-items:center;gap:7px">${av(p)}<span style="font-size:13px">${p}</span></div>
+        <input type="number" value="${scorerRows[p]?.buyin??20}" min="0" step="5" style="text-align:center" oninput="scorerRows['${p.replace(/'/g,"\\'")}'].buyin=this.value">
+        <input type="number" value="${scorerRows[p]?.final??''}" min="0" step="0.25" placeholder="0" style="text-align:center" oninput="scorerRows['${p.replace(/'/g,"\\'")}'].final=this.value">
+        <button class="btn-red btn-sm" onclick="rmP('${p.replace(/'/g,"\\'")}')">✕</button></div>`).join('')}
       <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap">
         <button class="btn" onclick="calcScores()">Calculate</button>
-        <button class="btn btn-blue" onclick="saveSession()">Save session</button>
-      </div>
-    </div>` : ''}
-    <div id="res"></div>`;
-
-  document.getElementById('np').addEventListener('keydown', e => { if(e.key==='Enter') addPlayer(); });
+        <button class="btn btn-blue" onclick="saveSession()">Save session</button></div>
+    </div>`:''}
+    <div id="scorer-res">${scorerResult||''}</div>`;
 }
-
-function addPlayerNamed(name) {
-  if (scorerPlayers.includes(name)) { toast('Already added'); return; }
-  scorerPlayers.push(name);
-  scorerRows[name] = { buyin: 20, final: '' };
+function addPN(name){if(scorerPlayers.includes(name)){toast('Already added');return;}scorerPlayers.push(name);scorerRows[name]={buyin:20,final:''};renderScorer();}
+function addP(){const v=document.getElementById('np').value.trim();if(!v)return;addPN(v);}
+function rmP(name){scorerPlayers=scorerPlayers.filter(p=>p!==name);delete scorerRows[name];renderScorer();}
+function readScorer(){return scorerPlayers.map(p=>{const b=parseFloat(scorerRows[p]?.buyin)||0;const f=parseFloat(scorerRows[p]?.final)||0;return{player:p,buyin:b,final:f};});}
+function calcScores(){
+  if(!scorerPlayers.length){toast('Add players first');return;}
+  const rows=readScorer().map(r=>({...r,p:pnl(r)})).sort((a,b)=>b.p-a.p);
+  scorerResult=`<div class="win-banner">🎉 Biggest winner: <strong>${rows[0].player}</strong> — ${money(rows[0].p,2)}</div>
+    <div class="card"><div class="stitle">Results</div>
+    ${rows.map((r,i)=>`<div style="display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:0.5px solid var(--border)">
+      <span style="width:18px;font-size:12px;color:var(--text3)">${i+1}</span>${av(r.player,24)}
+      <span style="flex:1;font-size:13px">${r.player}</span>
+      <span style="font-size:11px;color:var(--text3)">£${r.buyin}→£${r.final.toFixed(2)}</span>
+      <span style="font-weight:600" class="${cls(r.p)}">${money(r.p,2)}</span></div>`).join('')}</div>`;
   renderScorer();
 }
-
-function addPlayer() {
-  const n = document.getElementById('np').value.trim();
-  if (!n) return;
-  addPlayerNamed(n);
-}
-
-function removePlayer(name) {
-  scorerPlayers = scorerPlayers.filter(p => p !== name);
-  delete scorerRows[name];
-  renderScorer();
-}
-
-function readRows() {
-  return scorerPlayers.map((p,i) => {
-    const buyin = parseFloat(document.getElementById('bi'+i)?.value) || 20;
-    const final = parseFloat(document.getElementById('fc'+i)?.value) || 0;
-    return { player: p, buyin, final, ...calcScore(buyin, final) };
-  });
-}
-
-function calcScores() {
-  if (!scorerPlayers.length) { toast('Add players first'); return; }
-  const rows = readRows().sort((a,b) => b.pts-a.pts);
-  const winner = rows[0];
-  document.getElementById('res').innerHTML = `
-    <div class="win-banner">🎉 Winner: <strong>${winner.player}</strong> — ${winner.pts} pts</div>
-    <div class="card">
-      <div class="stitle">Calculated scores</div>
-      ${rows.map((r,i) => `
-        <div class="row">
-          <span style="width:18px;font-size:12px;color:var(--text3)">${i+1}</span>
-          ${avHTML(r.player,24)}
-          <span style="flex:1;font-size:13px">${r.player}</span>
-          <span style="font-size:11px;color:var(--text3)">${r.mult.toFixed(2)}x · ×${r.rm}</span>
-          ${badge(r.pts)}
-        </div>`).join('')}
-    </div>`;
-}
-
-async function saveSession() {
-  if (!scorerPlayers.length) { toast('Add players first'); return; }
-  const rows = readRows();
-  const d = new Date();
-  const date = `${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}/${d.getFullYear()}`;
-  const name = document.getElementById('sess-name').value.trim() || `Session ${sessions.length+1}`;
-  sessions.push({ name, date, results: rows.map(r => ({ player:r.player, buyin:r.buyin, final:r.final, pts:r.pts })) });
+async function saveSession(){
+  if(!scorerPlayers.length){toast('Add players first');return;}
+  const rows=readScorer();const d=new Date();
+  const date=`${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}/${d.getFullYear()}`;
+  const name=(document.getElementById('sname').value.trim())||`Session ${curSessions().length+1}`;
+  curSessions().push({name,date,results:rows});
   await persist();
-  scorerPlayers = []; scorerRows = {};
-  document.getElementById('res').innerHTML = '';
-  renderScorer();
-  toast('Session saved!');
+  scorerPlayers=[];scorerRows={};scorerName="";scorerResult=null;
+  renderScorer();toast('Session saved!');
 }
 
-// ══════════════════════════════════════════════════════════════
-// LEADERBOARD
-// ══════════════════════════════════════════════════════════════
-function buildPlayerMap() {
-  const map = {};
-  sessions.forEach(s => s.results.forEach(r => {
-    if (!map[r.player]) map[r.player] = { name:r.player, n:0, tot:0, best:0, sessions:[] };
-    map[r.player].n++;
-    map[r.player].tot += r.pts;
-    if (r.pts > map[r.player].best) map[r.player].best = r.pts;
-    map[r.player].sessions.push({ sname:s.name, pts:r.pts });
-  }));
-  sessions.forEach(s => {
-    const w = [...s.results].sort((a,b)=>b.pts-a.pts)[0];
-    if (w && map[w.player]) map[w.player].wins = (map[w.player].wins||0) + 1;
-  });
-  return Object.values(map).sort((a,b) => (b.tot/b.n)-(a.tot/a.n));
-}
-
-function renderLB() {
-  const all = buildPlayerMap();
-  const maxAvg = all[0] ? all[0].tot/all[0].n : 1;
-  const el = document.getElementById('pnl-lb');
-  el.innerHTML = `
-    <div class="card">
-      <div class="stitle">All-time standings — ranked by avg pts</div>
-      ${all.map((p,i) => {
-        const avg = p.tot/p.n;
-        const medal = i===0?'🥇':i===1?'🥈':i===2?'🥉':i+1;
-        return `
-          <div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:0.5px solid var(--border)">
-            <span style="width:22px;text-align:center;font-size:14px">${medal}</span>
-            ${avHTML(p.name)}
-            <div style="flex:1;min-width:0">
-              <div style="display:flex;justify-content:space-between;margin-bottom:4px">
-                <span style="font-size:14px;font-weight:500">${p.name}</span>
-                <span style="font-size:13px;font-weight:500;color:var(--felt)">${avg.toFixed(1)} avg</span>
-              </div>
-              <div class="bar-w"><div class="bar-f" style="width:${Math.round((avg/maxAvg)*100)}%"></div></div>
-              <div style="display:flex;justify-content:space-between;margin-top:3px">
-                <span style="font-size:11px;color:var(--text3)">${p.n} sessions · ${p.tot} total pts</span>
-                <span style="font-size:11px;color:var(--text3)">best ${p.best}</span>
-              </div>
-            </div>
-          </div>`;
-      }).join('')}
-    </div>
-    <div class="card">
-      <div class="stitle">Form — points per session</div>
-      <svg id="form-svg" viewBox="0 0 320 200" style="width:100%;display:block"></svg>
-      <div id="form-legend" style="display:flex;flex-wrap:wrap;gap:6px 10px;margin-top:10px"></div>
-      <div id="form-hint" style="font-size:11px;color:var(--text3);margin-top:6px;text-align:center"></div>
-    </div>`;
-  renderFormChart(all);
-}
-
-function renderFormChart(all) {
-  const W=320,H=200,padL=28,padR=12,padT=10,padB=28;
-  const iW=W-padL-padR, iH=H-padT-padB;
-  const n=sessions.length;
-  const allPts=sessions.flatMap(s=>s.results.map(r=>r.pts));
-  const maxPts=Math.max(...allPts,1);
-  const toX=i=>padL+i*(iW/Math.max(n-1,1));
-  const toY=v=>padT+iH-(v/maxPts)*iH;
-  const ticks=[0,10,20,30];
-  let svgContent = '';
-  ticks.forEach(v => {
-    svgContent += `<line x1="${padL}" x2="${W-padR}" y1="${toY(v)}" y2="${toY(v)}" stroke="var(--border)" stroke-width="0.5" stroke-dasharray="3,3"/>`;
-    svgContent += `<text x="${padL-4}" y="${toY(v)+4}" font-size="9" fill="var(--text3)" text-anchor="end">${v}</text>`;
-  });
-  sessions.forEach((s,i) => {
-    svgContent += `<text x="${toX(i)}" y="${H-6}" font-size="9" fill="var(--text3)" text-anchor="middle">S${i+1}</text>`;
-  });
-  all.forEach((p,pi) => {
-    const color = LINE_COLORS[pi%6];
-    const pts = sessions.map(s => { const r=s.results.find(r=>r.player===p.name); return r?r.pts:null; });
-    const isFaded = formActive && formActive !== p.name;
-    const opacity = isFaded ? 0.1 : 1;
-    const sw = formActive===p.name ? 2.5 : 1.5;
-    const dotR = formActive===p.name ? 4 : 3;
-    let segs=[],seg=[];
-    pts.forEach((v,i)=>{ if(v!==null)seg.push([i,v]); else { if(seg.length>=2)segs.push(seg); seg=[]; } });
-    if(seg.length>=2) segs.push(seg);
-    const dots=pts.map((v,i)=>v!==null?[i,v]:null).filter(Boolean);
-    svgContent += `<g style="opacity:${opacity};transition:opacity 0.2s">`;
-    segs.forEach(seg => {
-      const d=seg.map(([i,v],j)=>`${j===0?'M':'L'}${toX(i).toFixed(1)},${toY(v).toFixed(1)}`).join(' ');
-      svgContent += `<path d="${d}" fill="none" stroke="${color}" stroke-width="${sw}" stroke-linejoin="round" stroke-linecap="round"/>`;
-    });
-    dots.forEach(([i,v]) => { svgContent += `<circle cx="${toX(i).toFixed(1)}" cy="${toY(v).toFixed(1)}" r="${dotR}" fill="${color}"/>`; });
-    svgContent += `</g>`;
-  });
-  document.getElementById('form-svg').innerHTML = svgContent;
-  const legend = document.getElementById('form-legend');
-  legend.innerHTML = all.map((p,pi) => {
-    const color = LINE_COLORS[pi%6];
-    const isFaded = formActive && formActive !== p.name;
-    const isActive = formActive === p.name;
-    return `<button onclick="toggleForm('${p.name}')" style="display:flex;align-items:center;gap:6px;font-size:12px;cursor:pointer;border:none;padding:4px 8px;border-radius:6px;background:${isActive?'var(--bg2)':'transparent'};opacity:${isFaded?0.35:1};color:var(--text);font-family:inherit">
-      <span style="width:14px;height:${isActive?4:3}px;border-radius:2px;background:${color};display:inline-block"></span>${p.name}
-    </button>`;
-  }).join('');
-  document.getElementById('form-hint').textContent = formActive ? `Tap ${formActive} again to reset` : '';
-}
-
-function toggleForm(name) {
-  formActive = formActive === name ? null : name;
-  renderLB();
-}
-
-// ══════════════════════════════════════════════════════════════
-// HISTORY
-// ══════════════════════════════════════════════════════════════
-function renderHist() {
-  const el = document.getElementById('pnl-hist');
-  if (editIdx !== null) { renderEditForm(el); return; }
-  let html = `<div class="warn-box">🗑 The red button permanently deletes a session — you'll be asked to confirm first.</div>`;
-  if (deleteIdx !== null) {
-    html += `<div class="confirm-box">
-      <div style="font-size:14px;margin-bottom:10px">Delete <strong>${sessions[deleteIdx]?.name}</strong>? This cannot be undone.</div>
-      <div style="display:flex;gap:8px">
-        <button class="btn-ghost" onclick="deleteIdx=null;renderHist()">Cancel</button>
-        <button class="btn-red" onclick="confirmDelete()">Yes, delete</button>
-      </div>
-    </div>`;
+// ══════════════ HISTORY ══════════════
+function renderHist(){
+  const el=document.getElementById('pnl-hist');
+  const SS=curSessions();
+  if(SS.length===0){el.innerHTML=`<div class="card"><div class="note" style="margin:0;text-align:center;padding:1rem 0">No sessions yet.</div></div>`;return;}
+  if(editIdx!==null&&editData){renderEdit(el);return;}
+  const isPnl=SYS==='pnl';const canEdit=isActiveSeason();
+  let html=canEdit?`<div class="warn-box">🗑 The red button permanently deletes a session — you'll be asked to confirm first.</div>`:`<div class="warn-box">📁 ${seasons[curSeason].name} is archived (read-only).</div>`;
+  if(deleteIdx!==null){
+    html+=`<div class="confirm-box"><div style="font-size:14px;margin-bottom:10px">Delete <strong>${SS[deleteIdx]?.name}</strong>? This cannot be undone.</div>
+      <div style="display:flex;gap:8px"><button class="btn-ghost" onclick="deleteIdx=null;renderHist()">Cancel</button>
+      <button class="btn-red" onclick="confirmDelete()">Yes, delete</button></div></div>`;
   }
-  [...sessions].reverse().forEach((s,ri) => {
-    const idx = sessions.length-1-ri;
-    const sorted = [...s.results].sort((a,b)=>b.pts-a.pts);
-    html += `<div class="card" style="margin-bottom:12px">
+  [...SS].reverse().forEach((s,ri)=>{
+    const idx=SS.length-1-ri;
+    const rows=s.results.map(r=>({...r,p:pnl(r),o:oldPts(r.buyin,r.final)}));
+    rows.sort((a,b)=>isPnl?b.p-a.p:b.o-a.o);
+    const pot=rows.reduce((a,r)=>a+r.buyin,0);
+    html+=`<div class="card" style="margin-bottom:12px">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
-        <div>
-          <span style="font-weight:500;font-size:15px">${s.name}</span>
-          <span style="font-size:12px;color:var(--text3);margin-left:8px">${s.date}</span>
-        </div>
-        <div style="display:flex;gap:6px">
+        <div><span style="font-weight:500;font-size:15px">${s.name}</span>
+          <span style="font-size:11px;color:var(--text3);margin-left:8px">${s.date} · £${pot} in play</span></div>
+        ${canEdit?`<div style="display:flex;gap:6px">
           <button class="btn-ghost btn-sm" onclick="openEdit(${idx})">✎ Edit</button>
-          <button class="btn-red btn-sm" onclick="deleteIdx=${idx};renderHist()">🗑</button>
-        </div>
+          <button class="btn-red btn-sm" onclick="deleteIdx=${idx};renderHist()">🗑</button></div>`:''}
       </div>
-      <div style="display:grid;grid-template-columns:1fr 60px 60px 50px 44px;gap:6px;padding-bottom:5px;border-bottom:0.5px solid var(--border);margin-bottom:4px">
-        ${['Player','Buy-in','Final','Mult','Pts'].map(h=>`<span style="font-size:11px;color:var(--text3);text-align:center">${h}</span>`).join('')}
-      </div>
-      ${sorted.map((r,i) => {
-        const medal = i===0?'🥇':i===1?'🥈':i===2?'🥉':'';
-        const sc = calcScore(r.buyin,r.final);
-        return `<div style="display:grid;grid-template-columns:1fr 60px 60px 50px 44px;gap:6px;align-items:center;padding:6px 0;border-bottom:0.5px solid var(--border)">
-          <div style="display:flex;align-items:center;gap:6px">
-            <span style="width:18px;font-size:12px">${medal||` ${i+1}`}</span>
-            ${avHTML(r.player,22)}
-            <span style="font-size:13px">${r.player}</span>
-          </div>
-          <span style="font-size:12px;color:var(--text3);text-align:center">£${r.buyin}</span>
-          <span style="font-size:12px;color:var(--text3);text-align:center">£${r.final.toFixed(1)}</span>
-          <span style="font-size:12px;color:var(--text3);text-align:center">${sc.mult.toFixed(2)}x</span>
-          <div style="text-align:center">${badge(r.pts)}</div>
-        </div>`;
-      }).join('')}
+      <div style="display:grid;grid-template-columns:1fr 54px 60px 72px;gap:6px;padding-bottom:5px;border-bottom:0.5px solid var(--border);margin-bottom:2px">
+        <span style="font-size:10px;color:var(--text3)">Player</span><span style="font-size:10px;color:var(--text3);text-align:center">In</span>
+        <span style="font-size:10px;color:var(--text3);text-align:center">Out</span><span style="font-size:10px;color:var(--text3);text-align:right">${isPnl?'P&L':'Points'}</span></div>
+      ${rows.map((r,i)=>{const medal=i===0?'🥇':i===1?'🥈':i===2?'🥉':`<span style="color:var(--text3)">${i+1}</span>`;
+        const val=isPnl?`<span class="${cls(r.p)}" style="font-weight:600">${money(r.p,2)}</span>`:`<span style="font-weight:600;color:var(--felt)">${r.o}</span>`;
+        return `<div style="display:grid;grid-template-columns:1fr 54px 60px 72px;gap:6px;align-items:center;padding:6px 0;border-bottom:0.5px solid var(--border)">
+          <div style="display:flex;align-items:center;gap:6px;min-width:0"><span style="width:16px;font-size:11px;text-align:center">${medal}</span>${av(r.player,20)}<span style="font-size:12px;overflow:hidden;text-overflow:ellipsis">${r.player}</span></div>
+          <span style="font-size:11px;color:var(--text3);text-align:center">£${r.buyin}</span>
+          <span style="font-size:11px;color:var(--text3);text-align:center">£${r.final.toFixed(2)}</span>
+          <span style="font-size:12px;text-align:right">${val}</span></div>`;}).join('')}
     </div>`;
   });
-  el.innerHTML = html;
+  el.innerHTML=html;
 }
-
-async function confirmDelete() {
-  sessions.splice(deleteIdx, 1);
-  deleteIdx = null;
-  await persist();
-  renderHist();
-  toast('Session deleted');
+function openEdit(idx){editIdx=idx;editData=JSON.parse(JSON.stringify(curSessions()[idx]));renderHist();}
+function renderEdit(el){
+  const s=editData;
+  el.innerHTML=`<div class="card">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+      <span style="font-weight:500;font-size:15px">Edit: ${s.name}</span>
+      <button class="btn-ghost" onclick="editIdx=null;editData=null;renderHist()">✕</button></div>
+    <div class="two-col" style="margin-bottom:12px">
+      <div><div style="font-size:12px;color:var(--text3);margin-bottom:4px">Name</div><input id="e-name" value="${s.name}"></div>
+      <div><div style="font-size:12px;color:var(--text3);margin-bottom:4px">Date</div><input id="e-date" value="${s.date}"></div></div>
+    <div style="display:grid;grid-template-columns:1fr 70px 70px 72px;gap:6px;padding-bottom:6px;border-bottom:0.5px solid var(--border);margin-bottom:4px">
+      <span style="font-size:11px;color:var(--text3)">Player</span><span style="font-size:11px;color:var(--text3);text-align:center">Buy-in</span>
+      <span style="font-size:11px;color:var(--text3);text-align:center">Final</span><span style="font-size:11px;color:var(--text3);text-align:right">P&L</span></div>
+    ${s.results.map((r,i)=>`<div style="display:grid;grid-template-columns:1fr 70px 70px 72px;gap:6px;align-items:center;padding:6px 0;border-bottom:0.5px solid var(--border)">
+      <div style="display:flex;align-items:center;gap:6px">${av(r.player,22)}<span style="font-size:13px">${r.player}</span></div>
+      <input type="number" id="eb${i}" value="${r.buyin}" min="0" step="5" style="text-align:center" oninput="liveEdit(${i})">
+      <input type="number" id="ef${i}" value="${r.final}" min="0" step="0.25" style="text-align:center" oninput="liveEdit(${i})">
+      <span id="ep${i}" style="text-align:right;font-weight:600" class="${cls(pnl(r))}">${money(pnl(r),2)}</span></div>`).join('')}
+    <div style="display:flex;gap:8px;margin-top:12px;justify-content:flex-end">
+      <button class="btn-ghost" onclick="editIdx=null;editData=null;renderHist()">Cancel</button>
+      <button class="btn" onclick="saveEdit()">Save changes</button></div></div>`;
 }
+function liveEdit(i){const b=parseFloat(document.getElementById('eb'+i).value)||0;const f=parseFloat(document.getElementById('ef'+i).value)||0;
+  const v=f-b;const el=document.getElementById('ep'+i);el.textContent=money(v,2);el.className=cls(v);}
+async function saveEdit(){
+  const s=editData;const n=document.getElementById('e-name').value.trim();const d=document.getElementById('e-date').value.trim();
+  if(n)s.name=n;if(d)s.date=d;
+  s.results.forEach((r,i)=>{r.buyin=parseFloat(document.getElementById('eb'+i).value)||0;r.final=parseFloat(document.getElementById('ef'+i).value)||0;});
+  curSessions()[editIdx]=s;editIdx=null;editData=null;await persist();renderHist();toast('Session updated!');
+}
+async function confirmDelete(){curSessions().splice(deleteIdx,1);deleteIdx=null;await persist();renderHist();toast('Session deleted');}
 
-function openEdit(idx) { editIdx = idx; renderHist(); }
-
-function renderEditForm(el) {
-  const s = sessions[editIdx];
-  el.innerHTML = `
-    <div class="card">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
-        <span style="font-weight:500;font-size:15px">Edit: ${s.name}</span>
-        <button class="btn-ghost" onclick="editIdx=null;renderHist()">✕</button>
+// ══════════════ STATS ══════════════
+function renderStats(){
+  const el=document.getElementById('pnl-stats');
+  if(curSessions().length===0){el.innerHTML=`<div class="card"><div class="note" style="margin:0;text-align:center;padding:1rem 0">No sessions yet.</div></div>`;return;}
+  const isPnl=SYS==='pnl';const all=ranked();let html='';
+  all.forEach(p=>{
+    const col=CB[avIdx(p.name)];const rows=p.rows;const key=r=>isPnl?r.p:r.o;
+    const best=[...rows].sort((a,b)=>key(b)-key(a))[0];const worst=[...rows].sort((a,b)=>key(a)-key(b))[0];
+    const mean=rows.reduce((a,r)=>a+key(r),0)/p.n;const sd=Math.sqrt(rows.reduce((a,r)=>a+Math.pow(key(r)-mean,2),0)/p.n);
+    const up=rows.filter(r=>r.p>0).length,down=rows.filter(r=>r.p<0).length;
+    const wins=isPnl?p.winsP:p.winsO;const wr=Math.round(wins/p.n*100);
+    let cLabel,cCol;
+    if(isPnl){cLabel=sd<15?'Very consistent':sd<25?'Consistent':sd<35?'Mixed':sd<45?'Volatile':'Boom or bust';cCol=sd<25?'var(--green)':sd<35?'var(--text)':sd<45?'#b5551a':'var(--redt)';}
+    else{cLabel=sd<3?'Very consistent':sd<6?'Consistent':sd<9?'Mixed':sd<12?'Volatile':'Boom or bust';cCol=sd<6?'var(--green)':sd<9?'var(--text)':sd<12?'#b5551a':'var(--redt)';}
+    const headline=isPnl?money(p.shrunk,2):p.oldAvg.toFixed(1);
+    html+=`<div class="card" style="border-left:3px solid ${col}">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">${av(p.name,36)}
+        <div><div style="font-size:16px;font-weight:500">${p.name}</div><div style="font-size:12px;color:var(--text3)">${p.n} of ${p.seasonTotal} sessions</div></div></div>
+      <div class="two-col">
+        <div class="metric"><div class="metric-lbl">${isPnl?'Shrunk avg PnL':'Avg points'}</div>
+          <div style="font-size:20px;font-weight:600;${isPnl?'':'color:var(--felt)'}" class="${isPnl?cls(p.shrunk):''}">${headline}</div>
+          ${isPnl?`<div style="font-size:11px;color:var(--text3);margin-top:2px">raw avg ${money(p.rawAvg,2)}</div>`:''}</div>
+        <div class="metric"><div class="metric-lbl">Win rate</div><div style="font-size:20px;font-weight:600">${wr}%</div>
+          <div style="font-size:11px;color:var(--text3);margin-top:2px">${wins} win${wins!==1?'s':''} from ${p.n}</div>
+          <div style="font-size:11px;margin-top:3px"><span class="pos" style="font-weight:500">${up} up</span><span style="color:var(--text3);margin:0 4px">·</span><span class="neg" style="font-weight:500">${down} down</span></div></div>
       </div>
-      <div class="two-col" style="margin-bottom:12px">
-        <div><div class="lbl">Session name</div><input id="e-name" value="${s.name}" style="margin-top:4px"></div>
-        <div><div class="lbl">Date</div><input id="e-date" value="${s.date}" style="margin-top:4px"></div>
-      </div>
-      <div style="display:grid;grid-template-columns:1fr 70px 70px 44px;gap:6px;padding-bottom:6px;border-bottom:0.5px solid var(--border);margin-bottom:4px">
-        ${['Player','Buy-in','Final','Pts'].map(h=>`<span style="font-size:11px;color:var(--text3);text-align:center">${h}</span>`).join('')}
-      </div>
-      ${s.results.map((r,i) => {
-        const sc = calcScore(r.buyin,r.final);
-        return `<div style="display:grid;grid-template-columns:1fr 70px 70px 44px;gap:6px;align-items:center;padding:6px 0;border-bottom:0.5px solid var(--border)">
-          <div style="display:flex;align-items:center;gap:6px">${avHTML(r.player,22)}<span style="font-size:13px">${r.player}</span></div>
-          <input type="number" id="ebi${i}" value="${r.buyin}" min="20" step="20" style="text-align:center" oninput="liveEditPts(${i})">
-          <input type="number" id="efc${i}" value="${r.final}" min="0" step="0.1" style="text-align:center" oninput="liveEditPts(${i})">
-          <span id="epts${i}" style="text-align:center;font-weight:500;color:var(--felt);font-size:13px">${sc.pts}</span>
-        </div>`;
-      }).join('')}
-      <div style="display:flex;gap:8px;margin-top:12px;justify-content:flex-end">
-        <button class="btn-ghost" onclick="editIdx=null;renderHist()">Cancel</button>
-        <button class="btn" onclick="saveEdit()">Save changes</button>
-      </div>
+      <div class="metric" style="margin-top:10px"><div class="metric-lbl" style="margin-bottom:6px">Best / worst session</div>
+        <div style="display:flex;align-items:center;gap:8px"><span>🥇</span><span style="font-weight:600;font-size:13px" class="${isPnl?cls(best.p):''}">${isPnl?money(best.p,2):best.o+' pts'}</span><span style="font-size:12px;color:var(--text3)">${best.sname}</span></div>
+        <div style="display:flex;align-items:center;gap:8px;margin-top:6px"><span>💀</span><span style="font-weight:600;font-size:13px" class="${isPnl?cls(worst.p):''}">${isPnl?money(worst.p,2):worst.o+' pts'}</span><span style="font-size:12px;color:var(--text3)">${worst.sname}</span></div></div>
+      <div class="metric" style="margin-top:10px"><div class="metric-lbl">Season profit / loss</div>
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <span style="font-size:12px;color:var(--text3)">In <strong style="color:var(--text)">£${p.in}</strong> · Out <strong style="color:var(--text)">£${p.out.toFixed(2)}</strong></span>
+          <span style="font-size:18px;font-weight:600" class="${cls(p.pnlTot)}">${money(p.pnlTot,2)}</span></div></div>
+      <div class="metric" style="margin-top:10px"><div class="metric-lbl">Consistency</div>
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <span style="font-size:13px;color:var(--text3)">σ ${isPnl?'£'+sd.toFixed(2):sd.toFixed(1)+' pts'}</span>
+          <span style="font-size:13px;font-weight:500;color:${cCol}">${cLabel}</span></div></div>
     </div>`;
-}
-
-function liveEditPts(i) {
-  const b = parseFloat(document.getElementById('ebi'+i).value)||20;
-  const f = parseFloat(document.getElementById('efc'+i).value)||0;
-  document.getElementById('epts'+i).textContent = calcScore(b,f).pts;
-}
-
-async function saveEdit() {
-  const s = sessions[editIdx];
-  const n = document.getElementById('e-name').value.trim();
-  const d = document.getElementById('e-date').value.trim();
-  if (n) s.name = n;
-  if (d) s.date = d;
-  s.results.forEach((r,i) => {
-    const b = parseFloat(document.getElementById('ebi'+i).value)||20;
-    const f = parseFloat(document.getElementById('efc'+i).value)||0;
-    r.buyin=b; r.final=f; r.pts=calcScore(b,f).pts;
   });
-  editIdx = null;
-  await persist();
-  renderHist();
-  toast('Session updated!');
-}
-
-// ══════════════════════════════════════════════════════════════
-// STATS
-// ══════════════════════════════════════════════════════════════
-function renderStats() {
-  const all = buildPlayerMap();
-  const names = all.map(p=>p.name);
-  const short = n => n.slice(0,4);
-
-  const h2h = {};
-  names.forEach(a => { h2h[a]={}; names.forEach(b => { if(a!==b) h2h[a][b]={myPts:0,theirPts:0,n:0}; }); });
-  sessions.forEach(s => {
-    s.results.forEach(r => {
-      s.results.forEach(q => {
-        if (r.player!==q.player && h2h[r.player]?.[q.player]!==undefined) {
-          h2h[r.player][q.player].myPts+=r.pts;
-          h2h[r.player][q.player].theirPts+=q.pts;
-          h2h[r.player][q.player].n++;
-        }
-      });
-    });
-  });
-
-  let html = '';
-
-  all.forEach((p,pi) => {
-    const n=p.n, tot=p.tot, avg=tot/n;
-    const pSessions = sessions.filter(s=>s.results.find(r=>r.player===p.name))
-      .map(s=>({...s.results.find(r=>r.player===p.name),sname:s.name}));
-    const best=[...pSessions].sort((a,b)=>b.pts-a.pts)[0];
-    const worst=[...pSessions].sort((a,b)=>a.pts-b.pts)[0];
-    const totalIn=pSessions.reduce((s,x)=>s+x.buyin,0);
-    const totalOut=pSessions.reduce((s,x)=>s+x.final,0);
-    const pnl=totalOut-totalIn;
-    const wins=p.wins||0;
-    const winRate=Math.round((wins/n)*100);
-    const up=pSessions.filter(x=>x.final>x.buyin).length;
-    const down=pSessions.filter(x=>x.final<x.buyin).length;
-    const stddev=Math.sqrt(pSessions.reduce((s,x)=>s+Math.pow(x.pts-avg,2),0)/n);
-    const cLabel=stddev<3?'Very consistent':stddev<6?'Consistent':stddev<9?'Mixed':stddev<12?'Volatile':'Boom or bust';
-    const cColor=stddev<6?'var(--felt)':stddev<9?'var(--text)':stddev<12?'#b5551a':'var(--red)';
-    const color=LINE_COLORS[pi%6];
-    html += `
-      <div class="card" style="border-left:3px solid ${color}">
-        <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">
-          ${avHTML(p.name,36)}
-          <div>
-            <div style="font-size:16px;font-weight:500">${p.name}</div>
-            <div style="font-size:12px;color:var(--text3)">${n} session${n!==1?'s':''}</div>
-          </div>
-        </div>
-        <div class="two-col">
-          <div class="metric">
-            <div class="metric-lbl">Avg pts / session</div>
-            <div class="metric-val" style="color:var(--felt)">${avg.toFixed(1)}</div>
-          </div>
-          <div class="metric">
-            <div class="metric-lbl">Win rate</div>
-            <div class="metric-val">${winRate}%</div>
-            <div class="metric-sub">${wins} win${wins!==1?'s':''} from ${n}</div>
-            <div style="font-size:11px;margin-top:3px">
-              <span style="color:var(--felt);font-weight:500">${up} up</span>
-              <span style="color:var(--text3);margin:0 4px">·</span>
-              <span style="color:var(--red);font-weight:500">${down} down</span>
-              <span style="color:var(--text3);margin:0 4px">·</span>
-              <span style="color:var(--text3)">${n-up-down} even</span>
-            </div>
-          </div>
-        </div>
-        <div class="metric" style="margin-top:10px">
-          <div class="metric-lbl" style="margin-bottom:6px">Best / worst session</div>
-          <div style="display:flex;align-items:center;gap:8px">
-            <span>🥇</span>${badge(best.pts)}<span style="font-size:12px;color:var(--text3)">${best.sname}</span>
-          </div>
-          <div style="display:flex;align-items:center;gap:8px;margin-top:6px">
-            <span>💀</span><span class="badge badge-zero">${worst.pts}</span><span style="font-size:12px;color:var(--text3)">${worst.sname}</span>
-          </div>
-        </div>
-        <div class="metric" style="margin-top:10px">
-          <div class="metric-lbl">Profit / loss</div>
-          <div style="display:flex;justify-content:space-between;align-items:center">
-            <span style="font-size:12px;color:var(--text3)">In <strong style="color:var(--text)">£${totalIn}</strong> · Out <strong style="color:var(--text)">£${totalOut.toFixed(1)}</strong></span>
-            <span style="font-size:18px;font-weight:500;color:${pnl>=0?'var(--felt)':'var(--red)'}">
-              ${pnl>=0?'+':''}£${pnl.toFixed(1)}
-            </span>
-          </div>
-        </div>
-        <div class="metric" style="margin-top:10px">
-          <div class="metric-lbl">Consistency</div>
-          <div style="display:flex;justify-content:space-between;align-items:center">
-            <span style="font-size:13px;color:var(--text3)">σ ${stddev.toFixed(1)} pts</span>
-            <span style="font-size:13px;font-weight:500;color:${cColor}">${cLabel}</span>
-          </div>
-        </div>
-      </div>`;
-  });
-
-  // H2H Matrix
-  html += `
-    <div class="card">
-      <div class="stitle">Head-to-head matrix</div>
-      <p style="font-size:12px;color:var(--text3);margin-bottom:12px;line-height:1.6">
-        Avg pts difference in shared sessions. <span style="color:var(--felt);font-weight:500">Green</span> = you averaged more. <span style="color:var(--red);font-weight:500">Red</span> = they averaged more.
-      </p>
-      <div style="overflow-x:auto">
-        <table style="border-collapse:collapse;width:100%;table-layout:fixed;min-width:280px">
-          <thead><tr>
-            <td style="width:44px;padding:4px 6px;border-bottom:0.5px solid var(--border)"></td>
-            ${names.map((n,i)=>`<th style="padding:4px 2px;font-size:10px;color:var(--text3);text-align:center;border-bottom:0.5px solid var(--border);font-weight:500">
-              <div style="display:flex;flex-direction:column;align-items:center;gap:3px">
-                <span style="width:8px;height:8px;border-radius:50%;background:${LINE_COLORS[i%6]};display:inline-block"></span>
-                ${short(n)}
-              </div>
-            </th>`).join('')}
-          </tr></thead>
-          <tbody>
-            ${names.map((row,ri)=>`
-              <tr>
-                <td style="padding:4px 6px;font-size:11px;font-weight:500;border-bottom:0.5px solid var(--border)">
-                  <div style="display:flex;align-items:center;gap:4px">
-                    <span style="width:8px;height:8px;border-radius:50%;background:${LINE_COLORS[ri%6]};display:inline-block;flex-shrink:0"></span>
-                    ${short(row)}
-                  </div>
-                </td>
-                ${names.map((col,ci)=>{
-                  if(row===col) return `<td style="padding:4px 2px;text-align:center;background:var(--bg2);border-bottom:0.5px solid var(--border)"><span style="font-size:10px;color:var(--text3)">—</span></td>`;
-                  const d=h2h[row]?.[col];
-                  if(!d||d.n===0) return `<td style="padding:4px 2px;text-align:center;border-bottom:0.5px solid var(--border)"><span style="font-size:10px;color:var(--text3)">—</span></td>`;
-                  const diff=(d.myPts/d.n)-(d.theirPts/d.n);
-                  const win=diff>0;
-                  return `<td style="padding:4px 2px;text-align:center;background:${win?'#1a472a18':'#8b202018'};border-bottom:0.5px solid var(--border)">
-                    <div style="font-size:11px;font-weight:500;color:${win?'var(--felt)':'var(--red)'}">${diff>0?'+':''}${diff.toFixed(1)}</div>
-                    <div style="font-size:9px;color:var(--text3)">${d.n}g</div>
-                  </td>`;
-                }).join('')}
-              </tr>`).join('')}
-          </tbody>
-        </table>
-      </div>
-    </div>`;
-
+  // H2H
+  const names=all.map(p=>p.name);const h={};
+  names.forEach(a=>{h[a]={};names.forEach(b=>{if(a!==b)h[a][b]={mine:0,theirs:0,n:0};});});
+  curSessions().forEach(s=>{const rs=s.results.map(r=>({...r,p:pnl(r),o:oldPts(r.buyin,r.final)}));
+    rs.forEach(a=>rs.forEach(b=>{if(a.player!==b.player&&h[a.player]?.[b.player]){const e=h[a.player][b.player];e.mine+=SYS==='pnl'?a.p:a.o;e.theirs+=SYS==='pnl'?b.p:b.o;e.n++;}}));});
+  html+=`<div class="card"><div class="stitle">Head-to-head</div>
+    <div class="note">Average ${isPnl?'PnL':'points'} difference in shared sessions. Green = you did better.</div>
+    <div style="overflow-x:auto"><table style="table-layout:fixed;min-width:300px"><thead><tr><td style="width:40px"></td>
+      ${names.map(n=>`<th style="padding:4px 1px;font-size:9px;color:var(--text3);font-weight:500;text-align:center;border-bottom:0.5px solid var(--border)"><div style="display:flex;flex-direction:column;align-items:center;gap:2px"><span style="width:7px;height:7px;border-radius:50%;background:${CB[avIdx(n)]}"></span>${n.slice(0,3)}</div></th>`).join('')}</tr></thead><tbody>
+      ${names.map(row=>`<tr><td style="padding:4px 2px;font-size:10px;font-weight:500;border-bottom:0.5px solid var(--border)"><div style="display:flex;align-items:center;gap:3px"><span style="width:7px;height:7px;border-radius:50%;background:${CB[avIdx(row)]};flex-shrink:0"></span>${row.slice(0,3)}</div></td>
+        ${names.map(col=>{if(row===col)return `<td style="padding:4px 1px;text-align:center;background:var(--bg2);border-bottom:0.5px solid var(--border)"><span style="font-size:9px;color:var(--text3)">—</span></td>`;
+          const d=h[row]?.[col];if(!d||d.n===0)return `<td style="padding:4px 1px;text-align:center;border-bottom:0.5px solid var(--border)"><span style="font-size:9px;color:var(--text3)">—</span></td>`;
+          const diff=(d.mine-d.theirs)/d.n;const win=diff>0;const txt=isPnl?(win?'+':'−')+'£'+Math.abs(diff).toFixed(0):(win?'+':'')+diff.toFixed(1);
+          return `<td style="padding:4px 1px;text-align:center;background:${win?'rgba(26,122,62,.10)':'rgba(192,57,43,.10)'};border-bottom:0.5px solid var(--border)"><div style="font-size:10px;font-weight:600" class="${win?'pos':'neg'}">${txt}</div><div style="font-size:8px;color:var(--text3)">${d.n}g</div></td>`;}).join('')}</tr>`).join('')}
+    </tbody></table></div></div>`;
   // Records
-  let bestR={pts:0,player:'',sname:'',mult:0};
-  let worstR={pts:999,player:'',sname:'',mult:0};
-  const seconds={};
-  let bigWin={profit:0,player:'',sname:''};
-  let expSess={total:0,name:''};
-  sessions.forEach(s=>{
-    const sorted=[...s.results].sort((a,b)=>b.pts-a.pts);
-    if(sorted.length>=2){const p=sorted[1].player;seconds[p]=(seconds[p]||0)+1;}
-    const total=s.results.reduce((sum,r)=>sum+r.buyin,0);
-    if(total>expSess.total) expSess={total,name:s.name};
-    s.results.forEach(r=>{
-      const sc=calcScore(r.buyin,r.final);
-      if(r.pts>bestR.pts) bestR={pts:r.pts,player:r.player,sname:s.name,mult:sc.mult};
-      if(r.pts<worstR.pts) worstR={pts:r.pts,player:r.player,sname:s.name,mult:sc.mult};
-      const profit=r.final-r.buyin;
-      if(profit>bigWin.profit) bigWin={profit,player:r.player,sname:s.name};
-    });
-  });
-  const mostSeconds=Object.entries(seconds).sort((a,b)=>b[1]-a[1])[0];
+  let bestS={v:-1e9},worstS={v:1e9},bigPot={v:0},seconds={};
+  curSessions().forEach(s=>{const rs=s.results.map(r=>({...r,p:pnl(r),o:oldPts(r.buyin,r.final)}));
+    const sorted=[...rs].sort((a,b)=>isPnl?b.p-a.p:b.o-a.o);if(sorted[1])seconds[sorted[1].player]=(seconds[sorted[1].player]||0)+1;
+    const pot=rs.reduce((a,r)=>a+r.buyin,0);if(pot>bigPot.v)bigPot={v:pot,name:s.name};
+    rs.forEach(r=>{const v=isPnl?r.p:r.o;if(v>bestS.v)bestS={v,player:r.player,sname:s.name,buyin:r.buyin,final:r.final};if(v<worstS.v)worstS={v,player:r.player,sname:s.name,buyin:r.buyin,final:r.final};});});
+  const ms=Object.entries(seconds).sort((a,b)=>b[1]-a[1])[0];const totalIn=curSessions().flatMap(s=>s.results).reduce((a,r)=>a+r.buyin,0);
   const facts=[
-    {icon:'🏆',label:'Highest ever score',value:`${bestR.pts} pts`,sub:`${bestR.player} · ${bestR.sname} · ${bestR.mult.toFixed(2)}x`},
-    {icon:'💀',label:'Lowest ever score',value:`${worstR.pts} pts`,sub:`${worstR.player} · ${worstR.sname} · ${worstR.mult.toFixed(2)}x`},
-    {icon:'🥈',label:'Most 2nd place finishes',value:`${mostSeconds?.[0]||'—'}`,sub:`${mostSeconds?.[1]||0} runner-up finish${mostSeconds?.[1]!==1?'es':''}`},
-    {icon:'💰',label:'Biggest single session win',value:`+£${bigWin.profit.toFixed(1)}`,sub:`${bigWin.player} · ${bigWin.sname}`},
-    {icon:'💸',label:'Most expensive session',value:`£${expSess.total} total buy-ins`,sub:expSess.name},
+    {i:'🏆',l:'Best single session',v:isPnl?money(bestS.v,2):bestS.v+' pts',s:`${bestS.player} · ${bestS.sname} · £${bestS.buyin}→£${bestS.final.toFixed(2)}`},
+    {i:'💀',l:'Worst single session',v:isPnl?money(worstS.v,2):worstS.v+' pts',s:`${worstS.player} · ${worstS.sname} · £${worstS.buyin}→£${worstS.final.toFixed(2)}`},
+    {i:'🥈',l:'Most runner-up finishes',v:ms?ms[0]:'—',s:`${ms?ms[1]:0} second places`},
+    {i:'💸',l:'Most expensive session',v:`£${bigPot.v} in play`,s:bigPot.name||'—'},
+    {i:'🏦',l:'Total money this season',v:`£${totalIn}`,s:`over ${curSessions().length} sessions`},
   ];
-  html += `
-    <div class="card">
-      <div class="stitle">Records & fun facts</div>
-      ${facts.map(f=>`
-        <div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:0.5px solid var(--border)">
-          <span style="font-size:22px;flex-shrink:0">${f.icon}</span>
-          <div style="flex:1;min-width:0">
-            <div style="font-size:11px;color:var(--text3);margin-bottom:2px">${f.label}</div>
-            <div style="font-size:15px;font-weight:500">${f.value}</div>
-            <div style="font-size:12px;color:var(--text3);margin-top:1px">${f.sub}</div>
-          </div>
-        </div>`).join('')}
-    </div>`;
-
-  document.getElementById('pnl-stats').innerHTML = html;
+  html+=`<div class="card"><div class="stitle">${seasons[curSeason].name} records</div>
+    ${facts.map(f=>`<div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:0.5px solid var(--border)"><span style="font-size:20px">${f.i}</span>
+      <div style="flex:1;min-width:0"><div style="font-size:11px;color:var(--text3)">${f.l}</div><div style="font-size:15px;font-weight:600">${f.v}</div><div style="font-size:11px;color:var(--text3);margin-top:1px">${f.s}</div></div></div>`).join('')}</div>`;
+  el.innerHTML=html;
 }
 
-// ══════════════════════════════════════════════════════════════
-// RULES
-// ══════════════════════════════════════════════════════════════
-function renderRules() {
-  const brackets=[[0,"0x","Bust — nothing left"],[5,"0.5x","Lost most of your money"],
-    [8,"0.8x","Lost money"],[10,"1x","Breakeven"],[13,"1.2x","Small profit"],
-    [16,"1.5x","Solid profit"],[19,"2x","Strong session"],[22,"2.5x","Very strong session"],
-    [25,"3x","Exceptional"],[30,"4x","Elite"],[35,"5x+","Legendary — uncapped, +5 pts per extra x"]];
-  const rebuys=[
-    {n:"0 rebuys",spend:"£20 in",mult:"×1.0",label:"No penalty",bg:"#1a472a",fg:"#c9a84c"},
-    {n:"1 rebuy",spend:"£40 in",mult:"×1.0",label:"No penalty",bg:"#1a472a",fg:"#c9a84c"},
-    {n:"2 rebuys",spend:"£60 in",mult:"×0.9",label:"Light penalty",bg:"#b5551a",fg:"#fde8d5"},
-    {n:"3 rebuys",spend:"£80 in",mult:"×0.5",label:"Heavy penalty",bg:"#8b2020",fg:"#fcd5d5"},
-    {n:"4 rebuys",spend:"£100 in",mult:"×0.25",label:"Severe",bg:"#6b0f0f",fg:"#fcd5d5"},
-    {n:"5+ rebuys",spend:"£120+",mult:"×0.125…",label:"Halves every rebuy",bg:"#3d0808",fg:"#fcd5d5"},
-  ];
-  document.getElementById('pnl-rules').innerHTML = `
-    <div class="card">
-      <div class="stitle">How points work</div>
-      <p style="font-size:13px;color:var(--text2);line-height:1.7">
-        Your multiplier is <strong>final chips ÷ total buy-in</strong>. That maps to bracket points via the table below, with smooth interpolation between brackets. Above 5x it's uncapped — every extra x earns 5 more points. Your bracket points are then multiplied by your rebuy penalty to get your final score.
-      </p>
-    </div>
-    <div class="card">
-      <div class="stitle">Multiplier → points</div>
-      ${brackets.map(([pts,mult,label])=>`
-        <div style="display:flex;align-items:center;gap:10px;padding:6px 0;border-bottom:0.5px solid var(--border)">
-          <span style="width:40px;font-size:12px;color:var(--text3);font-weight:500">${mult}</span>
-          ${mult==="5x+"?`<span class="badge badge-inf">∞</span>`:badge(pts)}
-          <span style="font-size:13px;color:var(--text2)">${label}</span>
-        </div>`).join('')}
-    </div>
-    <div class="card">
-      <div class="stitle">Rebuy penalty</div>
-      <p style="font-size:13px;color:var(--text2);line-height:1.7;margin-bottom:12px">
-        Everyone starts with <strong>£20</strong>. Each time you bust and top up, that's a rebuy. Two things punish rebuying: your denominator grows (making it harder to achieve a high multiplier), and the penalty below is applied on top of that.
-      </p>
-      ${rebuys.map(r=>`
-        <div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:0.5px solid var(--border)">
-          <div style="background:${r.bg};color:${r.fg};border-radius:6px;padding:4px 10px;font-size:12px;font-weight:500;min-width:88px;text-align:center">${r.n}</div>
-          <span style="font-size:12px;color:var(--text3);min-width:48px">${r.spend}</span>
-          <span style="font-size:14px;font-weight:500;min-width:52px">${r.mult}</span>
-          <span style="font-size:12px;color:var(--text3)">${r.label}</span>
-        </div>`).join('')}
-      <div style="margin-top:12px;padding:10px 12px;background:var(--bg2);border-radius:var(--radius-sm);font-size:13px;color:var(--text2);line-height:1.7">
-        <strong style="color:var(--text)">Example:</strong> you rebuy twice (£60 total). You end with £90. Multiplier = 90÷60 = 1.5x → 16 raw pts × 0.9 = <strong style="color:var(--text)">14 pts.</strong>
-        A player who ran £20→£30 (also 1.5x, no rebuys) gets <strong style="color:var(--text)">16 pts</strong> — the harder denominator and penalty explain the gap.
-      </div>
-    </div>`;
+// ══════════════ RULES ══════════════
+function renderRules(){
+  const el=document.getElementById('pnl-rules');const isPnl=SYS==='pnl';let html='';
+  if(isPnl){
+    html=`<div class="card"><div class="stitle">How scoring works</div>
+      <p style="font-size:13px;color:var(--text2);line-height:1.75">Your score for a session is simply <strong>final chips − total buy-in</strong>. No multipliers, no brackets, no rebuy penalties. Win money, score positive. Lose money, score negative.</p></div>
+    <div class="card"><div class="stitle">The standings</div>
+      <p style="font-size:13px;color:var(--text2);line-height:1.75">Ranked by <strong>total PnL ÷ (sessions played + ${K})</strong>.</p>
+      <div style="margin-top:10px;padding:10px 12px;background:var(--bg2);border-radius:8px;font-size:13px;color:var(--text2);line-height:1.75">Everyone is treated as though they'd also played ${K} break-even sessions. Play once and those ${K} imaginary sessions dominate, so you sit near £0. Play the whole season and they barely matter. This stops someone winning big on their debut and topping the table above a season-long grinder.</div>
+      <div style="margin-top:10px;padding:10px 12px;background:var(--bg2);border-radius:8px;font-size:13px;color:var(--text2);line-height:1.75"><strong style="color:var(--text)">Example.</strong> +£348.25 across 10 sessions → 348.25 ÷ 13 = <strong style="color:var(--text)">+£26.79</strong>. One session of −£20 → −20 ÷ 4 = <strong style="color:var(--text)">−£5.00</strong>.</div></div>
+    <div class="card"><div class="stitle">Buy-ins and rebuys</div>
+      <p style="font-size:13px;color:var(--text2);line-height:1.75">Everyone starts with <strong>£20</strong>. If you bust, rebuy for any amount between <strong>£20</strong> and the <strong>largest stack at the table</strong>.</p>
+      <div style="margin-top:10px;padding:10px 12px;background:var(--bg2);border-radius:8px;font-size:12px;color:var(--text3);line-height:1.7">Buying in for more than the biggest stack is pointless — the excess can never be won or lost. The table sets the limit; no house rule needed.</div></div>`;
+  } else {
+    const brackets=[[0,'0x'],[5,'0.5x'],[8,'0.8x'],[10,'1x'],[13,'1.2x'],[16,'1.5x'],[19,'2x'],[22,'2.5x'],[25,'3x'],[30,'4x'],[35,'5x+']];
+    const rb=[['0 rebuys','£20','×1.0'],['1 rebuy','£40','×1.0'],['2 rebuys','£60','×0.9'],['3 rebuys','£80','×0.5'],['4 rebuys','£100','×0.25'],['5+ rebuys','£120+','halves each time']];
+    html=`<div class="card"><div class="stitle">Old system — reference only</div>
+      <p style="font-size:13px;color:var(--text2);line-height:1.75">Multiplier = final ÷ buy-in, mapped to bracket points with interpolation, then multiplied by a rebuy penalty. Retired after Season 1.</p></div>
+    <div class="card"><div class="stitle">Multiplier → points</div>
+      ${brackets.map(([p,m])=>`<div style="display:flex;align-items:center;gap:12px;padding:5px 0;border-bottom:0.5px solid var(--border)"><span style="width:38px;font-size:12px;color:var(--text3);font-weight:500">${m}</span><span class="badge">${m==='5x+'?'∞':p}</span></div>`).join('')}</div>
+    <div class="card"><div class="stitle">Rebuy penalty</div>
+      ${rb.map(([n,s,m])=>`<div style="display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:0.5px solid var(--border)"><span style="font-size:12px;min-width:78px">${n}</span><span style="font-size:11px;color:var(--text3);min-width:44px">${s}</span><span style="font-size:13px;font-weight:500">${m}</span></div>`).join('')}</div>
+    <div class="card" style="border-color:var(--redt)"><div class="stitle" style="color:var(--redt)">Why it was retired</div>
+      <p style="font-size:13px;color:var(--text2);line-height:1.75">Points floor at zero. Kathiir's Session 9 — £100 in, £19.75 out, <strong>−£80.25</strong> — scored <strong>0 points</strong>, indistinguishable from a mildly bad night. Sixteen hand-tuned constants doing what PnL does with none.</p></div>`;
+  }
+  el.innerHTML=html;
 }
 
-// ── Boot ─────────────────────────────────────────────────────
 init();
 </script>
 </body>
