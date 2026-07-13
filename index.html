@@ -326,16 +326,18 @@ function renderLB(){
 function toggleForm(n){formActive=formActive===n?null:n;renderLB();}
 
 function barCentred(all,maxAbs){
-  const W=320,rowH=30,padT=18,padB=8,labelW=52;const H=padT+all.length*rowH+padB;
-  const zone=W-labelW-8;const cx=labelW+zone/2;const scale=(zone/2-4)/maxAbs;
+  const W=340,rowH=34,padT=18,padB=8,labelW=64;const H=padT+all.length*rowH+padB;
+  const zone=W-labelW-10;const cx=labelW+zone/2;const scale=(zone/2-30)/maxAbs;
   let s=`<svg viewBox="0 0 ${W} ${H}" style="width:100%;display:block">`;
   s+=`<text x="${cx}" y="11" font-size="9" fill="var(--text3)" text-anchor="middle">£0</text>`;
   s+=`<line x1="${cx}" x2="${cx}" y1="${padT-4}" y2="${H-padB}" stroke="var(--border2)" stroke-width="1"/>`;
   all.forEach((p,i)=>{const y=padT+i*rowH;const v=p.metric;const w=Math.abs(v)*scale;const x=v>=0?cx:cx-w;
     const col=v>=0?'#1a7a3e':'#c0392b';
-    s+=`<text x="${labelW-6}" y="${y+15}" font-size="11" fill="var(--text2)" text-anchor="end">${p.name.slice(0,6)}</text>`;
+    // name label pinned to far left, always clear of the plot zone
+    s+=`<text x="4" y="${y+15}" font-size="10.5" fill="var(--text2)" text-anchor="start">${p.name.slice(0,7)}</text>`;
     s+=`<rect x="${x}" y="${y+5}" width="${Math.max(w,1.5)}" height="15" rx="3" fill="${col}"/>`;
-    const tx=v>=0?cx+w+5:cx-w-5;const anc=v>=0?'start':'end';
+    // value label sits just past the bar end, on the outside
+    const tx=v>=0?cx+w+4:cx-w-4;const anc=v>=0?'start':'end';
     s+=`<text x="${tx}" y="${y+16}" font-size="10" font-weight="600" fill="${col}" text-anchor="${anc}">${money(v,2)}</text>`;});
   return s+`</svg>`;
 }
@@ -523,7 +525,7 @@ function renderStats(){
     const col=CB[avIdx(p.name)];const rows=p.rows;const key=r=>isPnl?r.p:r.o;
     const best=[...rows].sort((a,b)=>key(b)-key(a))[0];const worst=[...rows].sort((a,b)=>key(a)-key(b))[0];
     const mean=rows.reduce((a,r)=>a+key(r),0)/p.n;const sd=Math.sqrt(rows.reduce((a,r)=>a+Math.pow(key(r)-mean,2),0)/p.n);
-    const up=rows.filter(r=>r.p>0).length,down=rows.filter(r=>r.p<0).length;
+    const up=rows.filter(r=>r.p>0.004).length,down=rows.filter(r=>r.p<-0.004).length,even=rows.filter(r=>Math.abs(r.p)<=0.004).length;
     const wins=isPnl?p.winsP:p.winsO;const wr=Math.round(wins/p.n*100);
     let cLabel,cCol;
     if(isPnl){cLabel=sd<15?'Very consistent':sd<25?'Consistent':sd<35?'Mixed':sd<45?'Volatile':'Boom or bust';cCol=sd<25?'var(--green)':sd<35?'var(--text)':sd<45?'#b5551a':'var(--redt)';}
@@ -538,7 +540,7 @@ function renderStats(){
           ${isPnl?`<div style="font-size:11px;color:var(--text3);margin-top:2px">raw avg ${money(p.rawAvg,2)}</div>`:''}</div>
         <div class="metric"><div class="metric-lbl">Win rate</div><div style="font-size:20px;font-weight:600">${wr}%</div>
           <div style="font-size:11px;color:var(--text3);margin-top:2px">${wins} win${wins!==1?'s':''} from ${p.n}</div>
-          <div style="font-size:11px;margin-top:3px"><span class="pos" style="font-weight:500">${up} up</span><span style="color:var(--text3);margin:0 4px">·</span><span class="neg" style="font-weight:500">${down} down</span></div></div>
+          <div style="font-size:11px;margin-top:3px"><span class="pos" style="font-weight:500">${up} up</span><span style="color:var(--text3);margin:0 4px">·</span><span class="neg" style="font-weight:500">${down} down</span>${even>0?`<span style="color:var(--text3);margin:0 4px">·</span><span style="color:var(--text3)">${even} even</span>`:''}</div></div>
       </div>
       <div class="metric" style="margin-top:10px"><div class="metric-lbl" style="margin-bottom:6px">Best / worst session</div>
         <div style="display:flex;align-items:center;gap:8px"><span>🥇</span><span style="font-weight:600;font-size:13px" class="${isPnl?cls(best.p):''}">${isPnl?money(best.p,2):best.o+' pts'}</span><span style="font-size:12px;color:var(--text3)">${best.sname}</span></div>
