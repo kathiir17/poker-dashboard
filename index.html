@@ -199,10 +199,12 @@ function toast(m){const t=document.getElementById('toast');t.textContent=m;t.cla
 
 // ══════════════ SEASON BAR ══════════════
 function renderSeasonBar(){
-  const s=seasons[curSeason];
-  const isArchived = s.system==="old";
+  const allTime=isAllTime();
+  const s=allTime?null:seasons[curSeason];
+  const isArchived = s && s.system==="old";
   let html=`<div class="season-select">
     <select onchange="switchSeason(this.value)">
+      <option value="-1" ${allTime?'selected':''}>★ All time</option>
       ${seasons.map((se,i)=>`<option value="${i}" ${i===curSeason?'selected':''}>${se.name}${i===seasons.length-1?' (current)':''}</option>`).join('')}
     </select>
     <button class="btn-ghost btn-sm" onclick="newSeason()">+ New season</button>
@@ -219,7 +221,7 @@ function renderSeasonBar(){
 
 function switchSeason(i){
   curSeason=+i;
-  SYS = seasons[curSeason].system==="old" ? SYS : "pnl";
+  SYS = (isAllTime()||seasons[curSeason].system!=="old") ? "pnl" : SYS;
   formActive=null; scorerResult=null; editIdx=null; deleteIdx=null;
   renderSeasonBar(); render();
 }
@@ -244,8 +246,15 @@ function goTab(id,el){
 }
 
 // ══════════════ HELPERS ══════════════
-function curSessions(){return seasons[curSeason].sessions;}
-function isActiveSeason(){return curSeason===seasons.length-1;}
+function isAllTime(){return curSeason===-1;}
+function curSessions(){
+  if(isAllTime()){
+    // pool every session from every season, tagged with season name
+    return seasons.flatMap(se=>se.sessions.map(s=>({...s,_season:se.name})));
+  }
+  return seasons[curSeason].sessions;
+}
+function isActiveSeason(){return !isAllTime() && curSeason===seasons.length-1;}
 function avIdx(n){const i=KNOWN.indexOf(n);return i<0?(hashName(n)%CB.length):i;}
 function hashName(n){let h=0;for(let i=0;i<n.length;i++)h=(h*31+n.charCodeAt(i))>>>0;return h;}
 function av(n,s=28){const i=avIdx(n);return `<div class="av" style="width:${s}px;height:${s}px;font-size:${Math.round(s*.38)}px;background:${CB[i]};color:${CF[i]}">${n.slice(0,2).toUpperCase()}</div>`;}
@@ -294,10 +303,11 @@ function renderLB(){
   }
   const all=ranked();const isPnl=SYS==='pnl';
   const maxAbs=Math.max(...all.map(p=>Math.abs(p.metric)),1);
+  const allTime=isAllTime();
   let html=`<div class="card">
-    <div class="stitle">${isPnl?'Standings — shrunk avg PnL':'Standings — avg points (old system)'}</div>
+    <div class="stitle">${allTime?'All-time standings — shrunk avg PnL':(isPnl?'Standings — shrunk avg PnL':'Standings — avg points (old system)')}</div>
     <div class="note">${isPnl
-      ? `Ranked by total PnL ÷ (sessions + ${K}). A player with few games sits closer to £0 until they've proven otherwise.`
+      ? `Ranked by total PnL ÷ (sessions + ${K})${allTime?', pooled across every season':''}. A player with few games sits closer to £0 until they've proven otherwise.`
       : `Ranked by average bracket points. Scores floor at 0.`}</div>`;
   all.forEach((p,i)=>{
     const medal=i===0?'🥇':i===1?'🥈':i===2?'🥉':(i+1);
@@ -315,7 +325,7 @@ function renderLB(){
   });
   html+=`</div>`;
   html+=`<div class="card"><div class="stitle">${isPnl?'Shrunk avg PnL per session':'Avg points per session'}</div>${isPnl?barCentred(all,maxAbs):barSimple(all,maxAbs)}</div>`;
-  html+=`<div class="card"><div class="stitle">Form — ${isPnl?'PnL':'points'} per session</div>${formChart(all,isPnl)}
+  html+=`<div class="card"><div class="stitle">Form — ${isPnl?'PnL':'points'} per session${allTime?' (all seasons)':''}</div>${formChart(all,isPnl)}
     <div style="display:flex;flex-wrap:wrap;gap:6px 8px;margin-top:10px">
       ${all.map(p=>{const c=CB[avIdx(p.name)];const act=formActive===p.name;const fade=formActive&&!act;
         return `<button onclick="toggleForm('${p.name}')" style="display:flex;align-items:center;gap:6px;font-size:12px;cursor:pointer;border:none;padding:4px 8px;border-radius:6px;font-family:inherit;background:${act?'var(--bg2)':'transparent'};opacity:${fade?0.3:1};color:var(--text)">
@@ -382,7 +392,7 @@ function formChart(all,isPnl){
 function renderScorer(){
   const el=document.getElementById('pnl-scorer');
   if(!isActiveSeason()){
-    el.innerHTML=`<div class="card"><div class="note" style="margin:0;text-align:center;padding:1rem 0">${seasons[curSeason].name} is archived. Switch to the current season to add sessions.</div></div>`;
+    el.innerHTML=`<div class="card"><div class="note" style="margin:0;text-align:center;padding:1rem 0">${isAllTime()?'The all-time view is read-only. Switch to the current season to add sessions.':seasons[curSeason].name+' is archived. Switch to the current season to add sessions.'}</div></div>`;
     return;
   }
   const seen=new Set();curSessions().forEach(s=>s.results.forEach(r=>seen.add(r.player)));
@@ -451,7 +461,7 @@ function renderHist(){
   if(SS.length===0){el.innerHTML=`<div class="card"><div class="note" style="margin:0;text-align:center;padding:1rem 0">No sessions yet.</div></div>`;return;}
   if(editIdx!==null&&editData){renderEdit(el);return;}
   const isPnl=SYS==='pnl';const canEdit=isActiveSeason();
-  let html=canEdit?`<div class="warn-box">🗑 The red button permanently deletes a session — you'll be asked to confirm first.</div>`:`<div class="warn-box">📁 ${seasons[curSeason].name} is archived (read-only).</div>`;
+  let html=canEdit?`<div class="warn-box">🗑 The red button permanently deletes a session — you'll be asked to confirm first.</div>`:`<div class="warn-box">📁 ${isAllTime()?'All-time view — every session across all seasons (read-only).':seasons[curSeason].name+' is archived (read-only).'}</div>`;
   if(deleteIdx!==null){
     html+=`<div class="confirm-box"><div style="font-size:14px;margin-bottom:10px">Delete <strong>${SS[deleteIdx]?.name}</strong>? This cannot be undone.</div>
       <div style="display:flex;gap:8px"><button class="btn-ghost" onclick="deleteIdx=null;renderHist()">Cancel</button>
@@ -465,7 +475,7 @@ function renderHist(){
     html+=`<div class="card" style="margin-bottom:12px">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
         <div><span style="font-weight:500;font-size:15px">${s.name}</span>
-          <span style="font-size:11px;color:var(--text3);margin-left:8px">${s.date} · £${pot} in play</span></div>
+          <span style="font-size:11px;color:var(--text3);margin-left:8px">${s._season?s._season+' · ':''}${s.date} · £${pot} in play</span></div>
         ${canEdit?`<div style="display:flex;gap:6px">
           <button class="btn-ghost btn-sm" onclick="openEdit(${idx})">✎ Edit</button>
           <button class="btn-red btn-sm" onclick="deleteIdx=${idx};renderHist()">🗑</button></div>`:''}
@@ -533,7 +543,7 @@ function renderStats(){
     const headline=isPnl?money(p.shrunk,2):p.oldAvg.toFixed(1);
     html+=`<div class="card" style="border-left:3px solid ${col}">
       <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">${av(p.name,36)}
-        <div><div style="font-size:16px;font-weight:500">${p.name}</div><div style="font-size:12px;color:var(--text3)">${p.n} of ${p.seasonTotal} sessions</div></div></div>
+        <div><div style="font-size:16px;font-weight:500">${p.name}</div><div style="font-size:12px;color:var(--text3)">${p.n}${isAllTime()?' sessions all-time':' of '+p.seasonTotal+' sessions'}</div></div></div>
       <div class="two-col">
         <div class="metric"><div class="metric-lbl">${isPnl?'Shrunk avg PnL':'Avg points'}</div>
           <div style="font-size:20px;font-weight:600;${isPnl?'':'color:var(--felt)'}" class="${isPnl?cls(p.shrunk):''}">${headline}</div>
@@ -574,8 +584,8 @@ function renderStats(){
   let bestS={v:-1e9},worstS={v:1e9},bigPot={v:0},seconds={};
   curSessions().forEach(s=>{const rs=s.results.map(r=>({...r,p:pnl(r),o:oldPts(r.buyin,r.final)}));
     const sorted=[...rs].sort((a,b)=>isPnl?b.p-a.p:b.o-a.o);if(sorted[1])seconds[sorted[1].player]=(seconds[sorted[1].player]||0)+1;
-    const pot=rs.reduce((a,r)=>a+r.buyin,0);if(pot>bigPot.v)bigPot={v:pot,name:s.name};
-    rs.forEach(r=>{const v=isPnl?r.p:r.o;if(v>bestS.v)bestS={v,player:r.player,sname:s.name,buyin:r.buyin,final:r.final};if(v<worstS.v)worstS={v,player:r.player,sname:s.name,buyin:r.buyin,final:r.final};});});
+    const pot=rs.reduce((a,r)=>a+r.buyin,0);if(pot>bigPot.v)bigPot={v:pot,name:(s._season?s._season+' ':'')+s.name};
+    rs.forEach(r=>{const v=isPnl?r.p:r.o;const tag=(s._season?s._season+' ':'');if(v>bestS.v)bestS={v,player:r.player,sname:tag+s.name,buyin:r.buyin,final:r.final};if(v<worstS.v)worstS={v,player:r.player,sname:tag+s.name,buyin:r.buyin,final:r.final};});});
   const ms=Object.entries(seconds).sort((a,b)=>b[1]-a[1])[0];const totalIn=curSessions().flatMap(s=>s.results).reduce((a,r)=>a+r.buyin,0);
   const facts=[
     {i:'🏆',l:'Best single session',v:isPnl?money(bestS.v,2):bestS.v+' pts',s:`${bestS.player} · ${bestS.sname} · £${bestS.buyin}→£${bestS.final.toFixed(2)}`},
@@ -584,7 +594,7 @@ function renderStats(){
     {i:'💸',l:'Most expensive session',v:`£${bigPot.v} in play`,s:bigPot.name||'—'},
     {i:'🏦',l:'Total money this season',v:`£${totalIn}`,s:`over ${curSessions().length} sessions`},
   ];
-  html+=`<div class="card"><div class="stitle">${seasons[curSeason].name} records</div>
+  html+=`<div class="card"><div class="stitle">${isAllTime()?'All-time records':seasons[curSeason].name+' records'}</div>
     ${facts.map(f=>`<div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:0.5px solid var(--border)"><span style="font-size:20px">${f.i}</span>
       <div style="flex:1;min-width:0"><div style="font-size:11px;color:var(--text3)">${f.l}</div><div style="font-size:15px;font-weight:600">${f.v}</div><div style="font-size:11px;color:var(--text3);margin-top:1px">${f.s}</div></div></div>`).join('')}</div>`;
   el.innerHTML=html;
