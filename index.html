@@ -2,75 +2,150 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#0B0B0C">
 <title>Family Poker Night</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<!-- Archivo (with its width axis, for the expanded titles) and Inter -->
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..900&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
+/* ══════════════ DESIGN TOKENS ══════════════
+   The one palette for the whole app. Use these variables, never raw colours. */
 :root{
-  --felt:#1a472a; --gold:#c9a84c; --red:#8b2020; --blue:#2c5282;
-  --green:#1a7a3e; --redt:#c0392b;
-  --bg:#fff; --bg2:#f7f7f7; --bg3:#efefef; --border:#e4e4e4; --border2:#d0d0d0;
-  --text:#111; --text2:#555; --text3:#8a8a8a;
-}
-@media(prefers-color-scheme:dark){
-  :root{--bg:#141414;--bg2:#1e1e1e;--bg3:#2a2a2a;--border:#2e2e2e;--border2:#3a3a3a;
-        --text:#f0f0f0;--text2:#aaa;--text3:#6d6d6d;--green:#3fa05f;--redt:#e05a4a;}
+  color-scheme:dark;
+  --base:#0B0B0C;     /* page background */
+  --card:#141416;     /* cards */
+  --raised:#1D1C1F;   /* inputs, chips, insets inside cards */
+  --border:#2A2724;
+  --copper:#C08A5B;   /* accent: primary buttons, active states */
+  --link:#D9A273;     /* text links */
+  --gold:#DDB872;     /* 1st place */
+  --ivory:#ECE6DA;    /* 2nd place */
+  --text:#EDEAE4;
+  --muted:#A39A8E;
+  --up:#6FBF8A;
+  --down:#E0715F;
+  --display:'Archivo',-apple-system,'Helvetica Neue',Arial,sans-serif;
+  --body:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+  --r-card:18px;
+  --r-ctl:12px;
 }
 *{box-sizing:border-box;margin:0;padding:0}
-body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--text);max-width:640px;margin:0 auto;padding-bottom:40px}
-input,select{background:var(--bg);color:var(--text);border:0.5px solid var(--border2);border-radius:8px;padding:7px 10px;font-size:13px;width:100%;font-family:inherit}
-input:focus{outline:1px solid var(--felt)}
-.hdr{background:var(--felt);color:var(--gold);padding:14px 16px;display:flex;align-items:center;gap:10px}
-.hdr-title{font-size:17px;font-weight:500;letter-spacing:1px}
+[hidden]{display:none!important}  /* so el.hidden always wins over inline display:flex */
+body{font-family:var(--body);font-size:14px;line-height:1.45;background:var(--base);color:var(--text);max-width:640px;margin:0 auto;padding-bottom:48px;-webkit-font-smoothing:antialiased}
+button{font-family:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--copper);outline-offset:2px}
+svg.i{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:1.75;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0;vertical-align:-3px}
+
+/* ── Type ── */
+.title{font-family:var(--display);font-weight:800;font-stretch:125%;text-transform:uppercase;letter-spacing:.01em;line-height:1}
+.h2{font-family:var(--display);font-weight:700;font-size:17px;color:var(--text);margin-bottom:4px}
+.money{font-family:var(--display);font-weight:700;font-stretch:112%;font-variant-numeric:tabular-nums;white-space:nowrap}
+.sub{font-size:12px;color:var(--muted)}
+.note{font-size:13px;color:var(--muted);line-height:1.6;margin-bottom:14px}
+.prose{font-size:14px;color:var(--muted);line-height:1.7}
+.prose strong,.note strong{color:var(--text);font-weight:600}
+.up{color:var(--up)}.down{color:var(--down)}.flat{color:var(--muted)}
+.accent{color:var(--copper)}
+
+/* ── Header, chapter/season bar, tabs ── */
+.hdr{display:flex;align-items:center;gap:12px;padding:22px 16px 14px}
+.hdr .title{font-size:22px;color:var(--text)}
 .settings{margin-left:auto;position:relative}
-.settings-btn{background:none;border:none;color:var(--gold);font-size:20px;cursor:pointer;padding:2px 6px;line-height:1}
-.settings-menu{position:absolute;right:0;top:calc(100% + 8px);background:var(--bg);border:0.5px solid var(--border2);border-radius:10px;box-shadow:0 6px 20px rgba(0,0,0,.18);padding:4px;z-index:50;min-width:200px}
-.settings-menu button{display:block;width:100%;text-align:left;background:none;border:none;color:var(--text);font-family:inherit;font-size:13px;padding:9px 12px;border-radius:7px;cursor:pointer}
-.settings-menu button:hover{background:var(--bg2)}
-.season-bar{background:var(--bg2);padding:9px 16px;border-bottom:0.5px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
-.season-select{display:flex;align-items:center;gap:8px}
-.season-select select{width:auto;min-width:130px;font-weight:500}
-.sys-toggle{display:flex;background:var(--bg3);border-radius:8px;padding:2px}
-.sys-toggle button{border:none;background:none;font-family:inherit;font-size:12px;font-weight:500;padding:6px 11px;border-radius:6px;cursor:pointer;color:var(--text2);white-space:nowrap}
-.sys-toggle button.on{background:var(--felt);color:var(--gold)}
-.tabs{display:flex;border-bottom:2px solid var(--felt);background:var(--bg2);overflow-x:auto}
-.tab{padding:10px 14px;font-size:13px;cursor:pointer;border:none;background:none;white-space:nowrap;font-weight:500;color:var(--text2);border-bottom:2px solid transparent;margin-bottom:-2px;font-family:inherit}
-.tab.on{background:var(--felt);color:var(--gold);border-bottom:2px solid var(--felt);border-radius:8px 8px 0 0}
-.pnl{display:none;padding:1rem}
+.icon-btn{display:inline-flex;align-items:center;justify-content:center;width:36px;height:36px;border-radius:10px;background:none;border:1px solid transparent;color:var(--muted);cursor:pointer}
+.icon-btn:hover{color:var(--text);border-color:var(--border)}
+.icon-btn svg.i{width:20px;height:20px}
+.menu{position:absolute;right:0;top:calc(100% + 6px);background:var(--raised);border:1px solid var(--border);border-radius:14px;padding:5px;z-index:50;min-width:220px}
+.menu button{display:block;width:100%;text-align:left;background:none;border:none;font-size:14px;padding:10px 12px;border-radius:9px;cursor:pointer}
+.menu button:hover{background:var(--card)}
+.season-bar{padding:0 16px 14px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.seg{display:flex;background:var(--card);border:1px solid var(--border);border-radius:var(--r-ctl);padding:3px}
+.seg button{border:none;background:none;font-size:13px;font-weight:500;padding:7px 12px;border-radius:9px;cursor:pointer;color:var(--muted);white-space:nowrap}
+.seg button.on{background:var(--raised);color:var(--text);box-shadow:inset 0 0 0 1px var(--copper)}
+select{appearance:none;-webkit-appearance:none;background:var(--card) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' fill='none' stroke='%23A39A8E' stroke-width='1.75' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M1 1.5l5 5 5-5'/%3E%3C/svg%3E") no-repeat right 12px center;color:var(--text);border:1px solid var(--border);border-radius:var(--r-ctl);padding:9px 34px 9px 12px;font:500 14px var(--body);cursor:pointer}
+.tabs{display:flex;gap:4px;padding:0 12px;border-bottom:1px solid var(--border);overflow-x:auto;scrollbar-width:none}
+.tab{padding:11px 10px;font-size:14px;cursor:pointer;border:none;background:none;white-space:nowrap;font-weight:500;color:var(--muted);border-bottom:2px solid transparent;margin-bottom:-1px}
+.tab:hover{color:var(--text)}
+.tab.on{color:var(--text);border-bottom-color:var(--copper)}
+
+/* ── Panels and cards ── */
+.pnl{display:none;padding:16px}
 .pnl.on{display:block}
-.card{background:var(--bg);border:0.5px solid var(--border);border-radius:12px;padding:1rem 1.25rem;margin-bottom:1rem}
-.stitle{font-size:11px;font-weight:500;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px}
-.av{border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-weight:500;flex-shrink:0}
-.metric{background:var(--bg2);border-radius:8px;padding:10px 12px}
-.metric-lbl{font-size:11px;color:var(--text3);margin-bottom:4px}
+.card{background:var(--card);border:1px solid var(--border);border-radius:var(--r-card);padding:18px;margin-bottom:14px}
+.inset{background:var(--raised);border-radius:var(--r-ctl);padding:12px 14px}
+.inset+.inset{margin-top:10px}
+.inset .lbl{font-size:12px;color:var(--muted);margin-bottom:4px}
 .two-col{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-.pos{color:var(--green)}.neg{color:var(--redt)}.neu{color:var(--text3)}
-.note{font-size:12px;color:var(--text3);line-height:1.6;margin-bottom:12px}
-table{border-collapse:collapse;width:100%}
-.btn{background:var(--felt);color:var(--gold);border:none;border-radius:8px;padding:8px 16px;font-size:13px;cursor:pointer;font-weight:500;font-family:inherit}
-.btn-blue{background:var(--blue);color:#bee3f8}
-.btn-ghost{background:var(--bg2);color:var(--text);border:0.5px solid var(--border2);border-radius:8px;padding:6px 12px;font-size:13px;cursor:pointer;font-family:inherit}
-.btn-red{background:var(--red);color:#fcd;border:none;border-radius:8px;padding:6px 12px;font-size:13px;cursor:pointer;font-family:inherit}
-.btn-sm{padding:4px 10px;font-size:12px}
-.tag{display:inline-flex;align-items:center;gap:5px;font-size:12px;padding:4px 10px;border-radius:6px;cursor:pointer;border:0.5px solid var(--border2);background:var(--bg2);color:var(--text);font-family:inherit}
-.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--felt);color:var(--gold);padding:8px 20px;border-radius:20px;font-size:13px;font-weight:500;z-index:999;pointer-events:none;opacity:0;transition:opacity .3s}
+.row{display:flex;align-items:center;gap:10px;padding:11px 0;border-bottom:1px solid var(--border)}
+.row:last-child{border-bottom:none}
+.spread{display:flex;justify-content:space-between;align-items:baseline;gap:10px}
+.empty{text-align:center;padding:14px 0;margin:0}
+.loading{padding:3rem;text-align:center;color:var(--muted)}
+.notice{display:flex;align-items:center;gap:8px;margin-bottom:14px;padding:10px 14px;background:var(--card);border:1px solid var(--border);border-radius:var(--r-ctl);font-size:13px;color:var(--muted)}
+.banner{display:flex;align-items:center;justify-content:center;gap:8px;border:1px solid var(--gold);border-radius:var(--r-ctl);padding:12px 14px;margin-bottom:14px;color:var(--text)}
+.banner svg.i{color:var(--gold)}
+.confirm{border:1px solid var(--down);border-radius:var(--r-ctl);padding:14px;margin-top:14px}
+
+/* ── Ranks and avatars ── */
+.rank{width:20px;text-align:center;font-family:var(--display);font-weight:800;font-size:15px;color:var(--muted);flex-shrink:0;font-variant-numeric:tabular-nums}
+.rank.r1{color:var(--gold)}.rank.r2{color:var(--ivory)}.rank.r3{color:var(--copper)}
+.av{border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-weight:600;flex-shrink:0;letter-spacing:.02em}
+
+/* ── Tables of results (history, edit, scorer) ── */
+.grid-res{display:grid;grid-template-columns:1fr 54px 64px 76px;gap:6px;align-items:center;padding:8px 0;border-bottom:1px solid var(--border)}
+.grid-res:last-child{border-bottom:none}
+.grid-res.head{padding:0 0 6px;font-size:11px;color:var(--muted)}
+.grid-edit{grid-template-columns:1fr 70px 70px 76px}
+.grid-scorer{grid-template-columns:1fr 76px 76px 36px}
+.c{text-align:center}.r{text-align:right}
+.who{display:flex;align-items:center;gap:8px;min-width:0}
+.who span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+/* ── Controls ── */
+input{background:var(--raised);color:var(--text);border:1px solid var(--border);border-radius:10px;padding:9px 10px;font:14px var(--body);width:100%}
+input:focus{outline:none;border-color:var(--copper)}
+input::placeholder{color:#6f675e}
+.field-lbl{font-size:12px;color:var(--muted);margin-bottom:5px}
+.btn{display:inline-flex;align-items:center;gap:6px;background:var(--copper);color:var(--base);border:1px solid var(--copper);border-radius:var(--r-ctl);padding:10px 16px;font-size:14px;font-weight:600;cursor:pointer}
+.btn:hover{background:var(--link);border-color:var(--link)}
+.btn-ghost{display:inline-flex;align-items:center;gap:6px;background:var(--raised);color:var(--text);border:1px solid var(--border);border-radius:var(--r-ctl);padding:10px 14px;font-size:14px;font-weight:500;cursor:pointer}
+.btn-ghost:hover{border-color:var(--muted)}
+.btn-danger{display:inline-flex;align-items:center;gap:6px;background:none;color:var(--down);border:1px solid var(--down);border-radius:var(--r-ctl);padding:10px 14px;font-size:14px;font-weight:500;cursor:pointer}
+.btn-danger.solid{background:var(--down);color:var(--base);font-weight:600}
+.btn-sm{padding:6px 10px;font-size:13px;border-radius:10px}
+.tag{display:inline-flex;align-items:center;gap:6px;font-size:13px;padding:5px 10px 5px 5px;border-radius:999px;cursor:pointer;border:1px solid var(--border);background:var(--raised)}
+.tag:hover{border-color:var(--muted)}
+.link{background:none;border:none;color:var(--link);font-size:14px;cursor:pointer;padding:0}
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--raised);color:var(--text);border:1px solid var(--copper);padding:9px 20px;border-radius:999px;font-size:14px;font-weight:500;z-index:999;pointer-events:none;opacity:0;transition:opacity .25s}
 .toast.on{opacity:1}
-.loading{padding:3rem;text-align:center;color:var(--text3);font-size:14px}
-.warn-box{display:flex;align-items:center;gap:6px;margin-bottom:12px;padding:8px 12px;background:var(--bg2);border-radius:8px;font-size:12px;color:var(--text2)}
-.confirm-box{border:0.5px solid var(--red);border-radius:12px;padding:1rem 1.25rem;margin-bottom:12px}
-.badge{display:inline-block;background:var(--felt);color:var(--gold);border-radius:6px;padding:3px 10px;font-size:13px;font-weight:500;min-width:32px;text-align:center}
-.win-banner{border:1px solid var(--gold);border-radius:8px;padding:10px 14px;margin-bottom:12px;text-align:center;font-size:14px}
-.pill{font-size:10px;padding:2px 8px;border-radius:10px;background:var(--bg3);color:var(--text3);font-weight:500}
+.pts{font-family:var(--display);font-weight:700;color:var(--copper)}
+.badge{display:inline-block;background:var(--raised);color:var(--copper);border:1px solid var(--border);border-radius:8px;padding:3px 10px;font:700 13px var(--display);min-width:36px;text-align:center}
+
+/* ── Charts and head-to-head ── */
+.legend{display:flex;flex-wrap:wrap;gap:4px 6px;margin-top:12px}
+.legend button{display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer;border:none;padding:4px 8px;border-radius:8px;background:transparent}
+.legend button.on{background:var(--raised)}
+.legend .swatch{width:14px;height:3px;border-radius:2px;display:inline-block}
+.h2h{table-layout:fixed;min-width:300px;border-collapse:collapse;width:100%}
+.h2h th,.h2h td{padding:5px 1px;text-align:center;border-bottom:1px solid var(--border);font-size:10px}
+.h2h th{color:var(--muted);font-weight:500}
+.h2h .dot{width:7px;height:7px;border-radius:50%;display:inline-block;flex-shrink:0}
+.h2h .win{background:rgba(111,191,138,.12)}.h2h .loss{background:rgba(224,113,95,.12)}.h2h .self{background:var(--raised)}
+.fact{display:flex;align-items:center;gap:14px;padding:12px 0;border-bottom:1px solid var(--border)}
+.fact:last-child{border-bottom:none}
+.fact .ic{width:36px;height:36px;border-radius:10px;background:var(--raised);display:flex;align-items:center;justify-content:center;color:var(--copper);flex-shrink:0}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
 </head>
 <body>
 
 <div class="hdr">
-  <span style="font-size:18px;letter-spacing:4px">♠ ♥ ♦ ♣</span>
-  <span class="hdr-title">Family poker night</span>
+  <h1 class="title">Family poker night</h1>
   <div class="settings" id="settings">
-    <button class="settings-btn" onclick="toggleSettings()" aria-label="Settings">⚙</button>
-    <div class="settings-menu" id="settings-menu" hidden>
-      <button onclick="toggleSettings(false);newSeason()">+ New season (Chapter 2)</button>
+    <button class="icon-btn" onclick="toggleSettings()" aria-label="Settings"><svg class="i" viewBox="0 0 24 24"><path d="M4 6h9M17 6h3M4 12h3M11 12h9M4 18h11M19 18h1"/><circle cx="15" cy="6" r="2"/><circle cx="9" cy="12" r="2"/><circle cx="17" cy="18" r="2"/></svg></button>
+    <div class="menu" id="settings-menu" hidden>
+      <button onclick="toggleSettings(false);newSeason()">New season in Chapter 2</button>
     </div>
   </div>
 </div>
@@ -85,7 +160,7 @@ table{border-collapse:collapse;width:100%}
   <button class="tab" onclick="goTab('rules',this)">Rules</button>
 </div>
 
-<div class="pnl on" id="pnl-lb"><div class="loading">Loading...</div></div>
+<div class="pnl on" id="pnl-lb"><div class="loading">Loading…</div></div>
 <div class="pnl" id="pnl-scorer"></div>
 <div class="pnl" id="pnl-hist"></div>
 <div class="pnl" id="pnl-stats"></div>
@@ -99,6 +174,21 @@ const KNOWN=["Kathiir","Varunn","Ami","Aaron","Sanj","Vittu","Kev"];
 const CB=['#1a472a','#2980b9','#8b2020','#6b3fa0','#b5551a','#1a5276','#7a5c1e','#2d6a4f','#9c4221'];
 const CF=['#a8e6c0','#bee3f8','#fcd5d5','#e8d5f8','#fde8d5','#d5eef8','#f5e6c0','#c5e8d5','#f8d5c0'];
 
+// ══════════════ ICONS ══════════════
+// Simple line icons (24×24, drawn with the current text colour). icon('pencil') → <svg>.
+const ICON_PATHS={
+  pencil:'<path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/>',
+  x:'<path d="M18 6 6 18M6 6l12 12"/>',
+  lock:'<rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/>',
+  trophy:'<path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0Z"/><path d="M17 5h3v2a3 3 0 0 1-3 3M7 5H4v2a3 3 0 0 0 3 3"/>',
+  up:'<path d="m3 17 6-6 4 4 8-8"/><path d="M14 7h7v7"/>',
+  down:'<path d="m3 7 6 6 4-4 8 8"/><path d="M14 17h7v-7"/>',
+  award:'<circle cx="12" cy="9" r="6"/><path d="M8.5 14 7 22l5-3 5 3-1.5-8"/>',
+  stack:'<ellipse cx="12" cy="6" rx="8" ry="3"/><path d="M4 6v6c0 1.7 3.6 3 8 3s8-1.3 8-3V6"/><path d="M4 12v6c0 1.7 3.6 3 8 3s8-1.3 8-3v-6"/>',
+  coins:'<circle cx="9" cy="9" r="6"/><path d="M15.5 9.2A6 6 0 1 1 9.2 15.5"/>',
+};
+function icon(n){return `<svg class="i" viewBox="0 0 24 24" aria-hidden="true">${ICON_PATHS[n]}</svg>`;}
+
 // ══════════════ SCORING ══════════════
 const BKT=[[0,0],[0.5,5],[0.8,8],[1.0,10],[1.2,13],[1.5,16],[2.0,19],[2.5,22],[3.0,25],[4.0,30],[5.0,35]];
 function interpPts(m){if(m<=0)return 0;if(m>=5)return 35+(m-5)*5;
@@ -110,10 +200,10 @@ function pnl(r){return r.final-r.buyin;}
 // ══════════════ STATE ══════════════
 // All database access goes through window.DB (db.js); nothing here talks to Firebase.
 let DATA=null;        // from DB.loadAll(): {activeSeasonNumber, eras:{'era-1':{...}, 'era-2':{...}}, players:[names]}
-let VIEW='era-2';     // 'era-2' (current era) | 'era-1' (Legacy, read-only) | 'all' (both eras pooled, read-only)
+let VIEW='era-2';     // 'era-2' (Chapter 2) | 'era-1' (Chapter 1, read-only) | 'all' (both pooled, read-only)
 let seasons=[];       // seasons shown in the current VIEW: [{id, name, number, system, sessions:[{id, seq, name, date, results}]}]
 let curSeason=0;      // index into seasons, or -1 for "All time"
-let SYS='pnl';        // display system for the old-points season (Legacy Season 1)
+let SYS='pnl';        // display system for the old-points season (Chapter 1 Season 1)
 let TAB='lb';
 let formActive=null;
 let scorerPlayers=[], scorerRows={}, scorerName="", scorerResult=null;
@@ -124,22 +214,21 @@ let busy=false;       // true while a save is in flight, to stop double-clicks s
 function showLoadError(m){document.getElementById('pnl-lb').innerHTML=`<div class="loading">${m}</div>`;}
 async function init(){
   try{DATA=await DB.loadAll();}
-  catch(e){console.error(e);showLoadError("Couldn't load data — check your connection and refresh.");return;}
+  catch(e){console.error(e);showLoadError("Couldn't load data. Check your connection and refresh.");return;}
   setView('era-2');
 }
 // db.js is a module and loads after this script, so wait for its "db-ready" event.
 function startWhenDbReady(){
   if(window.DB){init();return;}
   window.addEventListener('db-ready',init,{once:true});
-  setTimeout(()=>{if(!window.DB)showLoadError("Couldn't reach the database — check your connection and refresh.");},15000);
+  setTimeout(()=>{if(!window.DB)showLoadError("Couldn't reach the database. Check your connection and refresh.");},15000);
 }
 function era2(){return DATA.eras['era-2'];}
 function saveFailed(e){
   console.error(e);
-  toast(e&&e.code==='permission-denied'?'Rejected — refresh and check the details':'Save failed — check connection');
+  toast(e&&e.code==='permission-denied'?'Rejected. Refresh and check the details':'Save failed. Check your connection');
 }
 const DATE_RE=/^[0-3][0-9]\/[01][0-9]\/20[0-9][0-9]$/;
-
 function toast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('on');setTimeout(()=>t.classList.remove('on'),2200);}
 
 // ══════════════ SEASON BAR ══════════════
@@ -164,20 +253,18 @@ function renderSeasonBar(){
   const s=allTime?null:seasons[curSeason];
   const isArchived = s && s.system==="old";
   const live=VIEW==='era-2';
-  let html=`<div class="sys-toggle">
+  let html=`<div class="seg">
     ${[['era-2','Chapter 2'],['era-1','Chapter 1'],['all','All chapters']].map(([v,l])=>`<button class="${VIEW===v?'on':''}" onclick="setView('${v}')">${l}</button>`).join('')}
   </div>`;
   if(VIEW!=='all'){
-    html+=`<div class="season-select">
-      <select onchange="switchSeason(this.value)">
-        <option value="-1" ${allTime?'selected':''}>★ All time (${live?'Chapter 2':'Chapter 1'})</option>
+    html+=`<select onchange="switchSeason(this.value)" aria-label="Season">
+        <option value="-1" ${allTime?'selected':''}>All time (${live?'Chapter 2':'Chapter 1'})</option>
         ${seasons.map((se,i)=>`<option value="${i}" ${i===curSeason?'selected':''}>${se.name}${live&&se.number===DATA.activeSeasonNumber?' (current)':''}</option>`).join('')}
-      </select>
-    </div>`;
+      </select>`;
   }
-  // Only the old-points season (Legacy Season 1) gets the comparison toggle
+  // Only the old-points season (Chapter 1 Season 1) gets the comparison toggle
   if(isArchived){
-    html+=`<div class="sys-toggle">
+    html+=`<div class="seg">
       <button class="${SYS==='pnl'?'on':''}" onclick="setSys('pnl')">Shrunk PnL</button>
       <button class="${SYS==='old'?'on':''}" onclick="setSys('old')">Old points</button>
     </div>`;
@@ -194,7 +281,7 @@ function switchSeason(i){
 function setSys(s){SYS=s;renderSeasonBar();render();}
 
 async function newSeason(){
-  if(busy||!DATA)return;   // the ⚙ menu exists before data has loaded
+  if(busy||!DATA)return;   // the settings menu exists before data has loaded
   const n=DATA.activeSeasonNumber+1;
   if(!confirm(`Start Season ${n} of Chapter 2?\n\nIt becomes the current season. Seasons can't be deleted.`))return;
   busy=true;
@@ -207,7 +294,7 @@ async function newSeason(){
   toast(`Season ${n} created`);
 }
 
-// ⚙ menu in the header: toggleSettings() flips it, toggleSettings(false) closes it; a click anywhere else closes it too
+// Settings menu in the header: toggleSettings() flips it, toggleSettings(false) closes it; a click anywhere else closes it too
 function toggleSettings(open){
   const m=document.getElementById('settings-menu');
   m.hidden=open===undefined?!m.hidden:!open;
@@ -232,13 +319,13 @@ function curSessions(){
   }
   return seasons[curSeason].sessions;
 }
-// Sessions can be edited/deleted in any Era 2 season (Legacy and pooled views are read-only)...
+// Sessions can be edited/deleted in any Chapter 2 season (Chapter 1 and pooled views are read-only)...
 function canEdit(){return VIEW==='era-2' && !isAllTime();}
-// ...but new sessions are only added to the current Era 2 season.
+// ...but new sessions are only added to the current Chapter 2 season.
 function isActiveSeason(){return canEdit() && seasons[curSeason].number===DATA.activeSeasonNumber;}
 function readOnlyMsg(){
-  if(VIEW==='all')return 'All chapters — every session ever (read-only).';
-  if(isAllTime())return `All time (${VIEW==='era-1'?'Chapter 1':'Chapter 2'}) — read-only.`;
+  if(VIEW==='all')return 'All chapters: every session ever (read-only).';
+  if(isAllTime())return `All time (${VIEW==='era-1'?'Chapter 1':'Chapter 2'}) is read-only.`;
   if(VIEW==='era-1')return `Chapter 1 ${seasons[curSeason].name} is archived (read-only).`;
   return `${seasons[curSeason].name} isn't the current season.`;
 }
@@ -252,11 +339,21 @@ function sessionLabel(s){
 function avIdx(n){const i=KNOWN.indexOf(n);return i<0?(hashName(n)%CB.length):i;}
 function hashName(n){let h=0;for(let i=0;i<n.length;i++)h=(h*31+n.charCodeAt(i))>>>0;return h;}
 function av(n,s=28){const i=avIdx(n);return `<div class="av" style="width:${s}px;height:${s}px;font-size:${Math.round(s*.38)}px;background:${CB[i]};color:${CF[i]}">${n.slice(0,2).toUpperCase()}</div>`;}
-function money(v,dp=2){const s=v>=0?'+':'−';return `${s}£${Math.abs(v).toFixed(dp)}`;}
-function cls(v){return v>0.004?'pos':v<-0.004?'neg':'neu';}
-// Leaderboard display only: nearest 25p, no ".00" on whole pounds (+£16, +£16.25). Ranking always uses exact values.
+function rank(i){return `<span class="rank${i<3?' r'+(i+1):''}">${i+1}</span>`;}
+
+// Money. Every format drops ".00" on whole pounds.
+//   money(v)   exact, signed       (+£12.35)  for amounts people entered: a session's in/out and PnL
+//   money25(v) nearest 25p, signed (+£12.25)  for summaries: standings, totals, averages
+//   gbp(v)     exact, no sign      (£12.35)
+// Ranking always uses exact values; rounding is display only.
+function amt(a){a=Math.round(Math.abs(a)*100)/100;return a%1?a.toFixed(2):String(a);}
+function gbp(v){return '£'+amt(v);}
+function money(v){return `${Math.round(v*100)/100>=0?'+':'−'}£${amt(v)}`;}
 function round25(v){return Math.round(v*4)/4||0;}
-function money25(v){const r=round25(v),a=Math.abs(r);return `${r>=0?'+':'−'}£${a%1?a.toFixed(2):a}`;}
+function money25(v){return money(round25(v));}
+function gbp25(v){return gbp(round25(v));}
+// Colour class for a value: up / down / flat
+function cls(v){return v>0.004?'up':v<-0.004?'down':'flat';}
 
 function buildStats(){
   const m={};
@@ -280,6 +377,7 @@ function ranked(){
     p.metric=SYS==='pnl'?p.shrunk:p.oldAvg;p.seasonTotal=total;});
   return all.sort((a,b)=>b.metric-a.metric);
 }
+function emptyCard(msg){return `<div class="card"><p class="note empty">${msg}</p></div>`;}
 
 // ══════════════ RENDER DISPATCH ══════════════
 function render(){
@@ -294,58 +392,54 @@ function render(){
 function renderLB(){
   const total=curSessions().length;
   if(total===0){
-    document.getElementById('pnl-lb').innerHTML=`<div class="card"><div class="note" style="margin:0;text-align:center;padding:1rem 0">No sessions yet in ${seasons[curSeason].name}. Add one from the <strong>Session</strong> tab to get started.</div></div>`;
+    document.getElementById('pnl-lb').innerHTML=emptyCard(`No sessions yet${isAllTime()?'':' in '+seasons[curSeason].name}. Add one from the <strong>Session</strong> tab to get started.`);
     return;
   }
   const all=ranked();const isPnl=SYS==='pnl';
   const maxAbs=Math.max(...all.map(p=>Math.abs(p.metric)),1);
   const allTime=isAllTime();
   let html=`<div class="card">
-    <div class="stitle">${allTime?'All-time standings — shrunk avg PnL':(isPnl?'Standings — shrunk avg PnL':'Standings — avg points (old system)')}</div>
-    <div class="note">${isPnl
-      ? `Ranked by total PnL ÷ (sessions + ${K})${allTime?', pooled across every season':''}. A player with few games sits closer to £0 until they've proven otherwise.`
-      : `Ranked by average bracket points. Scores floor at 0.`}</div>`;
+    <h2 class="h2">${allTime?'All-time standings':'Standings'}</h2>
+    <p class="note">${isPnl
+      ? `Shrunk average PnL: total PnL ÷ (sessions + ${K})${allTime?', pooled across every season':''}. A player with few games sits closer to £0 until they've proven otherwise.`
+      : `Average bracket points (old system). Scores floor at 0.`}</p>`;
   all.forEach((p,i)=>{
-    const medal=i===0?'🥇':i===1?'🥈':i===2?'🥉':(i+1);
-    const headline=isPnl?money25(p.metric):p.metric.toFixed(1)+' pts';
+    const headline=isPnl?`<span class="money ${cls(round25(p.metric))}" style="font-size:16px">${money25(p.metric)}</span>`:`<span class="pts" style="font-size:16px">${p.metric.toFixed(1)} pts</span>`;
     const sub=isPnl?`${p.n}/${total} played · ${money25(p.pnlTot)} total`:`${p.n}/${total} played · ${p.oldTot} total pts`;
-    html+=`<div style="display:flex;align-items:center;gap:10px;padding:11px 0;border-bottom:0.5px solid var(--border)">
-      <span style="width:22px;text-align:center;font-size:14px">${medal}</span>${av(p.name)}
+    html+=`<div class="row">${rank(i)}${av(p.name,32)}
       <div style="flex:1;min-width:0">
-        <div style="display:flex;justify-content:space-between;align-items:baseline">
-          <span style="font-size:14px;font-weight:500">${p.name}</span>
-          <span style="font-size:15px;font-weight:600;${isPnl?'':'color:var(--felt)'}" class="${isPnl?cls(round25(p.metric)):''}">${headline}</span>
-        </div>
-        <div style="font-size:11px;color:var(--text3);margin-top:2px">${sub}</div>
+        <div class="spread"><span style="font-size:15px;font-weight:500">${p.name}</span>${headline}</div>
+        <div class="sub" style="margin-top:2px">${sub}</div>
       </div></div>`;
   });
   html+=`</div>`;
-  html+=`<div class="card"><div class="stitle">${isPnl?'Shrunk avg PnL per session':'Avg points per session'}</div>${isPnl?barCentred(all,maxAbs):barSimple(all,maxAbs)}</div>`;
-  html+=`<div class="card"><div class="stitle">Form — ${isPnl?'PnL':'points'} per session${allTime?' (all seasons)':''}</div>${formChart(all,isPnl)}
-    <div style="display:flex;flex-wrap:wrap;gap:6px 8px;margin-top:10px">
+  html+=`<div class="card"><h2 class="h2" style="margin-bottom:12px">${isPnl?'Shrunk avg PnL per session':'Avg points per session'}</h2>${isPnl?barCentred(all,maxAbs):barSimple(all,maxAbs)}</div>`;
+  html+=`<div class="card"><h2 class="h2" style="margin-bottom:12px">Form: ${isPnl?'PnL':'points'} per session${allTime?' (all seasons)':''}</h2>${formChart(all,isPnl)}
+    <div class="legend">
       ${all.map(p=>{const c=CB[avIdx(p.name)];const act=formActive===p.name;const fade=formActive&&!act;
-        return `<button onclick="toggleForm('${p.name}')" style="display:flex;align-items:center;gap:6px;font-size:12px;cursor:pointer;border:none;padding:4px 8px;border-radius:6px;font-family:inherit;background:${act?'var(--bg2)':'transparent'};opacity:${fade?0.3:1};color:var(--text)">
-          <span style="width:14px;height:${act?4:3}px;border-radius:2px;background:${c};display:inline-block"></span>${p.name}</button>`;}).join('')}
-    </div>${formActive?`<div style="font-size:11px;color:var(--text3);margin-top:6px;text-align:center">Tap ${formActive} again to reset</div>`:''}</div>`;
+        return `<button class="${act?'on':''}" onclick="toggleForm('${p.name}')" style="opacity:${fade?0.35:1}">
+          <span class="swatch" style="background:${c};height:${act?4:3}px"></span>${p.name}</button>`;}).join('')}
+    </div>${formActive?`<p class="sub" style="margin-top:6px;text-align:center">Tap ${formActive} again to reset</p>`:''}</div>`;
   document.getElementById('pnl-lb').innerHTML=html;
 }
 function toggleForm(n){formActive=formActive===n?null:n;renderLB();}
 
+const SVG_FONT=`font-family="Archivo, sans-serif"`;
 function barCentred(all,maxAbs){
   const W=340,rowH=34,padT=18,padB=8,labelW=64;const H=padT+all.length*rowH+padB;
   // leave 46 units at each end of the plot for the value label (e.g. "+£16.25"), so it never runs off the edge
   const zone=W-labelW-10;const cx=labelW+zone/2;const scale=(zone/2-46)/maxAbs;
   let s=`<svg viewBox="0 0 ${W} ${H}" style="width:100%;display:block">`;
-  s+=`<text x="${cx}" y="11" font-size="9" fill="var(--text3)" text-anchor="middle">£0</text>`;
-  s+=`<line x1="${cx}" x2="${cx}" y1="${padT-4}" y2="${H-padB}" stroke="var(--border2)" stroke-width="1"/>`;
+  s+=`<text x="${cx}" y="11" font-size="9" fill="var(--muted)" text-anchor="middle">£0</text>`;
+  s+=`<line x1="${cx}" x2="${cx}" y1="${padT-4}" y2="${H-padB}" stroke="var(--border)" stroke-width="1"/>`;
   all.forEach((p,i)=>{const y=padT+i*rowH;const v=p.metric;const w=Math.abs(v)*scale;const x=v>=0?cx:cx-w;
-    const col=v>=0?'#1a7a3e':'#c0392b';
+    const col=v>=0?'var(--up)':'var(--down)';
     // name label pinned to far left, always clear of the plot zone
-    s+=`<text x="4" y="${y+15}" font-size="10.5" fill="var(--text2)" text-anchor="start">${p.name.slice(0,7)}</text>`;
-    s+=`<rect x="${x}" y="${y+5}" width="${Math.max(w,1.5)}" height="15" rx="3" fill="${col}"/>`;
+    s+=`<text x="4" y="${y+16}" font-size="11" fill="var(--muted)" text-anchor="start">${p.name.slice(0,7)}</text>`;
+    s+=`<rect x="${x}" y="${y+6}" width="${Math.max(w,1.5)}" height="14" rx="7" fill="${col}"/>`;
     // value label sits just past the bar end, on the outside
-    const tx=v>=0?cx+w+4:cx-w-4;const anc=v>=0?'start':'end';
-    s+=`<text x="${tx}" y="${y+16}" font-size="10" font-weight="600" fill="${col}" text-anchor="${anc}">${money25(v)}</text>`;});
+    const tx=v>=0?cx+w+5:cx-w-5;const anc=v>=0?'start':'end';
+    s+=`<text x="${tx}" y="${y+17}" font-size="10.5" font-weight="700" ${SVG_FONT} fill="${col}" text-anchor="${anc}">${money25(v)}</text>`;});
   return s+`</svg>`;
 }
 function barSimple(all,max){
@@ -353,9 +447,9 @@ function barSimple(all,max){
   const zone=W-labelW-48;const scale=zone/max;
   let s=`<svg viewBox="0 0 ${W} ${H}" style="width:100%;display:block">`;
   all.forEach((p,i)=>{const y=padT+i*rowH;const w=p.metric*scale;
-    s+=`<text x="${labelW-6}" y="${y+15}" font-size="11" fill="var(--text2)" text-anchor="end">${p.name.slice(0,6)}</text>`;
-    s+=`<rect x="${labelW}" y="${y+5}" width="${Math.max(w,1.5)}" height="15" rx="3" fill="#1a472a"/>`;
-    s+=`<text x="${labelW+w+5}" y="${y+16}" font-size="10" font-weight="600" fill="var(--text2)">${p.metric.toFixed(1)}</text>`;});
+    s+=`<text x="${labelW-6}" y="${y+15}" font-size="11" fill="var(--muted)" text-anchor="end">${p.name.slice(0,6)}</text>`;
+    s+=`<rect x="${labelW}" y="${y+5}" width="${Math.max(w,1.5)}" height="14" rx="7" fill="var(--copper)"/>`;
+    s+=`<text x="${labelW+w+5}" y="${y+16}" font-size="10.5" font-weight="700" ${SVG_FONT} fill="var(--text)">${p.metric.toFixed(1)}</text>`;});
   return s+`</svg>`;
 }
 function formChart(all,isPnl){
@@ -367,10 +461,9 @@ function formChart(all,isPnl){
   let ticks=isPnl?[-80,-40,0,40,80,120]:[0,10,20,30];ticks=ticks.filter(t=>t>=lo&&t<=hi);
   let s=`<svg viewBox="0 0 ${W} ${H}" style="width:100%;display:block">`;
   ticks.forEach(t=>{const z=t===0;
-    s+=`<line x1="${padL}" x2="${W-padR}" y1="${toY(t)}" y2="${toY(t)}" stroke="${z?'var(--border2)':'var(--border)'}" stroke-width="${z?1:0.5}" ${z?'':'stroke-dasharray="3,3"'}/>`;
-    s+=`<text x="${padL-5}" y="${toY(t)+3.5}" font-size="8.5" fill="var(--text3)" text-anchor="end">${isPnl?(t<0?'−£'+Math.abs(t):'£'+t):t}</text>`;});
-  SS.forEach((_,i)=>{if(n<=1){s+=`<text x="${toX(i)}" y="${H-7}" font-size="8.5" fill="var(--text3)" text-anchor="middle">S${i+1}</text>`;}
-    else s+=`<text x="${toX(i)}" y="${H-7}" font-size="8.5" fill="var(--text3)" text-anchor="middle">S${i+1}</text>`;});
+    s+=`<line x1="${padL}" x2="${W-padR}" y1="${toY(t)}" y2="${toY(t)}" stroke="var(--border)" stroke-width="1" ${z?'':'stroke-dasharray="3,3"'}/>`;
+    s+=`<text x="${padL-5}" y="${toY(t)+3.5}" font-size="8.5" fill="var(--muted)" text-anchor="end">${isPnl?(t<0?'−£'+Math.abs(t):'£'+t):t}</text>`;});
+  SS.forEach((_,i)=>{s+=`<text x="${toX(i)}" y="${H-7}" font-size="8.5" fill="var(--muted)" text-anchor="middle">S${i+1}</text>`;});
   all.forEach(p=>{const c=CB[avIdx(p.name)];const act=formActive===p.name;const fade=formActive&&!act;
     const pts=SS.map(s2=>{const r=s2.results.find(x=>x.player===p.name);return r?(isPnl?pnl(r):oldPts(r.buyin,r.final)):null;});
     const segs=[];let seg=[];pts.forEach((v,i)=>{if(v!==null)seg.push([i,v]);else{if(seg.length>=2)segs.push(seg);seg=[];}});
@@ -389,36 +482,34 @@ function formChart(all,isPnl){
 function renderScorer(){
   const el=document.getElementById('pnl-scorer');
   if(!isActiveSeason()){
-    el.innerHTML=`<div class="card"><div class="note" style="margin:0;text-align:center;padding:1rem 0">${readOnlyMsg()} Switch to the current Chapter 2 season to add sessions.</div></div>`;
+    el.innerHTML=emptyCard(`${readOnlyMsg()} Switch to the current Chapter 2 season to add sessions.`);
     return;
   }
   const quick=DATA.players.filter(p=>!scorerPlayers.includes(p));
+  const q=p=>p.replace(/'/g,"\\'");
   el.innerHTML=`
     <div class="card">
-      <div class="stitle">New session — ${seasons[curSeason].name}</div>
-      <div style="margin-bottom:10px"><div style="font-size:12px;color:var(--text3);margin-bottom:4px">Session name</div>
+      <h2 class="h2" style="margin-bottom:14px">New session in ${seasons[curSeason].name}</h2>
+      <div style="margin-bottom:12px"><div class="field-lbl">Session name</div>
         <input id="sname" placeholder="Session ${curSessions().length+1}" value="${scorerName}" maxlength="60" oninput="scorerName=this.value" style="max-width:280px"></div>
-      <div style="display:flex;gap:8px;margin-bottom:8px">
+      <div style="display:flex;gap:8px;margin-bottom:10px">
         <input id="np" placeholder="Type a name or pick below" style="flex:1" onkeydown="if(event.key==='Enter')addP()">
         <button class="btn btn-sm" onclick="addP()">Add</button></div>
       <div style="display:flex;flex-wrap:wrap;gap:6px">
-        ${quick.map(p=>`<button class="tag" onclick="addPN('${p.replace(/'/g,"\\'")}')">${av(p,18)} ${p}</button>`).join('')}
+        ${quick.map(p=>`<button class="tag" onclick="addPN('${q(p)}')">${av(p,22)} ${p}</button>`).join('')}
       </div>
     </div>
     ${scorerPlayers.length?`<div class="card">
-      <div class="stitle">Players & results</div>
-      <div style="display:grid;grid-template-columns:1fr 80px 80px 36px;gap:6px;padding-bottom:6px;border-bottom:0.5px solid var(--border);margin-bottom:8px">
-        <span style="font-size:11px;color:var(--text3)">Player</span>
-        <span style="font-size:11px;color:var(--text3);text-align:center">Buy-in £</span>
-        <span style="font-size:11px;color:var(--text3);text-align:center">Final £</span><span></span></div>
-      ${scorerPlayers.map(p=>`<div style="display:grid;grid-template-columns:1fr 80px 80px 36px;gap:6px;align-items:center;margin-bottom:8px">
-        <div style="display:flex;align-items:center;gap:7px">${av(p)}<span style="font-size:13px">${p}</span></div>
-        <input type="number" value="${scorerRows[p]?.buyin??20}" min="0" step="5" style="text-align:center" oninput="scorerRows['${p.replace(/'/g,"\\'")}'].buyin=this.value">
-        <input type="number" value="${scorerRows[p]?.final??''}" min="0" step="0.25" placeholder="0" style="text-align:center" oninput="scorerRows['${p.replace(/'/g,"\\'")}'].final=this.value">
-        <button class="btn-red btn-sm" onclick="rmP('${p.replace(/'/g,"\\'")}')">✕</button></div>`).join('')}
-      <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap">
-        <button class="btn" onclick="calcScores()">Calculate</button>
-        <button class="btn btn-blue" onclick="saveSession()">Save session</button></div>
+      <h2 class="h2" style="margin-bottom:12px">Players and results</h2>
+      <div class="grid-res grid-scorer head"><span>Player</span><span class="c">Buy-in £</span><span class="c">Final £</span><span></span></div>
+      ${scorerPlayers.map(p=>`<div class="grid-res grid-scorer">
+        <div class="who">${av(p)}<span>${p}</span></div>
+        <input type="number" value="${scorerRows[p]?.buyin??20}" min="0" step="5" class="c" oninput="scorerRows['${q(p)}'].buyin=this.value">
+        <input type="number" value="${scorerRows[p]?.final??''}" min="0" step="0.25" placeholder="0" class="c" oninput="scorerRows['${q(p)}'].final=this.value">
+        <button class="icon-btn" style="width:32px;height:32px" onclick="rmP('${q(p)}')" aria-label="Remove ${p}">${icon('x')}</button></div>`).join('')}
+      <div style="display:flex;gap:8px;margin-top:14px;flex-wrap:wrap">
+        <button class="btn-ghost" onclick="calcScores()">Calculate</button>
+        <button class="btn" onclick="saveSession()">Save session</button></div>
     </div>`:''}
     <div id="scorer-res">${scorerResult||''}</div>`;
 }
@@ -430,13 +521,12 @@ function readScorer(){return scorerPlayers.map(p=>{const b=parseFloat(scorerRows
 function calcScores(){
   if(!scorerPlayers.length){toast('Add players first');return;}
   const rows=readScorer().map(r=>({...r,p:pnl(r)})).sort((a,b)=>b.p-a.p);
-  scorerResult=`<div class="win-banner">🎉 Biggest winner: <strong>${rows[0].player}</strong> — ${money(rows[0].p,2)}</div>
-    <div class="card"><div class="stitle">Results</div>
-    ${rows.map((r,i)=>`<div style="display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:0.5px solid var(--border)">
-      <span style="width:18px;font-size:12px;color:var(--text3)">${i+1}</span>${av(r.player,24)}
-      <span style="flex:1;font-size:13px">${r.player}</span>
-      <span style="font-size:11px;color:var(--text3)">£${r.buyin}→£${r.final.toFixed(2)}</span>
-      <span style="font-weight:600" class="${cls(r.p)}">${money(r.p,2)}</span></div>`).join('')}</div>`;
+  scorerResult=`<div class="banner">${icon('trophy')}<span>Biggest winner: <strong>${rows[0].player}</strong>, <span class="money">${money(rows[0].p)}</span></span></div>
+    <div class="card"><h2 class="h2" style="margin-bottom:6px">Results</h2>
+    ${rows.map((r,i)=>`<div class="row">${rank(i)}${av(r.player,26)}
+      <span style="flex:1;min-width:0">${r.player}</span>
+      <span class="sub">${gbp(r.buyin)} → ${gbp(r.final)}</span>
+      <span class="money ${cls(r.p)}">${money(r.p)}</span></div>`).join('')}</div>`;
   renderScorer();
 }
 async function saveSession(){
@@ -453,38 +543,36 @@ async function saveSession(){
   se.sessions.push(s);
   rows.forEach(r=>{if(!DATA.players.includes(r.player))DATA.players.push(r.player);});
   scorerPlayers=[];scorerRows={};scorerName="";scorerResult=null;
-  renderScorer();toast('Session saved!');
+  renderScorer();toast('Session saved');
 }
 
 // ══════════════ HISTORY ══════════════
 function renderHist(){
   const el=document.getElementById('pnl-hist');
   const SS=curSessions();
-  if(SS.length===0){el.innerHTML=`<div class="card"><div class="note" style="margin:0;text-align:center;padding:1rem 0">No sessions yet.</div></div>`;return;}
+  if(SS.length===0){el.innerHTML=emptyCard('No sessions yet.');return;}
   if(editIdx!==null&&editData){renderEdit(el);return;}
   const isPnl=SYS==='pnl';const editable=canEdit();
-  let html=editable?'':`<div class="warn-box">📁 ${readOnlyMsg()}</div>`;
+  let html=editable?'':`<div class="notice">${icon('lock')}<span>${readOnlyMsg()}</span></div>`;
   [...SS].reverse().forEach((s,ri)=>{
     const idx=SS.length-1-ri;
     const rows=s.results.map(r=>({...r,p:pnl(r),o:oldPts(r.buyin,r.final)}));
     rows.sort((a,b)=>isPnl?b.p-a.p:b.o-a.o);
     const pot=rows.reduce((a,r)=>a+r.buyin,0);
-    html+=`<div class="card" style="margin-bottom:12px">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
-        <div><span style="font-weight:500;font-size:15px">${s.name}</span>
-          <span style="font-size:11px;color:var(--text3);margin-left:8px">${s._season?s._season+' · ':''}${s.date} · £${pot} in play</span></div>
-        ${editable?`<button class="btn-ghost btn-sm" onclick="openEdit(${idx})">✎ Edit</button>`:''}
+    html+=`<div class="card">
+      <div class="spread" style="align-items:center;margin-bottom:12px">
+        <div style="min-width:0"><div style="font-weight:600;font-size:16px">${s.name}</div>
+          <div class="sub">${s._season?s._season+' · ':''}${s.date} · ${gbp(pot)} in play</div></div>
+        ${editable?`<button class="btn-ghost btn-sm" onclick="openEdit(${idx})">${icon('pencil')}Edit</button>`:''}
       </div>
-      <div style="display:grid;grid-template-columns:1fr 54px 60px 72px;gap:6px;padding-bottom:5px;border-bottom:0.5px solid var(--border);margin-bottom:2px">
-        <span style="font-size:10px;color:var(--text3)">Player</span><span style="font-size:10px;color:var(--text3);text-align:center">In</span>
-        <span style="font-size:10px;color:var(--text3);text-align:center">Out</span><span style="font-size:10px;color:var(--text3);text-align:right">${isPnl?'P&L':'Points'}</span></div>
-      ${rows.map((r,i)=>{const medal=i===0?'🥇':i===1?'🥈':i===2?'🥉':`<span style="color:var(--text3)">${i+1}</span>`;
-        const val=isPnl?`<span class="${cls(r.p)}" style="font-weight:600">${money(r.p,2)}</span>`:`<span style="font-weight:600;color:var(--felt)">${r.o}</span>`;
-        return `<div style="display:grid;grid-template-columns:1fr 54px 60px 72px;gap:6px;align-items:center;padding:6px 0;border-bottom:0.5px solid var(--border)">
-          <div style="display:flex;align-items:center;gap:6px;min-width:0"><span style="width:16px;font-size:11px;text-align:center">${medal}</span>${av(r.player,20)}<span style="font-size:12px;overflow:hidden;text-overflow:ellipsis">${r.player}</span></div>
-          <span style="font-size:11px;color:var(--text3);text-align:center">£${r.buyin}</span>
-          <span style="font-size:11px;color:var(--text3);text-align:center">£${r.final.toFixed(2)}</span>
-          <span style="font-size:12px;text-align:right">${val}</span></div>`;}).join('')}
+      <div class="grid-res head"><span>Player</span><span class="c">In</span><span class="c">Out</span><span class="r">${isPnl?'P&amp;L':'Points'}</span></div>
+      ${rows.map((r,i)=>{
+        const val=isPnl?`<span class="money ${cls(r.p)}">${money(r.p)}</span>`:`<span class="pts">${r.o}</span>`;
+        return `<div class="grid-res">
+          <div class="who">${rank(i)}${av(r.player,22)}<span style="font-size:13px">${r.player}</span></div>
+          <span class="sub c">${gbp(r.buyin)}</span>
+          <span class="sub c">${gbp(r.final)}</span>
+          <span class="r" style="font-size:13px">${val}</span></div>`;}).join('')}
     </div>`;
   });
   el.innerHTML=html;
@@ -493,29 +581,27 @@ function openEdit(idx){editIdx=idx;editData=JSON.parse(JSON.stringify(curSession
 function renderEdit(el){
   const s=editData;
   el.innerHTML=`<div class="card">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
-      <span style="font-weight:500;font-size:15px">Edit: ${s.name}</span>
-      <button class="btn-ghost" onclick="editIdx=null;editData=null;renderHist()">✕</button></div>
-    <div class="two-col" style="margin-bottom:12px">
-      <div><div style="font-size:12px;color:var(--text3);margin-bottom:4px">Name</div><input id="e-name" value="${s.name}" maxlength="60"></div>
-      <div><div style="font-size:12px;color:var(--text3);margin-bottom:4px">Date</div><input id="e-date" value="${s.date}"></div></div>
-    <div style="display:grid;grid-template-columns:1fr 70px 70px 72px;gap:6px;padding-bottom:6px;border-bottom:0.5px solid var(--border);margin-bottom:4px">
-      <span style="font-size:11px;color:var(--text3)">Player</span><span style="font-size:11px;color:var(--text3);text-align:center">Buy-in</span>
-      <span style="font-size:11px;color:var(--text3);text-align:center">Final</span><span style="font-size:11px;color:var(--text3);text-align:right">P&L</span></div>
-    ${s.results.map((r,i)=>`<div style="display:grid;grid-template-columns:1fr 70px 70px 72px;gap:6px;align-items:center;padding:6px 0;border-bottom:0.5px solid var(--border)">
-      <div style="display:flex;align-items:center;gap:6px">${av(r.player,22)}<span style="font-size:13px">${r.player}</span></div>
-      <input type="number" id="eb${i}" value="${r.buyin}" min="0" step="5" style="text-align:center" oninput="liveEdit(${i})">
-      <input type="number" id="ef${i}" value="${r.final}" min="0" step="0.25" style="text-align:center" oninput="liveEdit(${i})">
-      <span id="ep${i}" style="text-align:right;font-weight:600" class="${cls(pnl(r))}">${money(pnl(r),2)}</span></div>`).join('')}
-    <div id="edit-actions" style="display:flex;gap:8px;margin-top:12px">
-      <button class="btn-red" onclick="askDelete(true)">Delete session</button>
+    <div class="spread" style="align-items:center;margin-bottom:14px">
+      <h2 class="h2" style="margin:0">Edit ${s.name}</h2>
+      <button class="icon-btn" onclick="editIdx=null;editData=null;renderHist()" aria-label="Close">${icon('x')}</button></div>
+    <div class="two-col" style="margin-bottom:14px">
+      <div><div class="field-lbl">Name</div><input id="e-name" value="${s.name}" maxlength="60"></div>
+      <div><div class="field-lbl">Date</div><input id="e-date" value="${s.date}"></div></div>
+    <div class="grid-res grid-edit head"><span>Player</span><span class="c">Buy-in</span><span class="c">Final</span><span class="r">P&amp;L</span></div>
+    ${s.results.map((r,i)=>`<div class="grid-res grid-edit">
+      <div class="who">${av(r.player,22)}<span>${r.player}</span></div>
+      <input type="number" id="eb${i}" value="${r.buyin}" min="0" step="5" class="c" oninput="liveEdit(${i})">
+      <input type="number" id="ef${i}" value="${r.final}" min="0" step="0.25" class="c" oninput="liveEdit(${i})">
+      <span id="ep${i}" class="money r ${cls(pnl(r))}">${money(pnl(r))}</span></div>`).join('')}
+    <div id="edit-actions" style="display:flex;gap:8px;margin-top:16px;flex-wrap:wrap">
+      <button class="btn-danger" onclick="askDelete(true)">Delete</button>
       <span style="flex:1"></span>
       <button class="btn-ghost" onclick="editIdx=null;editData=null;renderHist()">Cancel</button>
       <button class="btn" onclick="saveEdit()">Save changes</button></div>
-    <div id="delete-confirm" class="confirm-box" style="margin:12px 0 0" hidden>
-      <div style="font-size:14px;margin-bottom:10px">Delete <strong>${s.name}</strong>? This cannot be undone.</div>
+    <div id="delete-confirm" class="confirm" hidden>
+      <p style="margin-bottom:12px">Delete <strong>${s.name}</strong>? This cannot be undone.</p>
       <div style="display:flex;gap:8px"><button class="btn-ghost" onclick="askDelete(false)">Keep it</button>
-      <button class="btn-red" onclick="confirmDelete()">Yes, delete</button></div></div></div>`;
+      <button class="btn-danger solid" onclick="confirmDelete()">Yes, delete</button></div></div></div>`;
 }
 // Show or hide the delete confirmation without re-rendering, so typed edits aren't lost
 function askDelete(on){
@@ -523,7 +609,7 @@ function askDelete(on){
   document.getElementById('edit-actions').hidden=on;
 }
 function liveEdit(i){const b=parseFloat(document.getElementById('eb'+i).value)||0;const f=parseFloat(document.getElementById('ef'+i).value)||0;
-  const v=f-b;const el=document.getElementById('ep'+i);el.textContent=money(v,2);el.className=cls(v);}
+  const v=f-b;const el=document.getElementById('ep'+i);el.textContent=money(v);el.className='money r '+cls(v);}
 async function saveEdit(){
   const s=editData;const n=document.getElementById('e-name').value.trim();const d=document.getElementById('e-date').value.trim();
   if(n)s.name=n;if(d)s.date=d;
@@ -533,7 +619,7 @@ async function saveEdit(){
   const se=seasons[curSeason];
   busy=true;
   try{await DB.saveSession(se.id,s);}catch(e){saveFailed(e);return;}finally{busy=false;}
-  se.sessions[editIdx]=s;editIdx=null;editData=null;renderHist();toast('Session updated!');
+  se.sessions[editIdx]=s;editIdx=null;editData=null;renderHist();toast('Session updated');
 }
 async function confirmDelete(){
   if(busy)return;
@@ -546,40 +632,40 @@ async function confirmDelete(){
 // ══════════════ STATS ══════════════
 function renderStats(){
   const el=document.getElementById('pnl-stats');
-  if(curSessions().length===0){el.innerHTML=`<div class="card"><div class="note" style="margin:0;text-align:center;padding:1rem 0">No sessions yet.</div></div>`;return;}
+  if(curSessions().length===0){el.innerHTML=emptyCard('No sessions yet.');return;}
   const isPnl=SYS==='pnl';const all=ranked();let html='';
   all.forEach(p=>{
-    const col=CB[avIdx(p.name)];const rows=p.rows;const key=r=>isPnl?r.p:r.o;
+    const rows=p.rows;const key=r=>isPnl?r.p:r.o;
     const best=[...rows].sort((a,b)=>key(b)-key(a))[0];const worst=[...rows].sort((a,b)=>key(a)-key(b))[0];
     const mean=rows.reduce((a,r)=>a+key(r),0)/p.n;const sd=Math.sqrt(rows.reduce((a,r)=>a+Math.pow(key(r)-mean,2),0)/p.n);
     const up=rows.filter(r=>r.p>0.004).length,down=rows.filter(r=>r.p<-0.004).length,even=rows.filter(r=>Math.abs(r.p)<=0.004).length;
     const wins=isPnl?p.winsP:p.winsO;const wr=Math.round(wins/p.n*100);
     let cLabel,cCol;
-    if(isPnl){cLabel=sd<15?'Very consistent':sd<25?'Consistent':sd<35?'Mixed':sd<45?'Volatile':'Boom or bust';cCol=sd<25?'var(--green)':sd<35?'var(--text)':sd<45?'#b5551a':'var(--redt)';}
-    else{cLabel=sd<3?'Very consistent':sd<6?'Consistent':sd<9?'Mixed':sd<12?'Volatile':'Boom or bust';cCol=sd<6?'var(--green)':sd<9?'var(--text)':sd<12?'#b5551a':'var(--redt)';}
-    const headline=isPnl?money(p.shrunk,2):p.oldAvg.toFixed(1);
-    html+=`<div class="card" style="border-left:3px solid ${col}">
-      <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">${av(p.name,36)}
-        <div><div style="font-size:16px;font-weight:500">${p.name}</div><div style="font-size:12px;color:var(--text3)">${p.n}${isAllTime()?' sessions all-time':' of '+p.seasonTotal+' sessions'}</div></div></div>
+    if(isPnl){cLabel=sd<15?'Very consistent':sd<25?'Consistent':sd<35?'Mixed':sd<45?'Volatile':'Boom or bust';cCol=sd<25?'var(--up)':sd<35?'var(--text)':sd<45?'var(--copper)':'var(--down)';}
+    else{cLabel=sd<3?'Very consistent':sd<6?'Consistent':sd<9?'Mixed':sd<12?'Volatile':'Boom or bust';cCol=sd<6?'var(--up)':sd<9?'var(--text)':sd<12?'var(--copper)':'var(--down)';}
+    const headline=isPnl?`<span class="money ${cls(round25(p.shrunk))}" style="font-size:22px">${money25(p.shrunk)}</span>`:`<span class="pts" style="font-size:22px">${p.oldAvg.toFixed(1)}</span>`;
+    const val=(r,v)=>isPnl?`<span class="money ${cls(r.p)}">${money(r.p)}</span>`:`<span class="pts">${r.o} pts</span>`;
+    html+=`<div class="card">
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px">${av(p.name,40)}
+        <div><div style="font-size:17px;font-weight:600">${p.name}</div><div class="sub">${p.n}${isAllTime()?' sessions all-time':' of '+p.seasonTotal+' sessions'}</div></div></div>
       <div class="two-col">
-        <div class="metric"><div class="metric-lbl">${isPnl?'Shrunk avg PnL':'Avg points'}</div>
-          <div style="font-size:20px;font-weight:600;${isPnl?'':'color:var(--felt)'}" class="${isPnl?cls(p.shrunk):''}">${headline}</div>
-          ${isPnl?`<div style="font-size:11px;color:var(--text3);margin-top:2px">raw avg ${money(p.rawAvg,2)}</div>`:''}</div>
-        <div class="metric"><div class="metric-lbl">Win rate</div><div style="font-size:20px;font-weight:600">${wr}%</div>
-          <div style="font-size:11px;color:var(--text3);margin-top:2px">${wins} win${wins!==1?'s':''} from ${p.n}</div>
-          <div style="font-size:11px;margin-top:3px"><span class="pos" style="font-weight:500">${up} up</span><span style="color:var(--text3);margin:0 4px">·</span><span class="neg" style="font-weight:500">${down} down</span>${even>0?`<span style="color:var(--text3);margin:0 4px">·</span><span style="color:var(--text3)">${even} even</span>`:''}</div></div>
+        <div class="inset"><div class="lbl">${isPnl?'Shrunk avg PnL':'Avg points'}</div>${headline}
+          ${isPnl?`<div class="sub" style="margin-top:2px">raw avg ${money25(p.rawAvg)}</div>`:''}</div>
+        <div class="inset"><div class="lbl">Win rate</div><span class="money" style="font-size:22px">${wr}%</span>
+          <div class="sub" style="margin-top:2px">${wins} win${wins!==1?'s':''} from ${p.n}</div>
+          <div class="sub" style="margin-top:3px"><span class="up">${up} up</span> · <span class="down">${down} down</span>${even?` · ${even} even`:''}</div></div>
       </div>
-      <div class="metric" style="margin-top:10px"><div class="metric-lbl" style="margin-bottom:6px">Best / worst session</div>
-        <div style="display:flex;align-items:center;gap:8px"><span>🥇</span><span style="font-weight:600;font-size:13px" class="${isPnl?cls(best.p):''}">${isPnl?money(best.p,2):best.o+' pts'}</span><span style="font-size:12px;color:var(--text3)">${best.sname}</span></div>
-        <div style="display:flex;align-items:center;gap:8px;margin-top:6px"><span>💀</span><span style="font-weight:600;font-size:13px" class="${isPnl?cls(worst.p):''}">${isPnl?money(worst.p,2):worst.o+' pts'}</span><span style="font-size:12px;color:var(--text3)">${worst.sname}</span></div></div>
-      <div class="metric" style="margin-top:10px"><div class="metric-lbl">Season profit / loss</div>
-        <div style="display:flex;justify-content:space-between;align-items:center">
-          <span style="font-size:12px;color:var(--text3)">In <strong style="color:var(--text)">£${p.in}</strong> · Out <strong style="color:var(--text)">£${p.out.toFixed(2)}</strong></span>
-          <span style="font-size:18px;font-weight:600" class="${cls(p.pnlTot)}">${money(p.pnlTot,2)}</span></div></div>
-      <div class="metric" style="margin-top:10px"><div class="metric-lbl">Consistency</div>
-        <div style="display:flex;justify-content:space-between;align-items:center">
-          <span style="font-size:13px;color:var(--text3)">σ ${isPnl?'£'+sd.toFixed(2):sd.toFixed(1)+' pts'}</span>
-          <span style="font-size:13px;font-weight:500;color:${cCol}">${cLabel}</span></div></div>
+      <div class="inset" style="margin-top:10px"><div class="lbl" style="margin-bottom:8px">Best and worst session</div>
+        <div style="display:flex;align-items:center;gap:8px"><span class="up">${icon('up')}</span>${val(best)}<span class="sub" style="min-width:0">${best.sname}</span></div>
+        <div style="display:flex;align-items:center;gap:8px;margin-top:6px"><span class="down">${icon('down')}</span>${val(worst)}<span class="sub" style="min-width:0">${worst.sname}</span></div></div>
+      <div class="inset"><div class="lbl">Profit and loss</div>
+        <div class="spread" style="align-items:center">
+          <span class="sub">In <strong style="color:var(--text)">${gbp(p.in)}</strong> · Out <strong style="color:var(--text)">${gbp(p.out)}</strong></span>
+          <span class="money ${cls(round25(p.pnlTot))}" style="font-size:18px">${money25(p.pnlTot)}</span></div></div>
+      <div class="inset"><div class="lbl">Consistency</div>
+        <div class="spread" style="align-items:center">
+          <span class="sub">σ ${isPnl?gbp25(sd):sd.toFixed(1)+' pts'}</span>
+          <span style="font-weight:500;color:${cCol}">${cLabel}</span></div></div>
     </div>`;
   });
   // H2H
@@ -587,15 +673,16 @@ function renderStats(){
   names.forEach(a=>{h[a]={};names.forEach(b=>{if(a!==b)h[a][b]={mine:0,theirs:0,n:0};});});
   curSessions().forEach(s=>{const rs=s.results.map(r=>({...r,p:pnl(r),o:oldPts(r.buyin,r.final)}));
     rs.forEach(a=>rs.forEach(b=>{if(a.player!==b.player&&h[a.player]?.[b.player]){const e=h[a.player][b.player];e.mine+=SYS==='pnl'?a.p:a.o;e.theirs+=SYS==='pnl'?b.p:b.o;e.n++;}}));});
-  html+=`<div class="card"><div class="stitle">Head-to-head</div>
-    <div class="note">Average ${isPnl?'PnL':'points'} difference in shared sessions. Green = you did better.</div>
-    <div style="overflow-x:auto"><table style="table-layout:fixed;min-width:300px"><thead><tr><td style="width:40px"></td>
-      ${names.map(n=>`<th style="padding:4px 1px;font-size:9px;color:var(--text3);font-weight:500;text-align:center;border-bottom:0.5px solid var(--border)"><div style="display:flex;flex-direction:column;align-items:center;gap:2px"><span style="width:7px;height:7px;border-radius:50%;background:${CB[avIdx(n)]}"></span>${n.slice(0,3)}</div></th>`).join('')}</tr></thead><tbody>
-      ${names.map(row=>`<tr><td style="padding:4px 2px;font-size:10px;font-weight:500;border-bottom:0.5px solid var(--border)"><div style="display:flex;align-items:center;gap:3px"><span style="width:7px;height:7px;border-radius:50%;background:${CB[avIdx(row)]};flex-shrink:0"></span>${row.slice(0,3)}</div></td>
-        ${names.map(col=>{if(row===col)return `<td style="padding:4px 1px;text-align:center;background:var(--bg2);border-bottom:0.5px solid var(--border)"><span style="font-size:9px;color:var(--text3)">—</span></td>`;
-          const d=h[row]?.[col];if(!d||d.n===0)return `<td style="padding:4px 1px;text-align:center;border-bottom:0.5px solid var(--border)"><span style="font-size:9px;color:var(--text3)">—</span></td>`;
+  const dot=n=>`<span class="dot" style="background:${CB[avIdx(n)]}"></span>`;
+  html+=`<div class="card"><h2 class="h2">Head-to-head</h2>
+    <p class="note">Average ${isPnl?'PnL':'points'} difference in shared sessions. Green means the row player did better.</p>
+    <div style="overflow-x:auto"><table class="h2h"><thead><tr><td style="width:40px;border-bottom:1px solid var(--border)"></td>
+      ${names.map(n=>`<th><div style="display:flex;flex-direction:column;align-items:center;gap:3px">${dot(n)}${n.slice(0,3)}</div></th>`).join('')}</tr></thead><tbody>
+      ${names.map(row=>`<tr><td style="text-align:left;font-weight:500"><div style="display:flex;align-items:center;gap:4px">${dot(row)}${row.slice(0,3)}</div></td>
+        ${names.map(col=>{if(row===col)return `<td class="self"><span class="flat">–</span></td>`;
+          const d=h[row]?.[col];if(!d||d.n===0)return `<td><span class="flat">–</span></td>`;
           const diff=(d.mine-d.theirs)/d.n;const win=diff>0;const txt=isPnl?(win?'+':'−')+'£'+Math.abs(diff).toFixed(0):(win?'+':'')+diff.toFixed(1);
-          return `<td style="padding:4px 1px;text-align:center;background:${win?'rgba(26,122,62,.10)':'rgba(192,57,43,.10)'};border-bottom:0.5px solid var(--border)"><div style="font-size:10px;font-weight:600" class="${win?'pos':'neg'}">${txt}</div><div style="font-size:8px;color:var(--text3)">${d.n}g</div></td>`;}).join('')}</tr>`).join('')}
+          return `<td class="${win?'win':'loss'}"><div class="money ${win?'up':'down'}" style="font-size:10px">${txt}</div><div class="flat" style="font-size:8px">${d.n}g</div></td>`;}).join('')}</tr>`).join('')}
     </tbody></table></div></div>`;
   // Records
   let bestS={v:-1e9},worstS={v:1e9},bigPot={v:0},seconds={};
@@ -606,15 +693,15 @@ function renderStats(){
     rs.forEach(r=>{const v=isPnl?r.p:r.o;if(v>bestS.v)bestS={v,player:r.player,sname:label,buyin:r.buyin,final:r.final};if(v<worstS.v)worstS={v,player:r.player,sname:label,buyin:r.buyin,final:r.final};});});
   const ms=Object.entries(seconds).sort((a,b)=>b[1]-a[1])[0];const totalIn=curSessions().flatMap(s=>s.results).reduce((a,r)=>a+r.buyin,0);
   const facts=[
-    {i:'🏆',l:'Best single session',v:isPnl?money(bestS.v,2):bestS.v+' pts',s:`${bestS.player} · ${bestS.sname} · £${bestS.buyin}→£${bestS.final.toFixed(2)}`},
-    {i:'💀',l:'Worst single session',v:isPnl?money(worstS.v,2):worstS.v+' pts',s:`${worstS.player} · ${worstS.sname} · £${worstS.buyin}→£${worstS.final.toFixed(2)}`},
-    {i:'🥈',l:'Most runner-up finishes',v:ms?ms[0]:'—',s:`${ms?ms[1]:0} second places`},
-    {i:'💸',l:'Most expensive session',v:`£${bigPot.v} in play`,s:bigPot.name||'—'},
-    {i:'🏦',l:'Total money this season',v:`£${totalIn}`,s:`over ${curSessions().length} sessions`},
+    {i:'up',l:'Best single session',v:isPnl?money(bestS.v):bestS.v+' pts',s:`${bestS.player} · ${bestS.sname} · ${gbp(bestS.buyin)} → ${gbp(bestS.final)}`},
+    {i:'down',l:'Worst single session',v:isPnl?money(worstS.v):worstS.v+' pts',s:`${worstS.player} · ${worstS.sname} · ${gbp(worstS.buyin)} → ${gbp(worstS.final)}`},
+    {i:'award',l:'Most runner-up finishes',v:ms?ms[0]:'–',s:`${ms?ms[1]:0} second places`},
+    {i:'stack',l:'Most expensive session',v:`${gbp(bigPot.v)} in play`,s:bigPot.name||'–'},
+    {i:'coins',l:'Total money this season',v:gbp(totalIn),s:`over ${curSessions().length} sessions`},
   ];
-  html+=`<div class="card"><div class="stitle">${isAllTime()?'All-time records':seasons[curSeason].name+' records'}</div>
-    ${facts.map(f=>`<div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:0.5px solid var(--border)"><span style="font-size:20px">${f.i}</span>
-      <div style="flex:1;min-width:0"><div style="font-size:11px;color:var(--text3)">${f.l}</div><div style="font-size:15px;font-weight:600">${f.v}</div><div style="font-size:11px;color:var(--text3);margin-top:1px">${f.s}</div></div></div>`).join('')}</div>`;
+  html+=`<div class="card"><h2 class="h2" style="margin-bottom:4px">${isAllTime()?'All-time records':seasons[curSeason].name+' records'}</h2>
+    ${facts.map(f=>`<div class="fact"><span class="ic">${icon(f.i)}</span>
+      <div style="flex:1;min-width:0"><div class="sub">${f.l}</div><div class="money" style="font-size:16px;margin:1px 0">${f.v}</div><div class="sub">${f.s}</div></div></div>`).join('')}</div>`;
   el.innerHTML=html;
 }
 
@@ -622,26 +709,26 @@ function renderStats(){
 function renderRules(){
   const el=document.getElementById('pnl-rules');const isPnl=SYS==='pnl';let html='';
   if(isPnl){
-    html=`<div class="card"><div class="stitle">How scoring works</div>
-      <p style="font-size:13px;color:var(--text2);line-height:1.75">Your score for a session is simply <strong>final chips − total buy-in</strong>. No multipliers, no brackets, no rebuy penalties. Win money, score positive. Lose money, score negative.</p></div>
-    <div class="card"><div class="stitle">The standings</div>
-      <p style="font-size:13px;color:var(--text2);line-height:1.75">Ranked by <strong>total PnL ÷ (sessions played + ${K})</strong>.</p>
-      <div style="margin-top:10px;padding:10px 12px;background:var(--bg2);border-radius:8px;font-size:13px;color:var(--text2);line-height:1.75">Everyone is treated as though they'd also played ${K} break-even sessions. Play once and those ${K} imaginary sessions dominate, so you sit near £0. Play the whole season and they barely matter. This stops someone winning big on their debut and topping the table above a season-long grinder.</div>
-      <div style="margin-top:10px;padding:10px 12px;background:var(--bg2);border-radius:8px;font-size:13px;color:var(--text2);line-height:1.75"><strong style="color:var(--text)">Example.</strong> +£348.25 across 10 sessions → 348.25 ÷ 13 = <strong style="color:var(--text)">+£26.79</strong>. One session of −£20 → −20 ÷ 4 = <strong style="color:var(--text)">−£5.00</strong>.</div></div>
-    <div class="card"><div class="stitle">Buy-ins and rebuys</div>
-      <p style="font-size:13px;color:var(--text2);line-height:1.75">Everyone starts with <strong>£20</strong>. If you bust, rebuy for any amount between <strong>£20</strong> and the <strong>largest stack at the table</strong>.</p>
-      <div style="margin-top:10px;padding:10px 12px;background:var(--bg2);border-radius:8px;font-size:12px;color:var(--text3);line-height:1.7">Buying in for more than the biggest stack is pointless — the excess can never be won or lost. The table sets the limit; no house rule needed.</div></div>`;
+    html=`<div class="card"><h2 class="h2">How scoring works</h2>
+      <p class="prose">Your score for a session is simply <strong>final chips − total buy-in</strong>. No multipliers, no brackets, no rebuy penalties. Win money, score positive. Lose money, score negative.</p></div>
+    <div class="card"><h2 class="h2">The standings</h2>
+      <p class="prose">Ranked by <strong>total PnL ÷ (sessions played + ${K})</strong>.</p>
+      <div class="inset prose" style="margin-top:12px">Everyone is treated as though they'd also played ${K} break-even sessions. Play once and those ${K} imaginary sessions dominate, so you sit near £0. Play the whole season and they barely matter. This stops someone winning big on their debut and topping the table above a season-long grinder.</div>
+      <div class="inset prose"><strong>Example.</strong> +£348.25 across 10 sessions → 348.25 ÷ 13 = <strong>+£26.79</strong>. One session of −£20 → −20 ÷ 4 = <strong>−£5</strong>.</div></div>
+    <div class="card"><h2 class="h2">Buy-ins and rebuys</h2>
+      <p class="prose">Everyone starts with <strong>£20</strong>. If you bust, rebuy for any amount between <strong>£20</strong> and the <strong>largest stack at the table</strong>.</p>
+      <div class="inset prose" style="margin-top:12px;font-size:13px">Buying in for more than the biggest stack is pointless: the excess can never be won or lost. The table sets the limit; no house rule needed.</div></div>`;
   } else {
     const brackets=[[0,'0x'],[5,'0.5x'],[8,'0.8x'],[10,'1x'],[13,'1.2x'],[16,'1.5x'],[19,'2x'],[22,'2.5x'],[25,'3x'],[30,'4x'],[35,'5x+']];
     const rb=[['0 rebuys','£20','×1.0'],['1 rebuy','£40','×1.0'],['2 rebuys','£60','×0.9'],['3 rebuys','£80','×0.5'],['4 rebuys','£100','×0.25'],['5+ rebuys','£120+','halves each time']];
-    html=`<div class="card"><div class="stitle">Old system — reference only</div>
-      <p style="font-size:13px;color:var(--text2);line-height:1.75">Multiplier = final ÷ buy-in, mapped to bracket points with interpolation, then multiplied by a rebuy penalty. Retired after Season 1.</p></div>
-    <div class="card"><div class="stitle">Multiplier → points</div>
-      ${brackets.map(([p,m])=>`<div style="display:flex;align-items:center;gap:12px;padding:5px 0;border-bottom:0.5px solid var(--border)"><span style="width:38px;font-size:12px;color:var(--text3);font-weight:500">${m}</span><span class="badge">${m==='5x+'?'∞':p}</span></div>`).join('')}</div>
-    <div class="card"><div class="stitle">Rebuy penalty</div>
-      ${rb.map(([n,s,m])=>`<div style="display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:0.5px solid var(--border)"><span style="font-size:12px;min-width:78px">${n}</span><span style="font-size:11px;color:var(--text3);min-width:44px">${s}</span><span style="font-size:13px;font-weight:500">${m}</span></div>`).join('')}</div>
-    <div class="card" style="border-color:var(--redt)"><div class="stitle" style="color:var(--redt)">Why it was retired</div>
-      <p style="font-size:13px;color:var(--text2);line-height:1.75">Points floor at zero. Kathiir's Session 9 — £100 in, £19.75 out, <strong>−£80.25</strong> — scored <strong>0 points</strong>, indistinguishable from a mildly bad night. Sixteen hand-tuned constants doing what PnL does with none.</p></div>`;
+    html=`<div class="card"><h2 class="h2">Old system (reference only)</h2>
+      <p class="prose">Multiplier = final ÷ buy-in, mapped to bracket points with interpolation, then multiplied by a rebuy penalty. Retired after Season 1.</p></div>
+    <div class="card"><h2 class="h2" style="margin-bottom:8px">Multiplier to points</h2>
+      ${brackets.map(([p,m])=>`<div class="row" style="padding:6px 0"><span class="sub" style="width:40px;font-weight:500">${m}</span><span class="badge">${m==='5x+'?'∞':p}</span></div>`).join('')}</div>
+    <div class="card"><h2 class="h2" style="margin-bottom:8px">Rebuy penalty</h2>
+      ${rb.map(([n,s,m])=>`<div class="row" style="padding:8px 0"><span style="min-width:84px">${n}</span><span class="sub" style="min-width:48px">${s}</span><span style="font-weight:500">${m}</span></div>`).join('')}</div>
+    <div class="card" style="border-color:var(--down)"><h2 class="h2 down">Why it was retired</h2>
+      <p class="prose">Points floor at zero. Kathiir's Session 9 (£100 in, £19.75 out, <strong>−£80.25</strong>) scored <strong>0 points</strong>, indistinguishable from a mildly bad night. Sixteen hand-tuned constants doing what PnL does with none.</p></div>`;
   }
   el.innerHTML=html;
 }
