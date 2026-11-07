@@ -90,7 +90,15 @@ async function run(){
    const rv=rivals(ss);
    check('Rivals only include pairs with 3+ shared sessions',Object.values(rv).flat().every(r=>r.n>=3),true);
    check("Rivals are mirror images (A vs B = −(B vs A))",Object.entries(rv).every(([a,l])=>l.every(r=>Math.abs(rv[r.opp].find(x=>x.opp===a).avg+r.avg)<1e-9)),true);
-   check('Ranks run 1, 2, 3…',ps.every((p,i)=>p.rank===i+1),true);}
+   check('Ranks run 1, 2, 3…',ps.every((p,i)=>p.rank===i+1),true);
+   const sh=sharedSessions(ss,'Sanj','Saje');
+   check('Sanj vs Saje: 3 shared sessions, gaps +£20.75, +£119.25, +£78.25',sh.map(x=>x.gap),[20.75,119.25,78.25],1);
+   check('Sanj vs Saje: Session 5 was £20 → £130 vs £20 → £10.75',[sh[1].a.buyin,sh[1].a.final,sh[1].b.buyin,sh[1].b.final],[20,130,20,10.75]);
+   check('Sanj vs Saje: average gap +£72.75',rv.Sanj.find(r=>r.opp==='Saje').avg,72.75,1);
+   check("Every rival's average = the average of its shared-session gaps",Object.entries(rv).every(([a,l])=>l.every(r=>{
+     const g=sharedSessions(ss,a,r.opp);return g.length===r.n&&Math.abs(g.reduce((t,x)=>t+x.gap,0)/g.length-r.avg)<0.005;})),true);
+   const sp=sessionPnls(ss);
+   check('Per-session points: one per session played, summing to total PnL',ps.every(p=>sp[p.name].length===p.n&&Math.abs(sp[p.name].reduce((t,x)=>t+x.pnl,0)-p.pnlTot)<0.005),true);}
 
   document.getElementById('sum').innerHTML=fail?`<span class="fail">${fail} failed</span>, ${pass} passed`:`<span class="ok">All ${pass} passed</span>`;
 }

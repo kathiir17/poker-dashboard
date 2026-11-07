@@ -75,6 +75,28 @@ function runningTotals(sessions){
   return lines;
 }
 
+// Each player's PnL in every session they played, in order: {name: [{session, pnl}]}
+// (the "Per session" chart)
+function sessionPnls(sessions){
+  const out={};
+  sessions.forEach(s=>s.results.forEach(r=>(out[r.player]||(out[r.player]=[])).push({session:s,pnl:pnl(r)})));
+  return out;
+}
+
+// The working behind one rivals() number: every session players a and b both played, oldest first:
+//   [{session, a:{buyin, final, pnl}, b:{buyin, final, pnl}, gap}]   gap = a's PnL − b's PnL
+// The average of the gaps is the pair's number in rivals().
+function sharedSessions(sessions,a,b){
+  const out=[];
+  sessions.forEach(s=>{
+    const ra=s.results.find(r=>r.player===a),rb=s.results.find(r=>r.player===b);
+    if(!ra||!rb)return;
+    const A={buyin:ra.buyin,final:ra.final,pnl:pnl(ra)},B={buyin:rb.buyin,final:rb.final,pnl:pnl(rb)};
+    out.push({session:s,a:A,b:B,gap:Math.round((A.pnl-B.pnl)*100)/100});
+  });
+  return out;
+}
+
 // Rivals: for each player, every opponent they've shared at least minShared sessions with:
 //   {player: [{opp, avg, n}]}, avg = average of (my PnL − their PnL) per shared session,
 //   so positive means the player usually beats that opponent. Sorted worst rival first.

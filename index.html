@@ -259,6 +259,7 @@ input::placeholder{color:#6f675e}
 .tile{background:var(--card);border:1px solid var(--border);border-radius:var(--r-card);padding:14px 16px;min-width:0}
 .tile .lbl{font-size:13px;color:var(--muted);margin-bottom:4px}
 .tile .big{font-size:clamp(22px,6.6vw,30px);line-height:1.1}
+.tile .big.long{font-size:clamp(18px,5.2vw,26px)}   /* 9+ characters, e.g. +£1,184.25 */
 .tile .sub{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-top:3px}
 .tile.wide{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:22px}
 .chart-card{padding:14px 14px 16px;margin-bottom:22px}
@@ -281,7 +282,37 @@ input::placeholder{color:#6f675e}
 .fit-btn.on{border-color:var(--copper);color:var(--text);background:rgba(192,138,91,.12)}
 .fit-btn.on svg.i{width:14px;height:14px;color:var(--copper)}
 .fit-btn:disabled{opacity:.4;cursor:default}
-.prow.flash{background:var(--raised)}
+.chart-head{align-items:center}
+.chart-opts{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+.swatch{display:inline-block;width:14px;height:3px;border-radius:2px;vertical-align:middle;margin-right:7px}
+
+/* ── Player page ── */
+.pp-top{display:flex;justify-content:space-between;align-items:center;margin:4px 0 18px}
+.pp-head{display:flex;align-items:center;gap:16px;margin-bottom:20px}
+.pp-head .mid{min-width:0;flex:1}
+.pp-head .title{font-size:clamp(24px,8vw,36px);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tile .big small{font-size:.55em;color:var(--muted)}
+.bw-row{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--border)}
+.bw-row:last-child{border-bottom:none}
+/* Nemesis (red) / Favourite customer (green) cards; neutral when the wording is the joke version */
+.rival-card{display:block;width:100%;text-align:left;cursor:pointer;border-radius:var(--r-card);padding:14px;border:1px solid var(--border);background:var(--card);min-width:0}
+.rival-card .lbl{font-size:13px;font-weight:500;color:var(--muted);margin-bottom:10px}
+.rival-card .who{display:flex;align-items:center;gap:10px;font-size:17px;font-weight:600;margin-bottom:10px;min-width:0}
+.rival-card .who span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.rival-card.bad{background:#191313;border-color:#5A2C2A}.rival-card.bad .lbl{color:var(--down)}
+.rival-card.good{background:#121812;border-color:#2D5238}.rival-card.good .lbl{color:var(--up)}
+.rv-row{display:grid;grid-template-columns:32px minmax(0,1fr) 34% 72px;gap:10px;align-items:center;width:100%;background:none;border:none;border-bottom:1px solid var(--border);padding:10px 0;text-align:left;cursor:pointer}
+.rv-row:last-child,.rv-detail:last-child{border-bottom:none}
+/* Rival analysis: rows expand to show every shared session */
+.rv-row.x{grid-template-columns:32px minmax(0,1fr) 24% 70px 16px}
+.rv-row .chev{color:var(--muted)}
+.rv-detail{padding:2px 0 14px;border-bottom:1px solid var(--border)}
+.rd-row{display:grid;grid-template-columns:minmax(0,1fr) 64px 64px 72px;gap:6px;align-items:center;padding:8px 0;border-bottom:1px solid var(--border);font-size:12.5px}
+.rd-row.head{font-size:11px;color:var(--muted);padding-top:4px}
+.rd-row.head span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.rd-sum{margin-top:12px;font-size:13px;color:var(--muted);line-height:1.6}
+.rd-sum b{color:var(--text)}.rd-sum b.up{color:var(--up)}.rd-sum b.down{color:var(--down)}
+.rv-row .nm{display:block;font-size:15px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}.glint,.tear .crack{display:none}}
 </style>
 </head>
@@ -301,6 +332,8 @@ input::placeholder{color:#6f675e}
 <div class="pnl" id="pnl-more"></div>
 <div class="pnl" id="pnl-rules"></div>
 <div class="pnl" id="pnl-colours"></div>
+<div class="pnl" id="pnl-player"></div>
+<div class="pnl" id="pnl-rivals"></div>
 <div class="toast" id="toast"></div>
 <div class="hint" id="a2hs-hint" hidden></div>
 
@@ -308,10 +341,10 @@ input::placeholder{color:#6f675e}
 <nav class="nav" aria-label="Main">
   <div class="nav-in">
     <button class="nav-btn on" data-tab="lb" onclick="goTab('lb')"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><ellipse cx="12" cy="12" rx="9.5" ry="6.5"/><ellipse cx="12" cy="12" rx="5.5" ry="3.2"/></svg>Table</button>
-    <button class="nav-btn" data-tab="stats" onclick="goTab('stats')"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>Stats</button>
+    <button class="nav-btn" data-tab="stats" data-also="player" onclick="goTab('stats')"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>Stats</button>
     <button class="nav-add" data-tab="scorer" onclick="goTab('scorer')" aria-label="New session"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></button>
     <button class="nav-btn" data-tab="hist" onclick="goTab('hist')"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="17" rx="3"/><path d="M3 9h18M8 2v4M16 2v4"/></svg>Sessions</button>
-    <button class="nav-btn" data-tab="more" data-also="rules colours" onclick="goTab('more')"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><circle cx="5" cy="12" r="1.3"/><circle cx="12" cy="12" r="1.3"/><circle cx="19" cy="12" r="1.3"/></svg>More</button>
+    <button class="nav-btn" data-tab="more" data-also="rules colours rivals" onclick="goTab('more')"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><circle cx="5" cy="12" r="1.3"/><circle cx="12" cy="12" r="1.3"/><circle cx="19" cy="12" r="1.3"/></svg>More</button>
   </div>
 </nav>
 
@@ -391,6 +424,7 @@ const ICON_PATHS={
   chip:'<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4.5"/><path d="M12 3v3M12 18v3M3 12h3M18 12h3"/>',
   book:'<path d="M4 4.5A1.5 1.5 0 0 1 5.5 3H20v15H5.5A1.5 1.5 0 0 0 4 19.5z"/><path d="M4 19.5A1.5 1.5 0 0 0 5.5 21H20v-3"/>',
   phone:'<rect x="6" y="2" width="12" height="20" rx="3"/><path d="M11 18h2"/>',
+  users:'<circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0"/><circle cx="17" cy="9" r="2.5"/><path d="M16.5 14.5a5 5 0 0 1 5 5"/>',
   calendar:'<rect x="3" y="4" width="18" height="17" rx="3"/><path d="M3 9h18M8 2v4M16 2v4"/>',
 };
 function icon(n){return `<svg class="i" viewBox="0 0 24 24" aria-hidden="true">${ICON_PATHS[n]}</svg>`;}
@@ -664,6 +698,8 @@ function ranked(){
     p.metric=SYS==='pnl'?p.shrunk:p.oldAvg;p.seasonTotal=total;});
   return all.sort((a,b)=>b.metric-a.metric);
 }
+// Big amount for a tile; long ones (9+ characters) get a smaller size so they fit half the screen
+function bigMoney(text,c=''){return `<div class="money big ${c}${text.length>8?' long':''}">${text}</div>`;}
 function emptyCard(msg){return `<div class="card"><p class="note empty">${msg}</p></div>`;}
 
 // ══════════════ RENDER DISPATCH ══════════════
@@ -675,6 +711,8 @@ function render(){
   if(TAB==='more')renderMore();
   if(TAB==='rules')renderRules();
   if(TAB==='colours')renderColours();
+  if(TAB==='player')renderPlayer();
+  if(TAB==='rivals')renderRivals();
 }
 
 // ══════════════ PLAYER COLOURS SCREEN ══════════════
@@ -716,6 +754,7 @@ let moreA2hsOpen=false;   // Add to Home Screen instructions expanded
 function renderMore(){
   document.getElementById('pnl-more').innerHTML=`<div class="card" style="padding-top:6px;padding-bottom:6px">
     <button class="list-btn" onclick="colourFor=null;goTab('colours')"><span class="ic">${icon('chip')}</span>Player colours<span class="chev">${icon('right')}</span></button>
+    <button class="list-btn" onclick="openRivalAnalysis()"><span class="ic">${icon('users')}</span>Rival analysis<span class="chev">${icon('right')}</span></button>
     <button class="list-btn" onclick="openRules()"><span class="ic">${icon('book')}</span>Rules and scoring<span class="chev">${icon('right')}</span></button>
     <button class="list-btn" onclick="moreA2hsOpen=!moreA2hsOpen;renderMore()" aria-expanded="${moreA2hsOpen}"><span class="ic">${icon('phone')}</span>Add to Home Screen<span class="chev">${icon(moreA2hsOpen?'open':'right')}</span></button>
     ${moreA2hsOpen?`<div class="inset prose" style="margin:0 0 14px;font-size:13px">${isInstalled()?'You’re already using the home-screen app.':A2HS_STEPS+' On Android, use the browser menu and choose <strong>Install app</strong>.'}</div>`:''}
@@ -771,14 +810,14 @@ function renderLB(){
   const all=ranked();const n=all.length;
   const first=all[0],second=all[1],last=all[n-1],aboveLast=all[n-2];
   let html=`<div class="hero">
-    <button class="hero-card leader" onclick="showPlayer('${q(first.name)}')">
+    <button class="hero-card leader" onclick="openPlayer('${q(first.name)}')">
       ${INLAY}
       <div class="hero-lbl">${leaderLabel()}</div>
       <div class="hero-who">${av(first.name,38,'ring')}<span class="pl1">${first.name}</span></div>
       <div class="hero-num money">${score(first.metric)}</div>
       ${second?`<span class="hero-badge">${first.metric-second.metric<0.125?'Level with 2nd':`+${gap(first.metric-second.metric)} clear of&nbsp;2nd`}</span>`:''}
     </button>
-    ${n>1?`<button class="hero-card loser" onclick="showPlayer('${q(last.name)}')">
+    ${n>1?`<button class="hero-card loser" onclick="openPlayer('${q(last.name)}')">
       ${TORN}
       <div class="hero-lbl">${loserLabel()}</div>
       <div class="hero-who">${av(last.name,38)}<span class="pl-last">${last.name}</span></div>
@@ -801,7 +840,7 @@ function renderLB(){
       const w=Math.abs(p.metric)/span*100;
       const bar=isPnl?(p.metric>=0?`left:${zero}%;width:${w}%`:`right:${100-zero}%;width:${w}%`):`left:0;width:${w}%`;
       const c=isPnl?cls(round25(p.metric)):'pts';
-      return `<button class="st-row" onclick="showPlayer('${q(p.name)}')">
+      return `<button class="st-row" onclick="openPlayer('${q(p.name)}')">
         ${rank(i)}${av(p.name,32)}<span class="st-name ${place(i,n)}">${p.name}</span>
         <span class="st-bar${isPnl?' centred':''}" style="--z:${zero}%"><span class="${c}" style="${bar}"></span></span>
         <span class="money st-num ${c}">${score(p.metric)}</span></button>`;}).join('')}
@@ -832,14 +871,6 @@ function renderLB(){
 }
 // Escape a name for use inside an onclick='...' string
 function q(s){return s.replace(/\\/g,'\\\\').replace(/'/g,"\\'");}
-// Open Stats at one player's row in the Players list, briefly highlighted
-// (until the player page exists, this is where tapping a player on the Table goes)
-function showPlayer(name){
-  goTab('stats');
-  const row=document.getElementById(playerRowId(name));
-  if(row){row.scrollIntoView({block:'center'});row.classList.add('flash');setTimeout(()=>row.classList.remove('flash'),1200);}
-}
-function playerRowId(name){return 'prow-'+name.replace(/[^A-Za-z0-9]/g,'_');}
 // Rules can be opened from More or from the Table; its back link returns to where you came from
 let rulesFrom='more';
 function openRules(){rulesFrom=TAB;goTab('rules');}
@@ -1010,6 +1041,7 @@ function selSessions(){return selectSessions(DATA,VIEW,isAllTime()?-1:seasons[cu
 // Players whose chart lines are coloured. Goes back to just the leader when the Chapter / Season changes.
 let chartSel=[],chartKey=null;
 let chartFit=false;   // "Fit to selected": zoom the chart to just the coloured players
+let chartEnds=false;  // "End values": label where each coloured player finished
 
 function renderStats(){
   const el=document.getElementById('pnl-stats');
@@ -1021,7 +1053,7 @@ function renderStats(){
   chartSel=chartSel.filter(n=>ps.some(p=>p.name===n));
 
   const tile=(lbl,x)=>`<div class="tile"><div class="lbl">${lbl}</div>
-    <div class="money big ${cls(x.pnl)}">${money(x.pnl)}</div>
+    ${bigMoney(money(x.pnl),cls(x.pnl))}
     <div class="sub">${x.player} · ${seasonTag(x.session)}</div><div class="sub" style="margin-top:0">${x.session.name}</div></div>`;
   let html=`<div class="sec-head"><h2 class="h2">Headlines</h2></div>
   <div class="tiles">${tile('Best session',h.best)}${tile('Worst session',h.worst)}</div>
@@ -1029,15 +1061,16 @@ function renderStats(){
     <div class="sub">${h.sessions} session${h.sessions!==1?'s':''} · ${h.players} players</div></div>
     <div class="money" style="font-size:clamp(24px,7.5vw,34px)">${gbp(h.money)}</div></div>`;
 
-  html+=`<div class="sec-head"><h2 class="h2">Running total</h2>
-    <button class="fit-btn${chartFit?' on':''}" aria-pressed="${chartFit}" ${chartSel.length?'':'disabled'} onclick="chartFit=!chartFit;renderStats()">${chartFit?icon('check'):''}Fit to selected</button></div>
-  <div class="card chart-card" id="run-chart">${runChart(ss,{sel:chartSel,fit:chartFit})}
-    <div class="sub" style="margin-top:10px">Tap names to compare</div>
+  const opt=(on,label,flip)=>`<button class="fit-btn${on?' on':''}" aria-pressed="${on}" ${chartSel.length?'':'disabled'} onclick="${flip};renderStats()">${on?icon('check'):''}${label}</button>`;
+  html+=`<div class="sec-head chart-head">${chartToggle()}</div>
+  <div class="card chart-card" id="run-chart">${lineChart(ss,{mode:chartMode,sel:chartSel,fit:chartFit,ends:chartEnds})}
+    <div class="chart-opts">${opt(chartFit,'Fit to selected','chartFit=!chartFit')}${opt(chartEnds,'End values','chartEnds=!chartEnds')}</div>
+    <div class="sub" style="margin-top:12px">Tap names to compare</div>
     <div class="pchips">${ps.map(p=>{const on=chartSel.includes(p.name);
       return `<button class="pchip${on?' on':''}" style="--c:${lineCol(p.name)}" aria-pressed="${on}" onclick="toggleLine('${q(p.name)}')"><span class="dot"></span>${p.name}</button>`;}).join('')}</div></div>`;
 
   html+=`<div class="sec-head"><h2 class="h2">Players</h2></div>
-  <div class="card plist">${ps.map(p=>`<button class="prow" id="${playerRowId(p.name)}" onclick="openPlayer('${q(p.name)}')">
+  <div class="card plist">${ps.map(p=>`<button class="prow" onclick="openPlayer('${q(p.name)}')">
     ${av(p.name,40)}<span class="mid"><span class="nm">${p.name}</span><span class="sub">#${p.rank} · ${p.n} session${p.n!==1?'s':''}</span></span>
     <span class="money ${cls(round25(p.shrunk))}">${money25(p.shrunk)}</span><span class="chev">${icon('right')}</span></button>`).join('')}</div>`;
   el.innerHTML=html;
@@ -1049,26 +1082,34 @@ function toggleLine(n){
   if(i>=0)chartSel.splice(i,1);else chartSel.push(n);
   renderStats();
 }
-// Until the player page exists, tapping a player shows just their line on the chart
-function openPlayer(name){
-  chartSel=[name];renderStats();
-  document.getElementById('run-chart')?.scrollIntoView({block:'center',behavior:'smooth'});
+// Which chart Stats and the player page show: 'run' = running total, 'form' = PnL in each session
+let chartMode='run';
+function setChartMode(m){chartMode=m;render();}
+// The Running total | Per session switch
+function chartToggle(){
+  return `<div class="seg"><button class="${chartMode==='run'?'on':''}" aria-pressed="${chartMode==='run'}" onclick="setChartMode('run')">Running total</button>
+    <button class="${chartMode==='form'?'on':''}" aria-pressed="${chartMode==='form'}" onclick="setChartMode('form')">Per session</button></div>`;
 }
 
-// Running-total chart, as an SVG string.
+// Line chart, as an SVG string. mode 'run': each player's running total, starting from £0 just
+// before their first session. mode 'form': their PnL in each session, with a dot on every session;
+// the line breaks where they missed a session (a lone session is just a dot).
 //   sel:  players drawn in their colour (thicker, with a dot at the end); everyone else is a grey line
 //   only: if given, draw just these players (for one player's own chart)
 //   fit:  zoom to the coloured players: the y-axis covers only their highs and lows, the x-axis only
-//         the sessions from just before the first of them started to the last one they played.
+//         the sessions from their first (just before it, for a running total) to their last.
 //         Everyone else's grey lines are cut off at the edges.
+//   ends: label each coloured player's final value (running total: where they finished; per session:
+//         their last session) in a strip down the right edge, nudged apart so labels don't overlap.
 // One season: x = session number, evenly spaced. A chapter or All time: x = real dates, with
 // month labels and a dashed copper line where each season starts. Sessions on the same day sit
 // a few pixels apart so a 4-session night shows as quick steps rather than one vertical jump.
 const GREY_LINE='#3A3633';
 let chartN=0;   // gives each chart's clipping area its own id
-function runChart(ss,{sel=[],only=null,fit=false}={}){
+function lineChart(ss,{mode='run',sel=[],only=null,fit=false,ends=false}={}){
+  const run=mode==='run';
   const byDate=isAllTime();   // true for a chapter's All seasons and for the pooled All time view
-  const W=340,padL=42,padR=12,padT=byDate?20:10,padB=22,H=byDate?236:226;
+  const W=340,padL=42,padR=ends?60:12,padT=byDate?20:10,padB=22,H=byDate?236:226;
   const iW=W-padL-padR,iH=H-padT-padB;
 
   // xs[i] = x of session i, in px from the plot's left edge. x=0 is the start, before any session.
@@ -1080,17 +1121,21 @@ function runChart(ss,{sel=[],only=null,fit=false}={}){
     const k=iW/xs.at(-1);xs=xs.map(x=>x*k);   // squeeze back to fit if the nudges pushed past the edge
   }
 
-  const lines=runningTotals(ss);
+  // lines[name] = [{o: session index, v: value}] for the sessions they played
+  const raw=run?runningTotals(ss):sessionPnls(ss);
+  const lines=Object.fromEntries(Object.entries(raw).map(([n,l])=>[n,l.map(p=>({o:p.session.order,v:run?p.total:p.pnl}))]));
   const names=only||Object.keys(lines);
   const focus=fit?sel.filter(n=>lines[n]):[];   // players the axes fit to ([] = everyone)
-  const start=n=>{const o=lines[n][0].session.order;return o?xs[o-1]:0;};   // x where a line starts (£0)
-  const end=n=>xs[lines[n].at(-1).session.order];
-  // x range shown: everything, or just the focused players' span
-  const xa=focus.length?Math.min(...focus.map(start)):0, xb=focus.length?Math.max(...focus.map(end)):xs.at(-1);
+  // x where a line starts: a running total starts at £0 just before the first session played
+  const start=n=>{const o=lines[n][0].o;return run?(o?xs[o-1]:0):xs[o];};
+  const end=n=>xs[lines[n].at(-1).o];
+  // x range shown: everything, or just the focused players' span (widened if it's a single session)
+  let xa=focus.length?Math.min(...focus.map(start)):0, xb=focus.length?Math.max(...focus.map(end)):xs.at(-1);
+  if(xb-xa<1){xa-=12;xb+=12;}
   const inX=x=>x>=xa-0.01&&x<=xb+0.01;
 
   // y scale: a round step so the top and bottom labels are tidy (+£150, −£100…)
-  const vals=(focus.length?focus:names).flatMap(n=>lines[n].map(p=>p.total));
+  const vals=(focus.length?focus:names).flatMap(n=>lines[n].map(p=>p.v));
   const hi=Math.max(0,...vals),lo=Math.min(0,...vals);
   const step=[2,5,10,20,25,50,100,150,200,250,500,1000,2000].find(s=>s*4>=hi-lo)||5000;
   let top=Math.ceil(hi/step)*step,bot=Math.floor(lo/step)*step;
@@ -1099,10 +1144,13 @@ function runChart(ss,{sel=[],only=null,fit=false}={}){
   const lbl=v=>v>0?'+£'+amt(v):v<0?'−£'+amt(v):'£0';
   const txt=(x,y,t,a='end',extra='')=>`<text x="${x}" y="${y}" font-size="9" fill="var(--muted)" text-anchor="${a}" ${extra}>${t}</text>`;
 
-  let svg=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Running total chart">`;
-  [top,0,bot].filter((v,i,a)=>a.indexOf(v)===i&&(v===0||v===top&&v>0||v===bot&&v<0))
-    .forEach(v=>{svg+=txt(padL-6,+Y(v)+3,lbl(v));});
-  svg+=`<line x1="${padL}" x2="${W-padR}" y1="${Y(0)}" y2="${Y(0)}" stroke="var(--border)"/>`;
+  let svg=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${run?'Running total':'Per session'} chart">`;
+  // a labelled line at every step (about 4 or 5 of them): solid at £0, faint and dashed elsewhere
+  for(let v=bot;v<=top+step/2;v+=step){
+    svg+=txt(padL-6,+Y(v)+3,lbl(v));
+    svg+=v===0?`<line x1="${padL}" x2="${W-padR}" y1="${Y(0)}" y2="${Y(0)}" stroke="var(--border)"/>`
+      :`<line x1="${padL}" x2="${W-padR}" y1="${Y(v)}" y2="${Y(v)}" stroke="var(--border)" stroke-opacity=".7" stroke-dasharray="2 4"/>`;
+  }
 
   if(!byDate){
     // session numbers along the bottom (every other one if there are lots)
@@ -1136,17 +1184,167 @@ function runChart(ss,{sel=[],only=null,fit=false}={}){
     });
   }
 
-  // lines: each starts at £0 just before the player's first session
-  // (clipped to the plot, with a little room for the end dots, so a fitted chart cuts other lines off)
-  const path=n=>`M${X(start(n))},${Y(0)} `+lines[n].map(p=>`L${X(xs[p.session.order])},${Y(p.total)}`).join(' ');
+  // Draw the lines, clipped to the plot (with a little room for the dots) so a fitted chart cuts
+  // other lines off at the edges. A running total is one line from £0; a per-session line is split
+  // into runs of back-to-back sessions, and a run of one is drawn as a dot.
+  const pt=p=>`${X(xs[p.o])},${Y(p.v)}`;
+  const runs=n=>{const out=[];lines[n].forEach((p,i,l)=>{if(!i||(!run&&p.o!==l[i-1].o+1))out.push([]);out.at(-1).push(p);});return out;};
+  const draw=(n,colour,width,dotR)=>{let g='';
+    runs(n).forEach((r,i)=>{
+      const d=(run&&i===0?`M${X(start(n))},${Y(0)} L`:'M')+r.map(pt).join(' L');
+      if(r.length>1||run)g+=`<path d="${d}" fill="none" stroke="${colour}" stroke-width="${width}" stroke-linejoin="round" stroke-linecap="round"/>`;
+      else g+=`<circle cx="${X(xs[r[0].o])}" cy="${Y(r[0].v)}" r="${dotR}" fill="${colour}"/>`;});
+    return g;};
   const clip='rc'+(++chartN);
   svg+=`<clipPath id="${clip}"><rect x="${padL-5}" y="${padT-5}" width="${iW+10}" height="${iH+10}"/></clipPath><g clip-path="url(#${clip})">`;
-  names.filter(n=>!sel.includes(n)).forEach(n=>{
-    svg+=`<path d="${path(n)}" fill="none" stroke="${GREY_LINE}" stroke-width="1.3" stroke-linejoin="round" stroke-linecap="round"/>`;});
-  sel.filter(n=>lines[n]).forEach(n=>{const c=lineCol(n),e=lines[n].at(-1);
-    svg+=`<path d="${path(n)}" fill="none" stroke="${c}" stroke-width="2.4" stroke-linejoin="round" stroke-linecap="round"/>
-      <circle cx="${X(xs[e.session.order])}" cy="${Y(e.total)}" r="3.6" fill="${c}"/>`;});
-  return svg+`</g></svg>`;
+  names.filter(n=>!sel.includes(n)).forEach(n=>{svg+=draw(n,GREY_LINE,1.3,1.8);});
+  sel.filter(n=>lines[n]).forEach(n=>{const c=lineCol(n);
+    svg+=draw(n,c,2.4,2.8);
+    // dots: just the end of a running total; every session for per-session
+    (run?[lines[n].at(-1)]:lines[n]).forEach(p=>{svg+=`<circle cx="${X(xs[p.o])}" cy="${Y(p.v)}" r="${run?3.6:2.8}" fill="${c}"/>`;});
+    // a running total that stopped early stays at its final value: a dotted line carries it to the edge
+    if(ends&&run&&end(n)<xb)svg+=`<line x1="${X(end(n))}" x2="${W-padR}" y1="${Y(lines[n].at(-1).v)}" y2="${Y(lines[n].at(-1).v)}" stroke="${c}" stroke-opacity=".6" stroke-dasharray="1.5 3"/>`;});
+  svg+=`</g>`;
+  if(ends){
+    // end labels: start at each player's final value, then push apart (at least 11px) and keep inside
+    const labs=sel.filter(n=>lines[n]).map(n=>{const v=lines[n].at(-1).v;return {n,v,y:+Y(v)};}).sort((a,b)=>a.y-b.y);
+    labs.forEach((l,i)=>{l.y=Math.max(l.y,padT+4,i?labs[i-1].y+11:0);});
+    for(let i=labs.length-1;i>=0;i--)labs[i].y=Math.min(labs[i].y,H-padB-2-(labs.length-1-i)*11);
+    labs.forEach(l=>{svg+=`<text x="${W-padR+6}" y="${(l.y+3.5).toFixed(1)}" font-size="9.5" font-weight="600" fill="${lineCol(l.n)}">${run?money25(l.v):money(l.v)}</text>`;});
+  }
+  return svg+`</svg>`;
+}
+
+// ══════════════ PLAYER PAGE ══════════════
+// One player's stats for the current Chapter / Season choice: headline tiles, best and worst
+// session, their running total, and rivals. Opened by tapping a player on the Table or Stats.
+let playerName=null;
+let playerFrom='stats';   // tab the Back link returns to
+
+function openPlayer(name){
+  if(TAB!=='player')playerFrom=TAB==='lb'?'lb':'stats';   // hopping rival to rival keeps the original Back
+  playerName=name;
+  goTab('player');
+}
+// "All time", "Chapter 1" or "C2 · S2": what the numbers on the page cover
+function scopeLabel(){
+  if(VIEW==='all')return 'All time';
+  const c=VIEW==='era-1'?1:2;
+  return isAllTime()?`Chapter ${c}`:`C${c} · S${seasons[curSeason].number}`;
+}
+// Open Stats with just this player's line coloured
+function compareOnStats(name){
+  chartKey=VIEW+'|'+curSeason;chartSel=[name];
+  goTab('stats');
+  document.getElementById('run-chart')?.scrollIntoView({block:'center'});
+}
+
+function renderPlayer(){
+  const el=document.getElementById('pnl-player');
+  const ss=selSessions(),ps=playerStats(ss),p=ps.find(x=>x.name===playerName);
+  const back=`<button class="link back" style="margin:0" onclick="goTab('${playerFrom}')">${icon('left')}${playerFrom==='lb'?'Table':'Stats'}</button>`;
+  if(!p){el.innerHTML=`<div class="pp-top">${back}</div>`+emptyCard(`${playerName} hasn't played in this selection.`);return;}
+  const n=p.n,s=x=>x!==1?'s':'';
+
+  let html=`<div class="pp-top">${back}<span class="sub" style="font-size:14px">${scopeLabel()}</span></div>
+  <div class="pp-head">${av(p.name,64,p.rank===1?'ring':'')}
+    <div class="mid"><h1 class="title">${p.name}</h1>
+      <div class="sub" style="font-size:14px;margin-top:6px">#${p.rank}${VIEW==='all'?' all time':''} · ${n} session${s(n)}</div></div></div>
+  <div class="tiles">
+    <div class="tile"><div class="lbl">Average (ranked)</div>${bigMoney(money25(p.shrunk),cls(round25(p.shrunk)))}</div>
+    <div class="tile"><div class="lbl">Total</div>${bigMoney(money25(p.pnlTot),cls(round25(p.pnlTot)))}</div>
+    <div class="tile"><div class="lbl">In profit</div><div class="money big">${p.inProfit} <small>of ${n}</small></div></div>
+    <div class="tile"><div class="lbl">Topped the table</div><div class="money big">${p.topped} <small>time${s(p.topped)}</small></div></div>
+  </div>
+  <div class="card" style="padding:4px 16px;margin:4px 0 22px">
+    <div class="bw-row"><div><div style="font-weight:600">Best session</div><div class="sub">${sessionTag(p.best.session)}</div></div>
+      <span class="money ${cls(p.best.pnl)}" style="font-size:18px">${money(p.best.pnl)}</span></div>
+    ${n>=2?`<div class="bw-row"><div><div style="font-weight:600">Worst session</div><div class="sub">${sessionTag(p.worst.session)}</div></div>
+      <span class="money ${cls(p.worst.pnl)}" style="font-size:18px">${money(p.worst.pnl)}</span></div>`:''}
+  </div>
+  <div class="sec-head chart-head">${chartToggle()}</div>
+  <div class="card chart-card">${lineChart(ss,{mode:chartMode,sel:[p.name],only:[p.name],fit:true,ends:true})}
+    <div class="spread" style="align-items:center;margin-top:8px">
+      <span class="sub"><span class="swatch" style="background:${lineCol(p.name)}"></span>${p.name}</span>
+      <button class="link" style="font-size:13px" onclick="compareOnStats('${q(p.name)}')">Compare on Stats</button></div></div>`;
+
+  // Rivals: opponents they've shared 3+ sessions with, worst first. Hidden until there are any.
+  const rv=rivals(ss)[p.name];
+  if(rv){
+    const per=r=>`${money25(r.avg)} a game · ${r.n} games`;
+    const card=(r,label,tone)=>`<button class="rival-card ${tone}" onclick="openPlayer('${q(r.opp)}')">
+      <div class="lbl">${label}</div><div class="who">${av(r.opp,32)}<span>${r.opp}</span></div><div class="sub">${per(r)}</div></button>`;
+    // The worst rival is a "Nemesis" if they beat this player on average; if this player beats
+    // everyone it's just their "Toughest challenge". Likewise the best rival is a "Favourite customer"
+    // only if this player actually beats them.
+    const worst=rv[0],best=rv.at(-1);
+    const worstCard=worst.avg<0?card(worst,'Nemesis','bad'):card(worst,'Toughest challenge','');
+    const bestCard=best.avg>0?card(best,'Favourite customer','good'):card(best,'Favourite customer? Yeah right','');
+    const maxAbs=Math.max(...rv.map(r=>Math.abs(r.avg)),0.01);
+    html+=`<div class="sec-head" style="margin-bottom:2px"><h2 class="h2">Rivals</h2><button class="link" style="font-size:13px" onclick="openRivalAnalysis('${q(p.name)}')">See the working</button></div>
+    <p class="sub" style="margin:0 2px 10px">Average difference per shared session · 3+ games together</p>
+    <div class="${rv.length>1?'tiles':''}" style="margin-bottom:10px">${rv.length>1?worstCard+bestCard:(worst.avg<0?worstCard:bestCard)}</div>
+    <div class="card plist">${rv.map(r=>{const w=Math.abs(r.avg)/maxAbs*50,c=cls(round25(r.avg));
+      return `<button class="rv-row" onclick="openPlayer('${q(r.opp)}')">${av(r.opp,32)}
+        <span style="min-width:0"><span class="nm">${r.opp}</span><span class="sub" style="display:block">${r.n} games</span></span>
+        <span class="st-bar centred"><span class="${c}" style="${r.avg>=0?'left':'right'}:50%;width:${w}%"></span></span>
+        <span class="money r ${c}" style="font-size:15px">${money25(r.avg)}</span></button>`;}).join('')}</div>`;
+  }
+  el.innerHTML=html;
+}
+
+// ══════════════ RIVAL ANALYSIS ══════════════
+// The working behind the Rivals numbers. Pick a player, tap one of their rivals, and see every
+// session the two both played: each one's in → out and P&L, the gap, and the average at the bottom.
+// Follows the current Chapter / Season choice, like the player page. Opened from More, or from
+// "See the working" on a player page.
+let rivalOf=null;        // player whose rivals are listed
+let rivalOpen=null;      // rival whose table is expanded
+let rivalsFrom='more';   // tab the Back link returns to
+function openRivalAnalysis(name){
+  rivalsFrom=TAB==='player'?'player':'more';
+  rivalOf=name||null;rivalOpen=null;
+  goTab('rivals');
+}
+function pickRivalOf(name){rivalOf=name;rivalOpen=null;renderRivals();}
+function toggleRival(name){rivalOpen=rivalOpen===name?null:name;renderRivals();}
+// "24/10/2026" → "24 Oct"
+function shortDate(d){const [dd,mm]=d.split('/');return `${+dd} ${MONTHS[+mm-1]}`;}
+
+function renderRivals(){
+  const el=document.getElementById('pnl-rivals');
+  const back=`<button class="link back" style="margin:0" onclick="goTab('${rivalsFrom}')">${icon('left')}${rivalsFrom==='player'?playerName:'More'}</button>`;
+  const top=`<div class="pp-top">${back}<span class="sub" style="font-size:14px">${scopeLabel()}</span></div>`;
+  const ss=selSessions(),rv=rivals(ss);
+  const ps=playerStats(ss).filter(p=>rv[p.name]);   // only players with at least one rival, by rank
+  if(!ps.length){el.innerHTML=top+emptyCard('No two players have shared 3+ sessions in this selection yet.');return;}
+  if(!rv[rivalOf]){rivalOf=ps[0].name;rivalOpen=null;}
+  const list=rv[rivalOf],maxAbs=Math.max(...list.map(r=>Math.abs(r.avg)),0.01);
+
+  // one player's side of a session: P&L, with in → out underneath
+  const cell=v=>`<span class="r"><span class="money ${cls(v.pnl)}" style="display:block">${money(v.pnl)}</span>
+    <span class="sub" style="font-size:11px;white-space:nowrap">${gbp(v.buyin)}→${gbp(v.final)}</span></span>`;
+  const detail=r=>{
+    const sh=sharedSessions(ss,rivalOf,r.opp),tot=sh.reduce((t,x)=>t+x.gap,0),avg=tot/sh.length;
+    return `<div class="rv-detail">
+      <div class="rd-row head"><span>Session</span><span class="r">${rivalOf}</span><span class="r">${r.opp}</span><span class="r">Gap</span></div>
+      ${sh.map(x=>`<div class="rd-row"><span style="min-width:0"><span style="display:block">${x.session.name}</span><span class="sub">${seasonTag(x.session)} · ${shortDate(x.session.date)}</span></span>
+        ${cell(x.a)}${cell(x.b)}<span class="money r ${cls(x.gap)}">${money(x.gap)}</span></div>`).join('')}
+      <div class="inset rd-sum">Total gap <b class="money ${cls(tot)}">${money(tot)}</b> ÷ ${sh.length} sessions together
+        = <b class="money ${cls(avg)}">${money(avg)}</b> a game.
+        ${money(avg)!==money25(avg)?` Shown as ${money25(avg)} on the Rivals list (rounded to 25p).`:''}</div></div>`;
+  };
+
+  el.innerHTML=top+`<div class="card"><h2 class="h2">Rival analysis</h2>
+    <p class="note" style="margin-bottom:12px">For every session two players both played, take the gap between their results (P&amp;L). The average gap is the number on the Rivals list. Pairs need 3+ sessions together. Tap a rival to see the working.</p>
+    <div class="pchips" style="margin-top:0">${ps.map(p=>{const on=p.name===rivalOf;
+      return `<button class="pchip${on?' on':''}" style="--c:${lineCol(p.name)}" aria-pressed="${on}" onclick="pickRivalOf('${q(p.name)}')"><span class="dot"></span>${p.name}</button>`;}).join('')}</div></div>
+  <div class="card plist">${list.map(r=>{const open=r.opp===rivalOpen,w=Math.abs(r.avg)/maxAbs*50,c=cls(round25(r.avg));
+    return `<button class="rv-row x" aria-expanded="${open}" onclick="toggleRival('${q(r.opp)}')">${av(r.opp,32)}
+      <span style="min-width:0"><span class="nm">${r.opp}</span><span class="sub" style="display:block">${r.n} games</span></span>
+      <span class="st-bar centred"><span class="${c}" style="${r.avg>=0?'left':'right'}:50%;width:${w}%"></span></span>
+      <span class="money r ${c}" style="font-size:15px">${money25(r.avg)}</span><span class="chev">${icon(open?'open':'right')}</span></button>
+      ${open?detail(r):''}`;}).join('')}</div>`;
 }
 
 // ══════════════ RULES ══════════════
