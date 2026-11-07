@@ -21,7 +21,7 @@ The `<script>` is divided into sections marked with `// ══════ NAME 
 
 **Security rules** live in `firestore.rules` and are applied by pasting into the Firebase console (Firestore → Rules → Publish); they are not deployed from the repo. They make Era 1 unwritable, let anyone add/edit/delete Era 2 sessions (shape-checked), only allow a new season numbered active+1, and make players add-only. The app's client-side checks (DD/MM/YYYY date, 2–20 players, name ≤60) mirror them.
 
-**Migration.** `migration/migrate.py` was the one-off Supabase → Firestore move (2026-11-07); `--verify-only` re-checks Firestore against the backup. The admin key lives at `~/code/secrets/poker-admin-key.json` — never copy it into the repo or print it.
+**Admin key.** `~/code/secrets/poker-admin-key.json` (bypasses the security rules) — never copy it into the repo or print it.
 
 **Scoring systems.** Two coexist:
 - `"pnl"` (current): players ranked by *shrunk* average PnL, `pnlTot / (n + K)` with `K=3`, which pulls players with few sessions toward zero.

@@ -62,7 +62,7 @@ async function loadAll() {
     loadEra(LIVE_ERA),
     loadPlayers(),
   ]);
-  if (!cfgSnap.exists()) throw new Error("config/app not found — has the migration been run?");
+  if (!cfgSnap.exists()) throw new Error("config/app not found in Firestore");
   return { activeSeasonNumber: cfgSnap.data().activeSeasonNumber, eras: { "era-1": legacy, [LIVE_ERA]: live }, players };
 }
 

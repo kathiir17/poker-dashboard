@@ -6,9 +6,5 @@
 secrets/
 .env
 
-# Python virtual environment for the migration script
-.venv/
-__pycache__/
-
 # macOS
 .DS_Store
