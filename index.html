@@ -60,21 +60,48 @@ svg.i{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:1.75;str
 .up{color:var(--up)}.down{color:var(--down)}.flat{color:var(--muted)}
 .accent{color:var(--copper)}
 
-/* ── Header, chapter/season bar, tabs ── */
-.hdr{display:flex;align-items:center;gap:12px;padding:22px 16px 14px}
-.hdr .title{font-size:22px;color:var(--text)}
-.settings{margin-left:auto;position:relative}
+/* ── Header and Chapter / Season pickers ── */
+.hdr{padding:24px 16px 16px}
+.hdr .title{font-size:clamp(18px,5.8vw,30px);white-space:nowrap;color:var(--text)}
 .icon-btn{display:inline-flex;align-items:center;justify-content:center;width:36px;height:36px;border-radius:10px;background:none;border:1px solid transparent;color:var(--muted);cursor:pointer}
 .icon-btn:hover{color:var(--text);border-color:var(--border)}
 .icon-btn svg.i{width:20px;height:20px}
-.menu{position:absolute;right:0;top:calc(100% + 6px);background:var(--raised);border:1px solid var(--border);border-radius:14px;padding:5px;z-index:50;min-width:220px}
-.menu button{display:block;width:100%;text-align:left;background:none;border:none;font-size:14px;padding:10px 12px;border-radius:9px;cursor:pointer}
-.menu button:hover{background:var(--card)}
-.season-bar{padding:0 16px 14px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.season-bar{padding:0 16px 4px;position:relative;z-index:60}  /* above the dropdown dimmer */
+.pickers{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+/* A picker: a box showing the current choice; tapping it drops a themed list down beneath it. */
+.picker-wrap{position:relative;min-width:0}
+.picker{position:relative;display:block;width:100%;text-align:left;background:var(--card);border:1px solid var(--border);border-radius:16px;padding:10px 38px 11px 14px;cursor:pointer}
+.picker .lbl{font-size:12px;color:var(--muted)}
+.picker .val{font-size:17px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.picker .chev{position:absolute;right:14px;top:50%;transform:translateY(-50%);color:var(--muted);transition:transform .15s}
+.picker[aria-expanded="true"]{border-color:var(--copper)}
+.picker[aria-expanded="true"] .chev{transform:translateY(-50%) rotate(180deg)}
+.picker:disabled{cursor:default;padding-right:14px}
+.picker:disabled .val{color:var(--muted)}
+.dropdown{position:absolute;top:calc(100% + 8px);left:0;min-width:100%;width:max-content;max-width:min(300px,calc(100vw - 32px));background:var(--card);border:1px solid var(--border);border-radius:18px;padding:6px;box-shadow:0 18px 40px rgba(0,0,0,.55);animation:drop .14s ease-out}
+.dropdown.right{left:auto;right:0}
+@keyframes drop{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:none}}
+.dd-item{display:flex;align-items:center;gap:10px;width:100%;background:none;border:none;border-radius:12px;padding:12px;font-size:16px;color:var(--muted);text-align:left;cursor:pointer}
+.dd-item:hover,.dd-item:focus-visible{background:var(--raised);color:var(--text);outline:none}
+.dd-item.on{color:var(--text);font-weight:500}
+.dd-item .tick{margin-left:auto;color:var(--copper)}
+.dd-item .tag-cur{font-size:11px;font-weight:600;color:var(--copper);border:1px solid var(--border);border-radius:999px;padding:1px 8px}
+.dd-sep{height:1px;background:var(--border);margin:6px 8px}
+.dd-item.action{color:var(--link);font-weight:600}
+.dd-item.action svg.i{width:18px;height:18px}
+.dd-dim{position:fixed;inset:0;z-index:55;background:rgba(0,0,0,.45);animation:fade .14s ease-out}
+@keyframes fade{from{opacity:0}}
+.season-bar .seg{margin-top:10px;display:inline-flex}
+/* ── Confirmation dialog (confirmSheet) ── */
+.sheet-bg{position:fixed;inset:0;z-index:100;background:rgba(0,0,0,.65);display:flex;align-items:flex-end;justify-content:center;padding:16px;padding-bottom:calc(16px + env(safe-area-inset-bottom,0px))}
+@media (min-width:600px){.sheet-bg{align-items:center}}
+.sheet{width:100%;max-width:440px;background:var(--card);border:1px solid var(--border);border-radius:20px;padding:22px}
+.sheet h2{font-family:var(--display);font-weight:700;font-size:20px;margin-bottom:8px}
+.sheet p{color:var(--muted);line-height:1.6;margin-bottom:20px}
+.sheet .actions{display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap}
 .seg{display:flex;background:var(--card);border:1px solid var(--border);border-radius:var(--r-ctl);padding:3px}
 .seg button{border:none;background:none;font-size:13px;font-weight:500;padding:7px 12px;border-radius:9px;cursor:pointer;color:var(--muted);white-space:nowrap}
 .seg button.on{background:var(--raised);color:var(--text);box-shadow:inset 0 0 0 1px var(--copper)}
-select{appearance:none;-webkit-appearance:none;background:var(--card) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' fill='none' stroke='%23A39A8E' stroke-width='1.75' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M1 1.5l5 5 5-5'/%3E%3C/svg%3E") no-repeat right 12px center;color:var(--text);border:1px solid var(--border);border-radius:var(--r-ctl);padding:9px 34px 9px 12px;font:500 14px var(--body);cursor:pointer}
 
 /* ── Bottom navigation bar ── */
 .nav{position:fixed;left:0;right:0;bottom:0;z-index:40;background:var(--card);border-top:1px solid var(--border);padding-bottom:env(safe-area-inset-bottom,0px)}
@@ -170,15 +197,10 @@ input::placeholder{color:#6f675e}
 
 <div class="hdr">
   <h1 class="title">Family poker night</h1>
-  <div class="settings" id="settings">
-    <button class="icon-btn" onclick="toggleSettings()" aria-label="Settings"><svg class="i" viewBox="0 0 24 24"><path d="M4 6h9M17 6h3M4 12h3M11 12h9M4 18h11M19 18h1"/><circle cx="15" cy="6" r="2"/><circle cx="9" cy="12" r="2"/><circle cx="17" cy="18" r="2"/></svg></button>
-    <div class="menu" id="settings-menu" hidden>
-      <button onclick="toggleSettings(false);newSeason()">New season in Chapter 2</button>
-    </div>
-  </div>
 </div>
 
 <div class="season-bar" id="season-bar"></div>
+<div class="dd-dim" id="dd-dim" hidden onclick="closePicker()"></div>
 
 <div class="pnl on" id="pnl-lb"><div class="loading">Loading…</div></div>
 <div class="pnl" id="pnl-scorer"></div>
@@ -222,6 +244,8 @@ const ICON_PATHS={
   right:'<path d="m9 6 6 6-6 6"/>',
   left:'<path d="m15 6-6 6 6 6"/>',
   open:'<path d="m6 9 6 6 6-6"/>',
+  plus:'<path d="M12 5v14M5 12h14"/>',
+  check:'<path d="m5 12.5 4.5 4.5L19 7.5"/>',
   book:'<path d="M4 4.5A1.5 1.5 0 0 1 5.5 3H20v15H5.5A1.5 1.5 0 0 0 4 19.5z"/><path d="M4 19.5A1.5 1.5 0 0 0 5.5 21H20v-3"/>',
   phone:'<rect x="6" y="2" width="12" height="20" rx="3"/><path d="M11 18h2"/>',
 };
@@ -271,7 +295,7 @@ const DATE_RE=/^[0-3][0-9]\/[01][0-9]\/20[0-9][0-9]$/;
 function toast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('on');setTimeout(()=>t.classList.remove('on'),2200);}
 
 // ══════════════ SEASON BAR ══════════════
-// Switch between Chapter 2 (era-2), Chapter 1 (era-1) and All chapters.
+// Switch between Chapter 2 (era-2), Chapter 1 (era-1) and All time (both pooled).
 function setView(v){
   VIEW=v;
   if(v==='all'){
@@ -287,20 +311,59 @@ function setView(v){
   renderSeasonBar(); render();
 }
 
+// ── Chapter / Season pickers ──
+// Each picker is a button; tapping it drops a themed list down beneath it.
+// openPicker says which list is open ('chapter' | 'season' | null).
+const CHAPTERS=[['all','All time'],['era-1','Chapter 1'],['era-2','Chapter 2']];
+let openPicker=null;
+// items: [{value, label, on, current}] or {sep:true} or {value, label, action:true}
+function picker(id,label,value,items,alignRight){
+  const open=openPicker===id;
+  const list=open?`<div class="dropdown${alignRight?' right':''}" role="listbox" aria-label="${label}">
+    ${items.map(it=>it.sep?`<div class="dd-sep" role="separator"></div>`
+      :`<button class="dd-item${it.on?' on':''}${it.action?' action':''}" role="option" aria-selected="${!!it.on}" onclick="choosePicker('${id}','${it.value}')">
+        ${it.action?icon('plus'):''}${it.label}${it.current?'<span class="tag-cur">current</span>':''}${it.on?`<span class="tick">${icon('check')}</span>`:''}</button>`).join('')}
+  </div>`:'';
+  return `<div class="picker-wrap"><button class="picker" id="picker-${id}" ${items?`aria-haspopup="listbox" aria-expanded="${open}" onclick="togglePicker('${id}')"`:'disabled'}>
+    <div class="lbl">${label}</div><div class="val">${value}</div>${items?`<span class="chev">${icon('open')}</span>`:''}</button>${list}</div>`;
+}
+function togglePicker(id){
+  openPicker=openPicker===id?null:id;renderSeasonBar();
+  if(openPicker)(document.querySelector('.dropdown .dd-item.on')||document.querySelector('.dropdown .dd-item'))?.focus();
+}
+function closePicker(){if(!openPicker)return;const id=openPicker;openPicker=null;renderSeasonBar();document.getElementById('picker-'+id)?.focus();}
+function choosePicker(id,v){
+  openPicker=null;
+  if(id==='chapter'){setView(v);return;}
+  if(v==='new'){renderSeasonBar();newSeason();return;}
+  switchSeason(v);
+}
+// While a list is open: Esc closes it, arrow keys move between its options
+document.addEventListener('keydown',e=>{
+  if(!openPicker)return;
+  if(e.key==='Escape'){e.preventDefault();closePicker();return;}
+  if(e.key!=='ArrowDown'&&e.key!=='ArrowUp')return;
+  e.preventDefault();
+  const items=[...document.querySelectorAll('.dropdown .dd-item')];
+  const i=items.indexOf(document.activeElement);
+  const next=e.key==='ArrowDown'?(i+1)%items.length:(i<=0?items.length-1:i-1);
+  items[next]?.focus();
+});
 function renderSeasonBar(){
   const allTime=isAllTime();
   const s=allTime?null:seasons[curSeason];
   const isArchived = s && s.system==="old";
   const live=VIEW==='era-2';
-  let html=`<div class="seg">
-    ${[['era-2','Chapter 2'],['era-1','Chapter 1'],['all','All chapters']].map(([v,l])=>`<button class="${VIEW===v?'on':''}" onclick="setView('${v}')">${l}</button>`).join('')}
-  </div>`;
-  if(VIEW!=='all'){
-    html+=`<select onchange="switchSeason(this.value)" aria-label="Season">
-        <option value="-1" ${allTime?'selected':''}>All time (${live?'Chapter 2':'Chapter 1'})</option>
-        ${seasons.map((se,i)=>`<option value="${i}" ${i===curSeason?'selected':''}>${se.name}${live&&se.number===DATA.activeSeasonNumber?' (current)':''}</option>`).join('')}
-      </select>`;
-  }
+  const chapterItems=CHAPTERS.map(([v,l])=>({value:v,label:l,on:VIEW===v}));
+  // In the pooled All time view there's only one choice, so the Season picker is disabled
+  const seasonItems=VIEW==='all'?null:[
+    {value:-1,label:'All seasons',on:allTime},
+    ...seasons.map((se,i)=>({value:i,label:se.name,on:i===curSeason,current:live&&se.number===DATA.activeSeasonNumber})),
+    ...(live?[{sep:true},{value:'new',label:'New season',action:true}]:[])];
+  const chapterName=CHAPTERS.find(([v])=>v===VIEW)[1];
+  let html=`<div class="pickers">${picker('chapter','Chapter',chapterName,chapterItems)}${picker('season','Season',allTime?'All seasons':s.name,seasonItems,true)}</div>`;
+  // Dim the page behind an open list; tapping the dim closes it
+  document.getElementById('dd-dim').hidden=!openPicker;
   // Only the old-points season (Chapter 1 Season 1) gets the comparison toggle
   if(isArchived){
     html+=`<div class="seg">
@@ -319,10 +382,30 @@ function switchSeason(i){
 }
 function setSys(s){SYS=s;renderSeasonBar();render();}
 
+// In-app confirmation dialog. Resolves true if the user presses the confirm button.
+//   await confirmSheet({title:'Start Season 3?', body:'…', ok:'Start Season 3'})
+function confirmSheet({title,body,ok,cancel='Cancel'}){
+  return new Promise(resolve=>{
+    const bg=document.createElement('div');bg.className='sheet-bg';
+    bg.innerHTML=`<div class="sheet" role="dialog" aria-modal="true" aria-labelledby="sheet-title">
+      <h2 id="sheet-title">${title}</h2><p>${body}</p>
+      <div class="actions"><button class="btn-ghost" data-r="0">${cancel}</button><button class="btn" data-r="1">${ok}</button></div></div>`;
+    const done=r=>{bg.remove();document.removeEventListener('keydown',esc);resolve(r);};
+    const esc=e=>{if(e.key==='Escape')done(false);};
+    bg.addEventListener('click',e=>{if(e.target===bg)done(false);else if(e.target.dataset.r)done(e.target.dataset.r==='1');});
+    document.addEventListener('keydown',esc);
+    document.body.appendChild(bg);
+    bg.querySelector('[data-r="0"]').focus();
+  });
+}
+
 async function newSeason(){
-  if(busy||!DATA)return;   // the settings menu exists before data has loaded
+  if(busy||!DATA)return;
   const n=DATA.activeSeasonNumber+1;
-  if(!confirm(`Start Season ${n} of Chapter 2?\n\nIt becomes the current season. Seasons can't be deleted.`))return;
+  const ok=await confirmSheet({title:`Start Season ${n}?`,
+    body:`Season ${n} becomes the current season of Chapter 2, and new sessions go into it. Season ${n-1} keeps its results. This can't be undone.`,
+    ok:`Start Season ${n}`});
+  if(!ok)return;
   busy=true;
   try{
     const se=await DB.startNewSeason(DATA.activeSeasonNumber);
@@ -332,13 +415,6 @@ async function newSeason(){
   setView('era-2');
   toast(`Season ${n} created`);
 }
-
-// Settings menu in the header: toggleSettings() flips it, toggleSettings(false) closes it; a click anywhere else closes it too
-function toggleSettings(open){
-  const m=document.getElementById('settings-menu');
-  m.hidden=open===undefined?!m.hidden:!open;
-}
-document.addEventListener('click',e=>{if(!e.target.closest('#settings'))toggleSettings(false);});
 
 // Show one panel and light up its bottom-bar button (More stays lit while Rules is open).
 function goTab(id){
@@ -383,13 +459,13 @@ function canEdit(){return VIEW==='era-2' && !isAllTime();}
 // ...but new sessions are only added to the current Chapter 2 season.
 function isActiveSeason(){return canEdit() && seasons[curSeason].number===DATA.activeSeasonNumber;}
 function readOnlyMsg(){
-  if(VIEW==='all')return 'All chapters: every session ever (read-only).';
-  if(isAllTime())return `All time (${VIEW==='era-1'?'Chapter 1':'Chapter 2'}) is read-only.`;
+  if(VIEW==='all')return 'All time shows every session ever (read-only).';
+  if(isAllTime())return `All seasons of ${VIEW==='era-1'?'Chapter 1':'Chapter 2'} is a read-only view.`;
   if(VIEW==='era-1')return `Chapter 1 ${seasons[curSeason].name} is archived (read-only).`;
   return `${seasons[curSeason].name} isn't the current season.`;
 }
 // Full label for a session, e.g. "Chapter 2 · Season 1 · Session 3", in any view.
-// In pooled views the session carries _season; in the All chapters view Chapter 1 season names start with "Chapter 1 ".
+// In pooled views the session carries _season; in the All time view Chapter 1 season names start with "Chapter 1 ".
 function sessionLabel(s){
   let season=s._season||seasons[curSeason].name, era=VIEW==='era-1'?'Chapter 1':'Chapter 2';
   if(season.startsWith('Chapter 1 ')){era='Chapter 1';season=season.slice(10);}
