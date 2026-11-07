@@ -92,7 +92,6 @@ svg.i{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:1.75;str
 .dd-item.action svg.i{width:18px;height:18px}
 .dd-dim{position:fixed;inset:0;z-index:55;background:rgba(0,0,0,.45);animation:fade .14s ease-out}
 @keyframes fade{from{opacity:0}}
-.season-bar .seg{margin-top:10px;display:inline-flex}
 /* ── Confirmation dialog (confirmSheet) ── */
 .sheet-bg{position:fixed;inset:0;z-index:100;background:rgba(0,0,0,.65);display:flex;align-items:flex-end;justify-content:center;padding:16px;padding-bottom:calc(16px + env(safe-area-inset-bottom,0px))}
 @media (min-width:600px){.sheet-bg{align-items:center}}
@@ -192,8 +191,6 @@ input::placeholder{color:#6f675e}
 .link{background:none;border:none;color:var(--link);font-size:14px;cursor:pointer;padding:0}
 .toast{position:fixed;bottom:calc(var(--nav-h) + env(safe-area-inset-bottom,0px) + 16px);left:50%;transform:translateX(-50%);background:var(--raised);color:var(--text);border:1px solid var(--copper);padding:9px 20px;border-radius:999px;font-size:14px;font-weight:500;z-index:999;pointer-events:none;opacity:0;transition:opacity .25s}
 .toast.on{opacity:1}
-.pts{font-family:var(--display);font-weight:700;color:var(--copper)}
-.badge{display:inline-block;background:var(--raised);color:var(--copper);border:1px solid var(--border);border-radius:8px;padding:3px 10px;font:700 13px var(--display);min-width:36px;text-align:center}
 
 /* ── Charts and head-to-head ── */
 
@@ -241,9 +238,8 @@ input::placeholder{color:#6f675e}
 .st-bar{position:relative;height:10px}
 .st-bar.centred::before{content:"";position:absolute;left:var(--z,50%);top:-6px;bottom:-6px;width:1px;background:var(--border)}
 .st-bar span{position:absolute;top:0;bottom:0;border-radius:5px;min-width:3px}
-.st-bar .up{background:var(--up)}.st-bar .down{background:var(--down)}.st-bar .flat{background:var(--muted)}.st-bar .pts{background:var(--copper)}
+.st-bar .up{background:var(--up)}.st-bar .down{background:var(--down)}.st-bar .flat{background:var(--muted)}
 .st-num{text-align:right;font-size:15px}
-.st-num.pts{color:var(--copper)}
 .sess-card{display:flex;align-items:center;gap:14px;width:100%;text-align:left;cursor:pointer;padding:14px}
 .date-tile{display:flex;flex-direction:column;align-items:center;justify-content:center;width:52px;height:52px;border-radius:12px;background:var(--raised);flex-shrink:0;line-height:1.1}
 .date-tile span{font-size:11px;color:var(--muted);text-transform:uppercase}
@@ -478,20 +474,14 @@ const ICON_PATHS={
 function icon(n){return `<svg class="i" viewBox="0 0 24 24" aria-hidden="true">${ICON_PATHS[n]}</svg>`;}
 
 // ══════════════ SCORING ══════════════
-const BKT=[[0,0],[0.5,5],[0.8,8],[1.0,10],[1.2,13],[1.5,16],[2.0,19],[2.5,22],[3.0,25],[4.0,30],[5.0,35]];
-function interpPts(m){if(m<=0)return 0;if(m>=5)return 35+(m-5)*5;
-  for(let i=1;i<BKT.length;i++){const[lm,lp]=BKT[i-1],[hm,hp]=BKT[i];if(m<=hm)return lp+((m-lm)/(hm-lm))*(hp-lp);}return 35;}
-function rebuyMult(b){if(b<=40)return 1;if(b<=60)return .9;if(b<=80)return .5;if(b<=100)return .25;return .25*Math.pow(.5,Math.floor((b-100)/20)+1);}
-function oldPts(b,f){return Math.round(interpPts(b>0?f/b:0)*rebuyMult(b));}
-// pnl(r) and K live in stats.js
+// pnl(r), K and the shrunk average live in stats.js
 
 // ══════════════ STATE ══════════════
 // All database access goes through window.DB (db.js); nothing here talks to Firebase.
 let DATA=null;        // from DB.loadAll(): {activeSeasonNumber, eras:{'era-1':{...}, 'era-2':{...}}, players:[names]}
 let VIEW='era-2';     // 'era-2' (Chapter 2) | 'era-1' (Chapter 1, read-only) | 'all' (both pooled, read-only)
-let seasons=[];       // seasons shown in the current VIEW: [{id, name, number, system, sessions:[{id, seq, name, date, results}]}]
+let seasons=[];       // seasons shown in the current VIEW: [{id, name, number, sessions:[{id, seq, name, date, results}]}]
 let curSeason=0;      // index into seasons, or -1 for "All time"
-let SYS='pnl';        // display system for the old-points season (Chapter 1 Season 1)
 let TAB='lb';
 let scorerPlayers=[], scorerRows={}, scorerName="", scorerResult=null;
 let editIdx=null, editData=null;
@@ -532,7 +522,6 @@ function setView(v){
     seasons=DATA.eras[v].seasons;
     curSeason=v==='era-2'?seasons.findIndex(s=>s.number===DATA.activeSeasonNumber):seasons.length-1;
   }
-  SYS='pnl';
   scorerResult=null; editIdx=null;
   renderSeasonBar(); render();
 }
@@ -578,7 +567,6 @@ document.addEventListener('keydown',e=>{
 function renderSeasonBar(){
   const allTime=isAllTime();
   const s=allTime?null:seasons[curSeason];
-  const isArchived = s && s.system==="old";
   const live=VIEW==='era-2';
   const chapterItems=CHAPTERS.map(([v,l])=>({value:v,label:l,on:VIEW===v,current:v==='era-2'}));
   // In the pooled All time view there's only one choice, so the Season picker is disabled
@@ -590,23 +578,14 @@ function renderSeasonBar(){
   let html=`<div class="pickers">${picker('chapter','Chapter',chapterName,chapterItems)}${picker('season','Season',allTime?'All seasons':s.name,seasonItems,true)}</div>`;
   // Dim the page behind an open list; tapping the dim closes it
   document.getElementById('dd-dim').hidden=!openPicker;
-  // Only the old-points season (Chapter 1 Season 1) gets the comparison toggle
-  if(isArchived&&TAB!=='stats'){
-    html+=`<div class="seg">
-      <button class="${SYS==='pnl'?'on':''}" onclick="setSys('pnl')">Shrunk PnL</button>
-      <button class="${SYS==='old'?'on':''}" onclick="setSys('old')">Old points</button>
-    </div>`;
-  }
   document.getElementById('season-bar').innerHTML=html;
 }
 
 function switchSeason(i){
   curSeason=+i;
-  SYS = (isAllTime()||seasons[curSeason].system!=="old") ? "pnl" : SYS;
   scorerResult=null; editIdx=null;
   renderSeasonBar(); render();
 }
-function setSys(s){SYS=s;renderSeasonBar();render();}
 
 // In-app confirmation dialog. Resolves true if the user presses the confirm button.
 //   await confirmSheet({title:'Start Season 3?', body:'…', ok:'Start Season 3'})
@@ -651,7 +630,6 @@ function goTab(id){
   document.getElementById('hdr').hidden=!hdr;
   document.getElementById('season-bar').hidden=!hdr;
   if(!hdr)openPicker=null;
-  if(DATA)renderSeasonBar();   // the old-points toggle shows on Table and Sessions, not Stats
   document.querySelectorAll('.pnl').forEach(p=>p.classList.toggle('on',p.id==='pnl-'+id));
   document.querySelectorAll('.nav [data-tab]').forEach(b=>b.classList.toggle('on',b.dataset.tab===id||(b.dataset.also||'').split(' ').includes(id)));
   window.scrollTo(0,0);
@@ -697,13 +675,6 @@ function readOnlyMsg(){
   if(VIEW==='era-1')return `Chapter 1 ${seasons[curSeason].name} is archived (read-only).`;
   return `${seasons[curSeason].name} isn't the current season.`;
 }
-// Full label for a session, e.g. "Chapter 2 · Season 1 · Session 3", in any view.
-// In pooled views the session carries _season; in the All time view Chapter 1 season names start with "Chapter 1 ".
-function sessionLabel(s){
-  let season=s._season||seasons[curSeason].name, era=VIEW==='era-1'?'Chapter 1':'Chapter 2';
-  if(season.startsWith('Chapter 1 ')){era='Chapter 1';season=season.slice(10);}
-  return `${era} · ${season} · ${s.name}`;
-}
 function av(n,s=28,ring){const c=chipOf(n);return `<div class="av${ring?' ring':''}" style="width:${s}px;height:${s}px;font-size:${Math.round(s*.38)}px;background:${c.hex};color:${c.dark?'#1A1612':'#F4EFE6'}">${n.slice(0,2).toUpperCase()}</div>`;}
 function rank(i){return `<span class="rank${i<3?' r'+(i+1):''}">${i+1}</span>`;}
 // Name colour class for finishing place i of n: pl1/pl2/pl3 for the podium, pl-last for last place
@@ -724,28 +695,6 @@ function gbp25(v){return gbp(round25(v));}
 // Colour class for a value: up / down / flat
 function cls(v){return v>0.004?'up':v<-0.004?'down':'flat';}
 
-function buildStats(){
-  const m={};
-  curSessions().forEach(s=>{
-    const ranked=s.results.map(r=>({...r,_p:pnl(r),_o:oldPts(r.buyin,r.final)}));
-    const sortP=[...ranked].sort((a,b)=>b._p-a._p);
-    const sortO=[...ranked].sort((a,b)=>b._o-a._o);
-    ranked.forEach(r=>{
-      if(!m[r.player])m[r.player]={name:r.player,n:0,pnlTot:0,oldTot:0,winsP:0,winsO:0,rows:[],in:0,out:0};
-      const e=m[r.player];e.n++;e.pnlTot+=r._p;e.oldTot+=r._o;e.in+=r.buyin;e.out+=r.final;
-      e.rows.push({sname:sessionLabel(s),buyin:r.buyin,final:r.final,p:r._p,o:r._o});
-    });
-    if(sortP[0])m[sortP[0].player].winsP++;
-    if(sortO[0])m[sortO[0].player].winsO++;
-  });
-  return Object.values(m);
-}
-function ranked(){
-  const all=buildStats();const total=curSessions().length;
-  all.forEach(p=>{p.shrunk=p.pnlTot/(p.n+K);p.rawAvg=p.pnlTot/p.n;p.oldAvg=p.oldTot/p.n;
-    p.metric=SYS==='pnl'?p.shrunk:p.oldAvg;p.seasonTotal=total;});
-  return all.sort((a,b)=>b.metric-a.metric);
-}
 // Big amount for a tile; long ones (9+ characters) get a smaller size so they fit half the screen
 function bigMoney(text,c=''){return `<div class="money big ${c}${text.length>8?' long':''}">${text}</div>`;}
 function emptyCard(msg){return `<div class="card"><p class="note empty">${msg}</p></div>`;}
@@ -813,11 +762,8 @@ function renderMore(){
 
 // ══════════════ TABLE (HOME) ══════════════
 // Hero cards (leader + season loser), standings with centre-line bars, latest two sessions.
-// Rankings come from ranked() on exact values; only the displayed numbers are rounded.
+// Rankings come from playerStats() (stats.js) on exact values; only the displayed numbers are rounded.
 const MONTHS=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-// Score as shown on the Table: 25p-rounded money, or points for the old system
-function score(v){return SYS==='pnl'?money25(v):v.toFixed(1)+' pts';}
-function gap(v){return SYS==='pnl'?gbp25(v):v.toFixed(1)+' pts';}
 function leaderLabel(){
   if(isActiveSeason())return 'Chip leader';
   if(VIEW==='all')return 'All-time leader';
@@ -857,43 +803,41 @@ function renderLB(){
     el.innerHTML=emptyCard(`No sessions yet${isAllTime()?'':' in '+seasons[curSeason].name}. Tap <strong>+</strong> to add the first one.`);
     return;
   }
-  const all=ranked();const n=all.length;
+  const all=playerStats(selSessions());const n=all.length;
   const first=all[0],second=all[1],last=all[n-1],aboveLast=all[n-2];
   let html=`<div class="hero">
     <button class="hero-card leader" onclick="openPlayer('${q(first.name)}')">
       ${INLAY}
       <div class="hero-lbl">${leaderLabel()}</div>
       <div class="hero-who">${av(first.name,38,'ring')}<span class="pl1">${first.name}</span></div>
-      <div class="hero-num money">${score(first.metric)}</div>
-      ${second?`<span class="hero-badge">${first.metric-second.metric<0.125?'Level with 2nd':`+${gap(first.metric-second.metric)} clear of&nbsp;2nd`}</span>`:''}
+      <div class="hero-num money">${money25(first.shrunk)}</div>
+      ${second?`<span class="hero-badge">${first.shrunk-second.shrunk<0.125?'Level with 2nd':`+${gbp25(first.shrunk-second.shrunk)} clear of&nbsp;2nd`}</span>`:''}
     </button>
     ${n>1?`<button class="hero-card loser" onclick="openPlayer('${q(last.name)}')">
       ${TORN}
       <div class="hero-lbl">${loserLabel()}</div>
       <div class="hero-who">${av(last.name,38)}<span class="pl-last">${last.name}</span></div>
-      <div class="hero-num money">${score(last.metric)}</div>
-      <span class="hero-badge">${aboveLast.metric-last.metric<0.125?`Level with&nbsp;${n>2?'2nd‑last':'the&nbsp;leader'}`:`${gap(aboveLast.metric-last.metric)} adrift of&nbsp;${n>2?'2nd‑last':'the&nbsp;leader'}`}</span>
+      <div class="hero-num money">${money25(last.shrunk)}</div>
+      <span class="hero-badge">${aboveLast.shrunk-last.shrunk<0.125?`Level with&nbsp;${n>2?'2nd‑last':'the&nbsp;leader'}`:`${gbp25(aboveLast.shrunk-last.shrunk)} adrift of&nbsp;${n>2?'2nd‑last':'the&nbsp;leader'}`}</span>
     </button>`:''}
   </div>`;
 
   // Standings: bars grow right (green) or left (red) from a zero line. The zero line sits where the
   // biggest win just reaches the right edge and the biggest loss just reaches the left edge, so the
   // bars always use the full width (all positive → zero line at the left edge).
-  // The old points system has no negatives, so its bars all grow right from the left edge.
-  const isPnl=SYS==='pnl';
-  const maxUp=Math.max(...all.map(p=>p.metric),0), maxDown=Math.max(...all.map(p=>-p.metric),0);
+  const maxUp=Math.max(...all.map(p=>p.shrunk),0), maxDown=Math.max(...all.map(p=>-p.shrunk),0);
   const span=Math.max(maxUp+maxDown,0.01);
   const zero=maxDown/span*100;   // zero line, as % from the left of the bar
   html+=`<div class="sec-head"><h2 class="h2">${VIEW==='all'?'All-time standings':'Standings'}</h2><button class="link" onclick="openRules()">How it's scored</button></div>
   <div class="card standings">
     ${all.map((p,i)=>{
-      const w=Math.abs(p.metric)/span*100;
-      const bar=isPnl?(p.metric>=0?`left:${zero}%;width:${w}%`:`right:${100-zero}%;width:${w}%`):`left:0;width:${w}%`;
-      const c=isPnl?cls(round25(p.metric)):'pts';
+      const w=Math.abs(p.shrunk)/span*100;
+      const bar=p.shrunk>=0?`left:${zero}%;width:${w}%`:`right:${100-zero}%;width:${w}%`;
+      const c=cls(round25(p.shrunk));
       return `<button class="st-row" onclick="openPlayer('${q(p.name)}')">
         ${rank(i)}${av(p.name,32)}<span class="st-name ${place(i,n)}">${p.name}</span>
-        <span class="st-bar${isPnl?' centred':''}" style="--z:${zero}%"><span class="${c}" style="${bar}"></span></span>
-        <span class="money st-num ${c}">${score(p.metric)}</span></button>`;}).join('')}
+        <span class="st-bar centred" style="--z:${zero}%"><span class="${c}" style="${bar}"></span></span>
+        <span class="money st-num ${c}">${money25(p.shrunk)}</span></button>`;}).join('')}
   </div>`;
 
   // Past seasons and pooled views just get a link to Sessions; the current season shows its latest two
@@ -1006,12 +950,11 @@ function renderHist(){
   const SS=curSessions();
   if(SS.length===0){el.innerHTML=emptyCard('No sessions yet.');return;}
   if(editIdx!==null&&editData){renderEdit(el);return;}
-  const isPnl=SYS==='pnl';const editable=canEdit();
+  const editable=canEdit();
   let html=editable?'':`<div class="notice">${icon('lock')}<span>${readOnlyMsg()}</span></div>`;
   [...SS].reverse().forEach((s,ri)=>{
     const idx=SS.length-1-ri;
-    const rows=s.results.map(r=>({...r,p:pnl(r),o:oldPts(r.buyin,r.final)}));
-    rows.sort((a,b)=>isPnl?b.p-a.p:b.o-a.o);
+    const rows=s.results.map(r=>({...r,p:pnl(r)})).sort((a,b)=>b.p-a.p);
     const pot=rows.reduce((a,r)=>a+r.buyin,0);
     html+=`<div class="card">
       <div class="spread" style="align-items:center;margin-bottom:12px">
@@ -1019,14 +962,13 @@ function renderHist(){
           <div class="sub">${s._season?s._season+' · ':''}${s.date} · ${gbp(pot)} in play</div></div>
         ${editable?`<button class="btn-ghost btn-sm" onclick="openEdit(${idx})">${icon('pencil')}Edit</button>`:''}
       </div>
-      <div class="grid-res head"><span>Player</span><span class="c">In</span><span class="c">Out</span><span class="r">${isPnl?'P&amp;L':'Points'}</span></div>
+      <div class="grid-res head"><span>Player</span><span class="c">In</span><span class="c">Out</span><span class="r">P&amp;L</span></div>
       ${rows.map((r,i)=>{
-        const val=isPnl?`<span class="money ${cls(r.p)}">${money(r.p)}</span>`:`<span class="pts">${r.o}</span>`;
         return `<div class="grid-res">
           <div class="who">${rank(i)}${av(r.player,22)}<span class="${place(i,rows.length)}" style="font-size:13px">${r.player}</span></div>
           <span class="sub c">${gbp(r.buyin)}</span>
           <span class="sub c">${gbp(r.final)}</span>
-          <span class="r" style="font-size:13px">${val}</span></div>`;}).join('')}
+          <span class="r" style="font-size:13px"><span class="money ${cls(r.p)}">${money(r.p)}</span></span></div>`;}).join('')}
     </div>`;
   });
   el.innerHTML=html;
@@ -1085,7 +1027,7 @@ async function confirmDelete(){
 
 // ══════════════ STATS ══════════════
 // Headlines, running-total chart and players list for the current Chapter / Season choice.
-// The numbers come from stats.js and are always PnL (the old points system isn't shown here).
+// The numbers come from stats.js.
 function selSessions(){return selectSessions(DATA,VIEW,isAllTime()?-1:seasons[curSeason].number);}
 
 // Players whose chart lines are coloured. Goes back to just the leader when the Chapter / Season changes.
@@ -1521,11 +1463,10 @@ function renderAwards(){
 
 // ══════════════ RULES ══════════════
 function renderRules(){
-  const el=document.getElementById('pnl-rules');const isPnl=SYS==='pnl';
+  const el=document.getElementById('pnl-rules');
   let html=`<button class="link back" onclick="goTab(rulesFrom)">${icon('left')}${rulesFrom==='lb'?'Table':'More'}</button>`;
-  if(isPnl){
-    html+=`<div class="card"><h2 class="h2">How scoring works</h2>
-      <p class="prose">Your score for a session is simply <strong>final chips − total buy-in</strong>. No multipliers, no brackets, no rebuy penalties. Win money, score positive. Lose money, score negative.</p></div>
+  html+=`<div class="card"><h2 class="h2">How scoring works</h2>
+      <p class="prose">Your score for a session is simply <strong>final chips − total buy-in</strong>. Win money, score positive. Lose money, score negative.</p></div>
     <div class="card"><h2 class="h2">The standings</h2>
       <p class="prose">Ranked by <strong>total PnL ÷ (sessions played + ${K})</strong>.</p>
       <div class="inset prose" style="margin-top:12px">Everyone is treated as though they'd also played ${K} break-even sessions. Play once and those ${K} imaginary sessions dominate, so you sit near £0. Play the whole season and they barely matter. This stops someone winning big on their debut and topping the table above a season-long grinder.</div>
@@ -1533,18 +1474,6 @@ function renderRules(){
     <div class="card"><h2 class="h2">Buy-ins and rebuys</h2>
       <p class="prose">Everyone starts with <strong>£20</strong>. If you bust, rebuy for any amount between <strong>£20</strong> and the <strong>largest stack at the table</strong>.</p>
       <div class="inset prose" style="margin-top:12px;font-size:13px">Buying in for more than the biggest stack is pointless: the excess can never be won or lost. The table sets the limit; no house rule needed.</div></div>`;
-  } else {
-    const brackets=[[0,'0x'],[5,'0.5x'],[8,'0.8x'],[10,'1x'],[13,'1.2x'],[16,'1.5x'],[19,'2x'],[22,'2.5x'],[25,'3x'],[30,'4x'],[35,'5x+']];
-    const rb=[['0 rebuys','£20','×1.0'],['1 rebuy','£40','×1.0'],['2 rebuys','£60','×0.9'],['3 rebuys','£80','×0.5'],['4 rebuys','£100','×0.25'],['5+ rebuys','£120+','halves each time']];
-    html+=`<div class="card"><h2 class="h2">Old system (reference only)</h2>
-      <p class="prose">Multiplier = final ÷ buy-in, mapped to bracket points with interpolation, then multiplied by a rebuy penalty. Retired after Season 1.</p></div>
-    <div class="card"><h2 class="h2" style="margin-bottom:8px">Multiplier to points</h2>
-      ${brackets.map(([p,m])=>`<div class="row" style="padding:6px 0"><span class="sub" style="width:40px;font-weight:500">${m}</span><span class="badge">${m==='5x+'?'∞':p}</span></div>`).join('')}</div>
-    <div class="card"><h2 class="h2" style="margin-bottom:8px">Rebuy penalty</h2>
-      ${rb.map(([n,s,m])=>`<div class="row" style="padding:8px 0"><span style="min-width:84px">${n}</span><span class="sub" style="min-width:48px">${s}</span><span style="font-weight:500">${m}</span></div>`).join('')}</div>
-    <div class="card" style="border-color:var(--down)"><h2 class="h2 down">Why it was retired</h2>
-      <p class="prose">Points floor at zero. Kathiir's Session 9 (£100 in, £19.75 out, <strong>−£80.25</strong>) scored <strong>0 points</strong>, indistinguishable from a mildly bad night. Sixteen hand-tuned constants doing what PnL does with none.</p></div>`;
-  }
   el.innerHTML=html;
 }
 

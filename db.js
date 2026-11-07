@@ -9,7 +9,8 @@
 //   config/app                                { activeSeasonNumber }
 //   config/colours                            { colours: { playerName: colourId } }  chip colour per player
 //   eras/{eraId}                              { name, number }          era-1 = Legacy, era-2 = current
-//   eras/{eraId}/seasons/s{n}                 { name, number, system }  system: "pnl" | "old"
+//   eras/{eraId}/seasons/s{n}                 { name, number, system }  system: leftover field, not used by
+//                                             the app; firestore.rules still require "pnl" on new seasons
 //   eras/{eraId}/seasons/s{n}/sessions/{id}   { seq, name, date, results:[{player,buyin,final}], deleted? }
 //                                             deleted:true = "deleted" in the app; kept so it can be restored
 //   players/{name}                            { name }

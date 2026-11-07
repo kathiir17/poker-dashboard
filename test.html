@@ -119,7 +119,7 @@ async function run(){
   check('Whale: Aaron, £330 bought in',[who(2,1,'whale'),find(2,1,'whale').value],[['Aaron'],330]);
   section('Awards: Chapter 1 (locked)');
   check('Sanj is Champion of all four Chapter 1 seasons',[1,2,3,4].map(s=>who(1,s,'champion')[0]),['Sanj','Sanj','Sanj','Sanj']);
-  check('C1 S1 (old points season) Runner-up by PnL: Ami',who(1,1,'runnerUp'),['Ami']);
+  check('C1 S1 Runner-up: Ami',who(1,1,'runnerUp'),['Ami']);
   check('C1 S2 Donation is a tie: Ami and Varunn, −£40 each',[who(1,2,'donation'),find(1,2,'donation').value],[['Ami','Varunn'],-40]);
   check('C1 S1 Whale is a tie: Aaron and Vittu, £420 each',[who(1,1,'whale'),find(1,1,'whale').value],[['Aaron','Vittu'],420]);
   check('C1 S3 Iron Man: Aaron, Kathiir, Varunn',who(1,3,'ironMan'),['Aaron','Kathiir','Varunn']);
