@@ -29,9 +29,14 @@
 <script>
 let pass=0,fail=0;const out=document.getElementById('out');
 function section(t){out.insertAdjacentHTML('beforeend',`<h2>${t}</h2>`);}
-// Numbers match to the penny; anything else must be exactly equal
+// Numbers match to the penny (also inside lists); anything else must be exactly equal
+function equal(a,b){
+  if(typeof b==='number')return typeof a==='number'&&Math.abs(a-b)<0.005;
+  if(Array.isArray(b))return Array.isArray(a)&&a.length===b.length&&b.every((x,i)=>equal(a[i],x));
+  return JSON.stringify(a)===JSON.stringify(b);
+}
 function check(label,actual,expected,live){
-  const same=typeof expected==='number'?Math.abs(actual-expected)<0.005:JSON.stringify(actual)===JSON.stringify(expected);
+  const same=equal(actual,expected);
   same?pass++:fail++;
   out.insertAdjacentHTML('beforeend',`<div class="row"><span class="${same?'ok':'fail'}">${same?'✓':'✗'}</span>
     <span>${label}${live?'<span class="live">LIVE</span>':''}${same?'':` — got <b>${JSON.stringify(actual)}</b>, expected <b>${JSON.stringify(expected)}</b>`}</span></div>`);
@@ -99,6 +104,54 @@ async function run(){
      const g=sharedSessions(ss,a,r.opp);return g.length===r.n&&Math.abs(g.reduce((t,x)=>t+x.gap,0)/g.length-r.avg)<0.005;})),true);
    const sp=sessionPnls(ss);
    check('Per-session points: one per session played, summing to total PnL',ps.every(p=>sp[p.name].length===p.n&&Math.abs(sp[p.name].reduce((t,x)=>t+x.pnl,0)-p.pnlTot)<0.005),true);}
+
+  // ── Awards, real data ──
+  const aw=allAwards(D);
+  const find=(c,s,t)=>aw.find(a=>a.chapter===c&&a.season===s&&a.type===t);
+  const who=(c,s,t)=>{const a=find(c,s,t);return a?[...a.players].sort():null;};
+  section('Awards: Chapter 2 · Season 1 (locked)');
+  check('Champion Sanj, Runner-up Varunn, Third Vittu, Loser Kathiir',['champion','runnerUp','third','loser'].map(t=>who(2,1,t)[0]),['Sanj','Varunn','Vittu','Kathiir']);
+  check('All locked',aw.filter(a=>a.chapter===2&&a.season===1).every(a=>a.status==='locked'),true);
+  check('Donation: Vittu −£100',[who(2,1,'donation'),find(2,1,'donation').value],[['Vittu'],-100]);
+  check('Iron Man: Aaron and Varunn (all 10 sessions)',[who(2,1,'ironMan'),find(2,1,'ironMan').value],[['Aaron','Varunn'],10]);
+  check('Comeback: Varunn, +£31.25 a game better in the second half',[who(2,1,'comeback'),find(2,1,'comeback').value],[['Varunn'],31.25]);
+  check('Fall-off: Vittu',who(2,1,'falloff'),['Vittu']);
+  check('Whale: Aaron, £330 bought in',[who(2,1,'whale'),find(2,1,'whale').value],[['Aaron'],330]);
+  section('Awards: Chapter 1 (locked)');
+  check('Sanj is Champion of all four Chapter 1 seasons',[1,2,3,4].map(s=>who(1,s,'champion')[0]),['Sanj','Sanj','Sanj','Sanj']);
+  check('C1 S1 (old points season) Runner-up by PnL: Ami',who(1,1,'runnerUp'),['Ami']);
+  check('C1 S2 Donation is a tie: Ami and Varunn, −£40 each',[who(1,2,'donation'),find(1,2,'donation').value],[['Ami','Varunn'],-40]);
+  check('C1 S1 Whale is a tie: Aaron and Vittu, £420 each',[who(1,1,'whale'),find(1,1,'whale').value],[['Aaron','Vittu'],420]);
+  check('C1 S3 Iron Man: Aaron, Kathiir, Varunn',who(1,3,'ironMan'),['Aaron','Kathiir','Varunn']);
+  check('C1 S1 Comeback: Sanj, Fall-off: Ami',[who(1,1,'comeback'),who(1,1,'falloff')],[['Sanj'],['Ami']]);
+  section('Awards: Chapter 2 · Season 2 (live)');
+  check('Leading, not locked',aw.filter(a=>a.chapter===2&&a.season===2).every(a=>a.status==='leading'),true,1);
+  check('Champion (leading): Ami',who(2,2,'champion'),['Ami'],1);
+  check('No Comeback yet (needs 2+ sessions in each half)',find(2,2,'comeback'),undefined,1);
+  check('Newest season first in the list',[aw[0].chapter,aw[0].season],[2,2],1);
+
+  // ── Awards, made-up seasons to test the rules (not real data) ──
+  // fake([{A:10,B:-10}, …]) = one Chapter 2 season, one entry per session, values are each player's PnL
+  const fake=(...seasons)=>({activeSeasonNumber:seasons.length,eras:{'era-1':{seasons:[]},'era-2':{seasons:seasons.map((ss,k)=>({number:k+1,name:'Season '+(k+1),
+    sessions:ss.map((res,i)=>({id:'x'+i,seq:i+1,name:'Session '+(i+1),date:String(i+1).padStart(2,'0')+'/01/2027',
+      results:Object.entries(res).map(([player,p])=>({player,buyin:20,final:20+p}))}))}))}}});
+  const typesOf=(d,s,name)=>seasonAwards(d,'era-2',s).filter(a=>a.players.includes(name)).map(a=>a.type);
+  section('Award rules (made-up seasons)');
+  {const d=fake([{A:10,B:10,C:0,D:-20}]);const a=seasonAwards(d,'era-2',1),get=t=>a.find(x=>x.type===t);
+   check('Tied 1st: both Champion, no Runner-up, next player is Third',[get('champion').players,get('runnerUp'),get('third').players],[['A','B'],undefined,['C']]);}
+  {const d=fake([{A:10,B:0,C:-10}]);
+   check('3 players: bottom one is Loser, not Third',[typesOf(d,1,'C').includes('loser'),typesOf(d,1,'C').includes('third')],[true,false]);}
+  {const d=fake([{A:-10,B:10,C:5},{A:-10,B:10},{A:10,B:-10,C:5},{A:10,B:-10,C:5},{A:10,B:-10}]);
+   const a=seasonAwards(d,'era-2',1),get=t=>a.find(x=>x.type===t);
+   check('Odd session count: middle session goes in the second half (A: −10 → +10 = +£20)',[get('comeback').players,get('comeback').value],[['A'],20]);
+   check('Fall-off: B, −£20',[get('falloff').players,get('falloff').value],[['B'],-20]);
+   check('Only 1 session in the first half → no Comeback/Fall-off for C',[typesOf(d,1,'C').includes('comeback'),typesOf(d,1,'C').includes('falloff')],[false,false]);}
+  {const d=fake([{A:5,B:-5},{C:5,D:-5}]);
+   check('Iron Man can be nobody',seasonAwards(d,'era-2',1).some(a=>a.type==='ironMan'),false);}
+  {const d=fake([{A:5,B:-5}],[{A:5,B:-5}]);
+   check('Older season locked, newest leading',[seasonAwards(d,'era-2',1)[0].status,seasonAwards(d,'era-2',2)[0].status],['locked','leading']);}
+  {const d=fake([{A:5,B:-5,C:0}],[]);
+   check('Empty season (just started) has no awards',seasonAwards(d,'era-2',2),[]);}
 
   document.getElementById('sum').innerHTML=fail?`<span class="fail">${fail} failed</span>, ${pass} passed`:`<span class="ok">All ${pass} passed</span>`;
 }
