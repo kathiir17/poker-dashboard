@@ -21,6 +21,11 @@ input,select{background:var(--bg);color:var(--text);border:0.5px solid var(--bor
 input:focus{outline:1px solid var(--felt)}
 .hdr{background:var(--felt);color:var(--gold);padding:14px 16px;display:flex;align-items:center;gap:10px}
 .hdr-title{font-size:17px;font-weight:500;letter-spacing:1px}
+.settings{margin-left:auto;position:relative}
+.settings-btn{background:none;border:none;color:var(--gold);font-size:20px;cursor:pointer;padding:2px 6px;line-height:1}
+.settings-menu{position:absolute;right:0;top:calc(100% + 8px);background:var(--bg);border:0.5px solid var(--border2);border-radius:10px;box-shadow:0 6px 20px rgba(0,0,0,.18);padding:4px;z-index:50;min-width:200px}
+.settings-menu button{display:block;width:100%;text-align:left;background:none;border:none;color:var(--text);font-family:inherit;font-size:13px;padding:9px 12px;border-radius:7px;cursor:pointer}
+.settings-menu button:hover{background:var(--bg2)}
 .season-bar{background:var(--bg2);padding:9px 16px;border-bottom:0.5px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
 .season-select{display:flex;align-items:center;gap:8px}
 .season-select select{width:auto;min-width:130px;font-weight:500}
@@ -29,7 +34,7 @@ input:focus{outline:1px solid var(--felt)}
 .sys-toggle button.on{background:var(--felt);color:var(--gold)}
 .tabs{display:flex;border-bottom:2px solid var(--felt);background:var(--bg2);overflow-x:auto}
 .tab{padding:10px 14px;font-size:13px;cursor:pointer;border:none;background:none;white-space:nowrap;font-weight:500;color:var(--text2);border-bottom:2px solid transparent;margin-bottom:-2px;font-family:inherit}
-.tab.on{color:var(--felt);border-bottom:2px solid var(--felt)}
+.tab.on{background:var(--felt);color:var(--gold);border-bottom:2px solid var(--felt);border-radius:8px 8px 0 0}
 .pnl{display:none;padding:1rem}
 .pnl.on{display:block}
 .card{background:var(--bg);border:0.5px solid var(--border);border-radius:12px;padding:1rem 1.25rem;margin-bottom:1rem}
@@ -62,6 +67,12 @@ table{border-collapse:collapse;width:100%}
 <div class="hdr">
   <span style="font-size:18px;letter-spacing:4px">♠ ♥ ♦ ♣</span>
   <span class="hdr-title">Family poker night</span>
+  <div class="settings" id="settings">
+    <button class="settings-btn" onclick="toggleSettings()" aria-label="Settings">⚙</button>
+    <div class="settings-menu" id="settings-menu" hidden>
+      <button onclick="toggleSettings(false);newSeason()">+ New season (Chapter 2)</button>
+    </div>
+  </div>
 </div>
 
 <div class="season-bar" id="season-bar"></div>
@@ -106,7 +117,7 @@ let SYS='pnl';        // display system for the old-points season (Legacy Season
 let TAB='lb';
 let formActive=null;
 let scorerPlayers=[], scorerRows={}, scorerName="", scorerResult=null;
-let editIdx=null, editData=null, deleteIdx=null;
+let editIdx=null, editData=null;
 let busy=false;       // true while a save is in flight, to stop double-clicks saving twice
 
 // ══════════════ INIT ══════════════
@@ -144,7 +155,7 @@ function setView(v){
     curSeason=v==='era-2'?seasons.findIndex(s=>s.number===DATA.activeSeasonNumber):seasons.length-1;
   }
   SYS='pnl';
-  formActive=null; scorerResult=null; editIdx=null; deleteIdx=null;
+  formActive=null; scorerResult=null; editIdx=null;
   renderSeasonBar(); render();
 }
 
@@ -162,7 +173,6 @@ function renderSeasonBar(){
         <option value="-1" ${allTime?'selected':''}>★ All time (${live?'Chapter 2':'Chapter 1'})</option>
         ${seasons.map((se,i)=>`<option value="${i}" ${i===curSeason?'selected':''}>${se.name}${live&&se.number===DATA.activeSeasonNumber?' (current)':''}</option>`).join('')}
       </select>
-      ${live?`<button class="btn-ghost btn-sm" onclick="newSeason()">+ New season</button>`:''}
     </div>`;
   }
   // Only the old-points season (Legacy Season 1) gets the comparison toggle
@@ -178,13 +188,13 @@ function renderSeasonBar(){
 function switchSeason(i){
   curSeason=+i;
   SYS = (isAllTime()||seasons[curSeason].system!=="old") ? "pnl" : SYS;
-  formActive=null; scorerResult=null; editIdx=null; deleteIdx=null;
+  formActive=null; scorerResult=null; editIdx=null;
   renderSeasonBar(); render();
 }
 function setSys(s){SYS=s;renderSeasonBar();render();}
 
 async function newSeason(){
-  if(busy)return;
+  if(busy||!DATA)return;   // the ⚙ menu exists before data has loaded
   const n=DATA.activeSeasonNumber+1;
   if(!confirm(`Start Season ${n} of Chapter 2?\n\nIt becomes the current season. Seasons can't be deleted.`))return;
   busy=true;
@@ -196,6 +206,13 @@ async function newSeason(){
   setView('era-2');
   toast(`Season ${n} created`);
 }
+
+// ⚙ menu in the header: toggleSettings() flips it, toggleSettings(false) closes it; a click anywhere else closes it too
+function toggleSettings(open){
+  const m=document.getElementById('settings-menu');
+  m.hidden=open===undefined?!m.hidden:!open;
+}
+document.addEventListener('click',e=>{if(!e.target.closest('#settings'))toggleSettings(false);});
 
 function goTab(id,el){
   TAB=id;
@@ -237,7 +254,9 @@ function hashName(n){let h=0;for(let i=0;i<n.length;i++)h=(h*31+n.charCodeAt(i))
 function av(n,s=28){const i=avIdx(n);return `<div class="av" style="width:${s}px;height:${s}px;font-size:${Math.round(s*.38)}px;background:${CB[i]};color:${CF[i]}">${n.slice(0,2).toUpperCase()}</div>`;}
 function money(v,dp=2){const s=v>=0?'+':'−';return `${s}£${Math.abs(v).toFixed(dp)}`;}
 function cls(v){return v>0.004?'pos':v<-0.004?'neg':'neu';}
-function round50(v){return Math.round(v*2)/2;}
+// Leaderboard display only: nearest 25p, no ".00" on whole pounds (+£16, +£16.25). Ranking always uses exact values.
+function round25(v){return Math.round(v*4)/4||0;}
+function money25(v){const r=round25(v),a=Math.abs(r);return `${r>=0?'+':'−'}£${a%1?a.toFixed(2):a}`;}
 
 function buildStats(){
   const m={};
@@ -288,14 +307,14 @@ function renderLB(){
       : `Ranked by average bracket points. Scores floor at 0.`}</div>`;
   all.forEach((p,i)=>{
     const medal=i===0?'🥇':i===1?'🥈':i===2?'🥉':(i+1);
-    const headline=isPnl?money(round50(p.metric),2):p.metric.toFixed(1)+' pts';
-    const sub=isPnl?`${p.n}/${total} played · ${money(p.pnlTot,2)} total`:`${p.n}/${total} played · ${p.oldTot} total pts`;
+    const headline=isPnl?money25(p.metric):p.metric.toFixed(1)+' pts';
+    const sub=isPnl?`${p.n}/${total} played · ${money25(p.pnlTot)} total`:`${p.n}/${total} played · ${p.oldTot} total pts`;
     html+=`<div style="display:flex;align-items:center;gap:10px;padding:11px 0;border-bottom:0.5px solid var(--border)">
       <span style="width:22px;text-align:center;font-size:14px">${medal}</span>${av(p.name)}
       <div style="flex:1;min-width:0">
         <div style="display:flex;justify-content:space-between;align-items:baseline">
           <span style="font-size:14px;font-weight:500">${p.name}</span>
-          <span style="font-size:15px;font-weight:600;${isPnl?'':'color:var(--felt)'}" class="${isPnl?cls(p.metric):''}">${headline}</span>
+          <span style="font-size:15px;font-weight:600;${isPnl?'':'color:var(--felt)'}" class="${isPnl?cls(round25(p.metric)):''}">${headline}</span>
         </div>
         <div style="font-size:11px;color:var(--text3);margin-top:2px">${sub}</div>
       </div></div>`;
@@ -314,7 +333,8 @@ function toggleForm(n){formActive=formActive===n?null:n;renderLB();}
 
 function barCentred(all,maxAbs){
   const W=340,rowH=34,padT=18,padB=8,labelW=64;const H=padT+all.length*rowH+padB;
-  const zone=W-labelW-10;const cx=labelW+zone/2;const scale=(zone/2-30)/maxAbs;
+  // leave 46 units at each end of the plot for the value label (e.g. "+£16.25"), so it never runs off the edge
+  const zone=W-labelW-10;const cx=labelW+zone/2;const scale=(zone/2-46)/maxAbs;
   let s=`<svg viewBox="0 0 ${W} ${H}" style="width:100%;display:block">`;
   s+=`<text x="${cx}" y="11" font-size="9" fill="var(--text3)" text-anchor="middle">£0</text>`;
   s+=`<line x1="${cx}" x2="${cx}" y1="${padT-4}" y2="${H-padB}" stroke="var(--border2)" stroke-width="1"/>`;
@@ -325,7 +345,7 @@ function barCentred(all,maxAbs){
     s+=`<rect x="${x}" y="${y+5}" width="${Math.max(w,1.5)}" height="15" rx="3" fill="${col}"/>`;
     // value label sits just past the bar end, on the outside
     const tx=v>=0?cx+w+4:cx-w-4;const anc=v>=0?'start':'end';
-    s+=`<text x="${tx}" y="${y+16}" font-size="10" font-weight="600" fill="${col}" text-anchor="${anc}">${money(v,2)}</text>`;});
+    s+=`<text x="${tx}" y="${y+16}" font-size="10" font-weight="600" fill="${col}" text-anchor="${anc}">${money25(v)}</text>`;});
   return s+`</svg>`;
 }
 function barSimple(all,max){
@@ -443,12 +463,7 @@ function renderHist(){
   if(SS.length===0){el.innerHTML=`<div class="card"><div class="note" style="margin:0;text-align:center;padding:1rem 0">No sessions yet.</div></div>`;return;}
   if(editIdx!==null&&editData){renderEdit(el);return;}
   const isPnl=SYS==='pnl';const editable=canEdit();
-  let html=editable?`<div class="warn-box">🗑 The red button permanently deletes a session — you'll be asked to confirm first.</div>`:`<div class="warn-box">📁 ${readOnlyMsg()}</div>`;
-  if(deleteIdx!==null){
-    html+=`<div class="confirm-box"><div style="font-size:14px;margin-bottom:10px">Delete <strong>${SS[deleteIdx]?.name}</strong>? This cannot be undone.</div>
-      <div style="display:flex;gap:8px"><button class="btn-ghost" onclick="deleteIdx=null;renderHist()">Cancel</button>
-      <button class="btn-red" onclick="confirmDelete()">Yes, delete</button></div></div>`;
-  }
+  let html=editable?'':`<div class="warn-box">📁 ${readOnlyMsg()}</div>`;
   [...SS].reverse().forEach((s,ri)=>{
     const idx=SS.length-1-ri;
     const rows=s.results.map(r=>({...r,p:pnl(r),o:oldPts(r.buyin,r.final)}));
@@ -458,9 +473,7 @@ function renderHist(){
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
         <div><span style="font-weight:500;font-size:15px">${s.name}</span>
           <span style="font-size:11px;color:var(--text3);margin-left:8px">${s._season?s._season+' · ':''}${s.date} · £${pot} in play</span></div>
-        ${editable?`<div style="display:flex;gap:6px">
-          <button class="btn-ghost btn-sm" onclick="openEdit(${idx})">✎ Edit</button>
-          <button class="btn-red btn-sm" onclick="deleteIdx=${idx};renderHist()">🗑</button></div>`:''}
+        ${editable?`<button class="btn-ghost btn-sm" onclick="openEdit(${idx})">✎ Edit</button>`:''}
       </div>
       <div style="display:grid;grid-template-columns:1fr 54px 60px 72px;gap:6px;padding-bottom:5px;border-bottom:0.5px solid var(--border);margin-bottom:2px">
         <span style="font-size:10px;color:var(--text3)">Player</span><span style="font-size:10px;color:var(--text3);text-align:center">In</span>
@@ -494,9 +507,20 @@ function renderEdit(el){
       <input type="number" id="eb${i}" value="${r.buyin}" min="0" step="5" style="text-align:center" oninput="liveEdit(${i})">
       <input type="number" id="ef${i}" value="${r.final}" min="0" step="0.25" style="text-align:center" oninput="liveEdit(${i})">
       <span id="ep${i}" style="text-align:right;font-weight:600" class="${cls(pnl(r))}">${money(pnl(r),2)}</span></div>`).join('')}
-    <div style="display:flex;gap:8px;margin-top:12px;justify-content:flex-end">
+    <div id="edit-actions" style="display:flex;gap:8px;margin-top:12px">
+      <button class="btn-red" onclick="askDelete(true)">Delete session</button>
+      <span style="flex:1"></span>
       <button class="btn-ghost" onclick="editIdx=null;editData=null;renderHist()">Cancel</button>
-      <button class="btn" onclick="saveEdit()">Save changes</button></div></div>`;
+      <button class="btn" onclick="saveEdit()">Save changes</button></div>
+    <div id="delete-confirm" class="confirm-box" style="margin:12px 0 0" hidden>
+      <div style="font-size:14px;margin-bottom:10px">Delete <strong>${s.name}</strong>? This cannot be undone.</div>
+      <div style="display:flex;gap:8px"><button class="btn-ghost" onclick="askDelete(false)">Keep it</button>
+      <button class="btn-red" onclick="confirmDelete()">Yes, delete</button></div></div></div>`;
+}
+// Show or hide the delete confirmation without re-rendering, so typed edits aren't lost
+function askDelete(on){
+  document.getElementById('delete-confirm').hidden=!on;
+  document.getElementById('edit-actions').hidden=on;
 }
 function liveEdit(i){const b=parseFloat(document.getElementById('eb'+i).value)||0;const f=parseFloat(document.getElementById('ef'+i).value)||0;
   const v=f-b;const el=document.getElementById('ep'+i);el.textContent=money(v,2);el.className=cls(v);}
@@ -515,8 +539,8 @@ async function confirmDelete(){
   if(busy)return;
   const se=seasons[curSeason];
   busy=true;
-  try{await DB.deleteSession(se.id,se.sessions[deleteIdx].id);}catch(e){saveFailed(e);return;}finally{busy=false;}
-  se.sessions.splice(deleteIdx,1);deleteIdx=null;renderHist();toast('Session deleted');
+  try{await DB.deleteSession(se.id,se.sessions[editIdx].id);}catch(e){saveFailed(e);return;}finally{busy=false;}
+  se.sessions.splice(editIdx,1);editIdx=null;editData=null;renderHist();toast('Session deleted');
 }
 
 // ══════════════ STATS ══════════════
