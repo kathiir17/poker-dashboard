@@ -302,8 +302,8 @@ input::placeholder{color:#6f675e}
 </nav>
 
 <script type="module" src="db.js"></script>
+<script src="stats.js"></script>
 <script>
-const K=3;
 // ══════════════ PLAYER COLOURS ══════════════
 // Each player has one poker-chip colour; no two share. To add a colour, add a line here
 // AND add its id to the list in firestore.rules (config/colours), or saving it will be rejected.
@@ -380,7 +380,7 @@ function interpPts(m){if(m<=0)return 0;if(m>=5)return 35+(m-5)*5;
   for(let i=1;i<BKT.length;i++){const[lm,lp]=BKT[i-1],[hm,hp]=BKT[i];if(m<=hm)return lp+((m-lm)/(hm-lm))*(hp-lp);}return 35;}
 function rebuyMult(b){if(b<=40)return 1;if(b<=60)return .9;if(b<=80)return .5;if(b<=100)return .25;return .25*Math.pow(.5,Math.floor((b-100)/20)+1);}
 function oldPts(b,f){return Math.round(interpPts(b>0?f/b:0)*rebuyMult(b));}
-function pnl(r){return r.final-r.buyin;}
+// pnl(r) and K live in stats.js
 
 // ══════════════ STATE ══════════════
 // All database access goes through window.DB (db.js); nothing here talks to Firebase.

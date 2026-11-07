@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Poker Night: stats tests</title>
+<!-- Checks stats.js against the real data. Open http://localhost:8000/test.html (run the local server first).
+     Read-only: it only loads data, never saves.
+     Expected values were worked out separately (not with stats.js) from the data on 7 Nov 2026.
+     Closed seasons never change. Checks marked LIVE use the current season or All time, so they
+     go out of date after the next session; update the expected value then. -->
+<style>
+  body{font:14px/1.5 -apple-system,sans-serif;background:#0B0B0C;color:#EDEAE4;max-width:720px;margin:0 auto;padding:20px 16px}
+  h1{font-size:20px;margin-bottom:4px}
+  h2{font-size:15px;margin:18px 0 6px;color:#A39A8E}
+  .row{display:flex;gap:8px;padding:3px 0;border-bottom:1px solid #2A2724}
+  .ok{color:#6FBF8A}.fail{color:#E0715F}
+  .live{font-size:11px;color:#C08A5B;border:1px solid #2A2724;border-radius:6px;padding:0 5px;margin-left:4px}
+  #sum{font-size:16px;font-weight:600;margin:10px 0}
+</style>
+</head>
+<body>
+<h1>Stats tests</h1>
+<div id="sum">Loading data…</div>
+<div id="out"></div>
+
+<script type="module" src="db.js"></script>
+<script src="stats.js"></script>
+<script>
+let pass=0,fail=0;const out=document.getElementById('out');
+function section(t){out.insertAdjacentHTML('beforeend',`<h2>${t}</h2>`);}
+// Numbers match to the penny; anything else must be exactly equal
+function check(label,actual,expected,live){
+  const same=typeof expected==='number'?Math.abs(actual-expected)<0.005:JSON.stringify(actual)===JSON.stringify(expected);
+  same?pass++:fail++;
+  out.insertAdjacentHTML('beforeend',`<div class="row"><span class="${same?'ok':'fail'}">${same?'✓':'✗'}</span>
+    <span>${label}${live?'<span class="live">LIVE</span>':''}${same?'':` — got <b>${JSON.stringify(actual)}</b>, expected <b>${JSON.stringify(expected)}</b>`}</span></div>`);
+}
+const by=(list,name)=>list.find(p=>p.name===name);
+
+async function run(){
+  const D=await DB.loadAll();
+
+  section('Chapter 2 · Season 2 (live season)');
+  {const ss=selectSessions(D,'era-2',2),ps=playerStats(ss),h=headlines(ss);
+   check("Ami's best session is +£64.75",by(ps,'Ami').best.pnl,64.75,1);
+   check('Best session: Ami +£64.75',[h.best.player,h.best.pnl],['Ami',64.75],1);
+   check('Worst session: Ari −£60',[h.worst.player,h.worst.pnl],['Ari',-60],1);
+   check('Money in play £250',h.money,250,1);
+   check('Ami shrunk average = 64.75 ÷ (1+3) = 16.1875',by(ps,'Ami').shrunk,16.1875,1);}
+
+  section('Chapter 2 · Season 1 (closed)');
+  {const ss=selectSessions(D,'era-2',1),ps=playerStats(ss),h=headlines(ss),rv=rivals(ss);
+   check('10 sessions, 9 players',[h.sessions,h.players],[10,9]);
+   check('Money in play £1,965',h.money,1965);
+   check('Best session: Varunn +£126.75 (Session 8)',[h.best.player,h.best.pnl,sessionTag(h.best.session)],['Varunn',126.75,'C2 · S1 · Session 8']);
+   check('Worst session: Vittu −£100 (Session 8)',[h.worst.player,h.worst.pnl,sessionTag(h.worst.session)],['Vittu',-100,'C2 · S1 · Session 8']);
+   check('Standings order',ps.map(p=>p.name),['Sanj','Varunn','Vittu','Aaron','Ari','Kev','Saje','Ami','Kathiir']);
+   const s=by(ps,'Sanj');
+   check('Sanj: 8 sessions, total +£285.50',[s.n,s.pnlTot],[8,285.5]);
+   check('Sanj: shrunk average 285.5 ÷ 11',s.shrunk,25.9545);
+   check('Sanj: in profit 7, topped the table 5',[s.inProfit,s.topped],[7,5]);
+   check('Sanj: best +£110 (Session 5), worst −£20',[s.best.pnl,sessionTag(s.best.session),s.worst.pnl],[110,'C2 · S1 · Session 5',-20]);
+   const k=by(ps,'Kathiir');
+   check('Kathiir: 4 sessions, total −£95.75, best +£8.75, worst −£65',[k.n,k.pnlTot,k.best.pnl,k.worst.pnl],[4,-95.75,8.75,-65]);
+   check('Sanj rivals (3+ shared): Varunn, Vittu, Ami, Aaron, worst first',rv.Sanj.map(r=>r.opp),['Varunn','Vittu','Ami','Aaron']);
+   check('Sanj vs Varunn: +£13.69 a game over 8',[+rv.Sanj[0].avg.toFixed(2),rv.Sanj[0].n],[13.69,8]);
+   check('Kev (1 session) has no rivals',rv.Kev,undefined);}
+
+  section('Chapter 1, all seasons (closed)');
+  {const ss=selectSessions(D,'era-1',-1),ps=playerStats(ss),h=headlines(ss);
+   check('34 sessions, 10 players',[h.sessions,h.players],[34,10]);
+   check('Money in play £6,445.25',h.money,6445.25);
+   check('Best session: Sanj +£89 (C1 S1 Session 5)',[h.best.player,h.best.pnl,sessionTag(h.best.session)],['Sanj',89,'C1 · S1 · Session 5']);
+   check('Worst session: Ari −£82.50',[h.worst.player,h.worst.pnl],['Ari',-82.5]);
+   check('Top four: Sanj, Kathiir, Kev, Ami',ps.slice(0,4).map(p=>p.name),['Sanj','Kathiir','Kev','Ami']);
+   check('Sanj: 27 sessions, +£878.75, in profit 23, topped 16',[by(ps,'Sanj').n,by(ps,'Sanj').pnlTot,by(ps,'Sanj').inProfit,by(ps,'Sanj').topped],[27,878.75,23,16]);
+   check('Kathiir total +£290.10 (pence survive)',by(ps,'Kathiir').pnlTot,290.1);}
+
+  section('All time');
+  {const ss=selectSessions(D,'all',-1),ps=playerStats(ss),h=headlines(ss);
+   check('45 sessions',h.sessions,45,1);
+   check('Sanj leads, Ari last',[ps[0].name,ps[ps.length-1].name],['Sanj','Ari'],1);
+   check('Sessions are in date order',ss.every((s,i)=>i===0||ss[i-1].t<=s.t),true);
+   check('C2 S1 Session 10 comes before C2 S2 Session 1 (same date)',
+     ss.findIndex(s=>s.chapter===2&&s.season===1&&s.name==='Session 10')<ss.findIndex(s=>s.chapter===2&&s.season===2),true);
+   const rt=runningTotals(ss);
+   check("Every player's running total ends at their total PnL",ps.every(p=>Math.abs(rt[p.name].at(-1).total-p.pnlTot)<0.005),true);
+   check('Every running-total line has one point per session played',ps.every(p=>rt[p.name].length===p.n),true);
+   const rv=rivals(ss);
+   check('Rivals only include pairs with 3+ shared sessions',Object.values(rv).flat().every(r=>r.n>=3),true);
+   check("Rivals are mirror images (A vs B = −(B vs A))",Object.entries(rv).every(([a,l])=>l.every(r=>Math.abs(rv[r.opp].find(x=>x.opp===a).avg+r.avg)<1e-9)),true);
+   check('Ranks run 1, 2, 3…',ps.every((p,i)=>p.rank===i+1),true);}
+
+  document.getElementById('sum').innerHTML=fail?`<span class="fail">${fail} failed</span>, ${pass} passed`:`<span class="ok">All ${pass} passed</span>`;
+}
+// db.js is a module and loads after this script, so wait for its "db-ready" event
+if(window.DB)run();else window.addEventListener('db-ready',run,{once:true});
+</script>
+</body>
+</html>
