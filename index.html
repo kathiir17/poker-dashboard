@@ -21,7 +21,7 @@ input,select{background:var(--bg);color:var(--text);border:0.5px solid var(--bor
 input:focus{outline:1px solid var(--felt)}
 .hdr{background:var(--felt);color:var(--gold);padding:14px 16px;display:flex;align-items:center;gap:10px}
 .hdr-title{font-size:17px;font-weight:500;letter-spacing:1px}
-.season-bar{background:var(--bg2);padding:9px 16px;border-bottom:0.5px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:10px}
+.season-bar{background:var(--bg2);padding:9px 16px;border-bottom:0.5px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
 .season-select{display:flex;align-items:center;gap:8px}
 .season-select select{width:auto;min-width:130px;font-weight:500}
 .sys-toggle{display:flex;background:var(--bg3);border-radius:8px;padding:2px}
@@ -81,60 +81,8 @@ table{border-collapse:collapse;width:100%}
 <div class="pnl" id="pnl-rules"></div>
 <div class="toast" id="toast"></div>
 
+<script type="module" src="db.js"></script>
 <script>
-// ══════════════ SUPABASE ══════════════
-const SB_URL="https://toqiyymioqjhebyyqufn.supabase.co";
-const SB_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRvcWl5eW1pb3FqaGVieXlxdWZuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA5NDY2NzQsImV4cCI6MjA5NjUyMjY3NH0.b5C6gryuWkwN4h6QAvtApIbvMlZ7X3uSw-Jr7uIVWHo";
-const H={"Content-Type":"application/json","apikey":SB_KEY,"Authorization":"Bearer "+SB_KEY};
-
-async function dbLoad(){
-  const r=await fetch(`${SB_URL}/rest/v1/sessions?select=id,data&order=id.asc&limit=1`,{headers:H});
-  const rows=await r.json();
-  if(!rows.length)return null;
-  return {id:rows[0].id,data:rows[0].data};
-}
-async function dbSave(id,data){
-  await fetch(`${SB_URL}/rest/v1/sessions?id=eq.${id}`,{method:"PATCH",headers:H,
-    body:JSON.stringify({data,updated_at:new Date().toISOString()})});
-}
-
-// ══════════════ SEASON 1 SEED (canonical 10 sessions) ══════════════
-const SEASON1=[
- {name:"Session 1",date:"16/04/2026",results:[
-  {player:"Kathiir",buyin:20,final:61.10},{player:"Varunn",buyin:20,final:41.70},
-  {player:"Ami",buyin:40,final:50.60},{player:"Sanj",buyin:60,final:27.00},{player:"Aaron",buyin:60,final:20.00}]},
- {name:"Session 2",date:"26/04/2026",results:[
-  {player:"Varunn",buyin:20,final:29.75},{player:"Ami",buyin:40,final:61.00},
-  {player:"Sanj",buyin:20,final:21.75},{player:"Aaron",buyin:20,final:15.50},{player:"Kathiir",buyin:40,final:12.00}]},
- {name:"Session 3",date:"16/05/2026",results:[
-  {player:"Ami",buyin:20,final:54.25},{player:"Vittu",buyin:40,final:62.75},
-  {player:"Sanj",buyin:20,final:17.00},{player:"Varunn",buyin:40,final:16.50},{player:"Aaron",buyin:40,final:9.75}]},
- {name:"Session 4",date:"23/05/2026",results:[
-  {player:"Ami",buyin:20,final:46.50},{player:"Varunn",buyin:20,final:35.50},
-  {player:"Aaron",buyin:20,final:36.75},{player:"Sanj",buyin:40,final:37.00},
-  {player:"Kathiir",buyin:40,final:23.50},{player:"Vittu",buyin:60,final:23.50}]},
- {name:"Session 5",date:"06/06/2026",results:[
-  {player:"Kathiir",buyin:20,final:97.00},{player:"Sanj",buyin:40,final:129.00},
-  {player:"Varunn",buyin:40,final:29.00},{player:"Ami",buyin:60,final:22.75},
-  {player:"Aaron",buyin:60,final:22.50},{player:"Vittu",buyin:100,final:20.00}]},
- {name:"Session 6",date:"13/06/2026",results:[
-  {player:"Sanj",buyin:20,final:60.00},{player:"Varunn",buyin:20,final:23.50},
-  {player:"Vittu",buyin:40,final:39.50},{player:"Ami",buyin:40,final:20.00},{player:"Aaron",buyin:40,final:17.00}]},
- {name:"Session 7",date:"14/06/2026",results:[
-  {player:"Sanj",buyin:20,final:96.25},{player:"Varunn",buyin:20,final:45.00},
-  {player:"Ami",buyin:20,final:20.75},{player:"Vittu",buyin:80,final:28.50},{player:"Aaron",buyin:60,final:12.00}]},
- {name:"Session 8",date:"20/06/2026",results:[
-  {player:"Sanj",buyin:20,final:80.00},{player:"Varunn",buyin:20,final:41.25},
-  {player:"Ami",buyin:40,final:46.00},{player:"Vittu",buyin:40,final:13.25},{player:"Aaron",buyin:80,final:20.00}]},
- {name:"Session 9",date:"24/06/2026",results:[
-  {player:"Vittu",buyin:20,final:45.00},{player:"Sanj",buyin:40,final:96.25},
-  {player:"Varunn",buyin:20,final:27.25},{player:"Aaron",buyin:20,final:25.25},
-  {player:"Ami",buyin:40,final:26.25},{player:"Kathiir",buyin:100,final:19.75}]},
- {name:"Session 10",date:"03/07/2026",results:[
-  {player:"Sanj",buyin:20,final:84.00},{player:"Aaron",buyin:20,final:45.75},
-  {player:"Kev",buyin:60,final:40.30},{player:"Varunn",buyin:60,final:18.50},{player:"Vittu",buyin:40,final:11.75}]}
-];
-
 const K=3;
 const KNOWN=["Kathiir","Varunn","Ami","Aaron","Sanj","Vittu","Kev"];
 const CB=['#1a472a','#2980b9','#8b2020','#6b3fa0','#b5551a','#1a5276','#7a5c1e','#2d6a4f','#9c4221'];
@@ -149,67 +97,75 @@ function oldPts(b,f){return Math.round(interpPts(b>0?f/b:0)*rebuyMult(b));}
 function pnl(r){return r.final-r.buyin;}
 
 // ══════════════ STATE ══════════════
-let DB_ID=null;
-let seasons=[];       // [{name, system, sessions:[]}]
-let curSeason=0;      // index
-let SYS='pnl';        // display system for archived seasons
+// All database access goes through window.DB (db.js); nothing here talks to Firebase.
+let DATA=null;        // from DB.loadAll(): {activeSeasonNumber, eras:{'era-1':{...}, 'era-2':{...}}, players:[names]}
+let VIEW='era-2';     // 'era-2' (current era) | 'era-1' (Legacy, read-only) | 'all' (both eras pooled, read-only)
+let seasons=[];       // seasons shown in the current VIEW: [{id, name, number, system, sessions:[{id, seq, name, date, results}]}]
+let curSeason=0;      // index into seasons, or -1 for "All time"
+let SYS='pnl';        // display system for the old-points season (Legacy Season 1)
 let TAB='lb';
 let formActive=null;
 let scorerPlayers=[], scorerRows={}, scorerName="", scorerResult=null;
 let editIdx=null, editData=null, deleteIdx=null;
+let busy=false;       // true while a save is in flight, to stop double-clicks saving twice
 
 // ══════════════ INIT ══════════════
+function showLoadError(m){document.getElementById('pnl-lb').innerHTML=`<div class="loading">${m}</div>`;}
 async function init(){
-  try{
-    const row=await dbLoad();
-    if(row){
-      DB_ID=row.id;
-      const d=row.data;
-      // Detect format: new = array of seasons (objects with .sessions); old flat = array of sessions (objects with .results)
-      if(Array.isArray(d) && d.length && d[0] && d[0].sessions!==undefined){
-        seasons=d; // already new format
-      } else {
-        // empty or old flat format -> seed fresh season structure
-        seasons=[
-          {name:"Season 1",system:"old",sessions:SEASON1},
-          {name:"Season 2",system:"pnl",sessions:[]}
-        ];
-        await dbSave(DB_ID,seasons);
-      }
-    } else {
-      seasons=[
-        {name:"Season 1",system:"old",sessions:SEASON1},
-        {name:"Season 2",system:"pnl",sessions:[]}
-      ];
-    }
-  }catch(e){
-    seasons=[{name:"Season 1",system:"old",sessions:SEASON1},{name:"Season 2",system:"pnl",sessions:[]}];
-  }
-  curSeason=seasons.length-1;         // default to newest (active) season
-  SYS = seasons[curSeason].system;
-  renderSeasonBar();
-  render();
+  try{DATA=await DB.loadAll();}
+  catch(e){console.error(e);showLoadError("Couldn't load data — check your connection and refresh.");return;}
+  setView('era-2');
 }
-
-async function persist(){
-  if(DB_ID!==null){try{await dbSave(DB_ID,seasons);}catch(e){toast("Save failed — check connection");}}
+// db.js is a module and loads after this script, so wait for its "db-ready" event.
+function startWhenDbReady(){
+  if(window.DB){init();return;}
+  window.addEventListener('db-ready',init,{once:true});
+  setTimeout(()=>{if(!window.DB)showLoadError("Couldn't reach the database — check your connection and refresh.");},15000);
 }
+function era2(){return DATA.eras['era-2'];}
+function saveFailed(e){
+  console.error(e);
+  toast(e&&e.code==='permission-denied'?'Rejected — refresh and check the details':'Save failed — check connection');
+}
+const DATE_RE=/^[0-3][0-9]\/[01][0-9]\/20[0-9][0-9]$/;
 
 function toast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('on');setTimeout(()=>t.classList.remove('on'),2200);}
 
 // ══════════════ SEASON BAR ══════════════
+// Switch between Era 2, Legacy (era 1) and All eras.
+function setView(v){
+  VIEW=v;
+  if(v==='all'){
+    // pooled read-only view; legacy season names are prefixed so History can tell them apart
+    seasons=[...DATA.eras['era-1'].seasons.map(s=>({...s,name:'Legacy '+s.name})),...era2().seasons];
+    curSeason=-1;
+  }else{
+    seasons=DATA.eras[v].seasons;
+    curSeason=v==='era-2'?seasons.findIndex(s=>s.number===DATA.activeSeasonNumber):seasons.length-1;
+  }
+  SYS='pnl';
+  formActive=null; scorerResult=null; editIdx=null; deleteIdx=null;
+  renderSeasonBar(); render();
+}
+
 function renderSeasonBar(){
   const allTime=isAllTime();
   const s=allTime?null:seasons[curSeason];
   const isArchived = s && s.system==="old";
-  let html=`<div class="season-select">
-    <select onchange="switchSeason(this.value)">
-      <option value="-1" ${allTime?'selected':''}>★ All time</option>
-      ${seasons.map((se,i)=>`<option value="${i}" ${i===curSeason?'selected':''}>${se.name}${i===seasons.length-1?' (current)':''}</option>`).join('')}
-    </select>
-    <button class="btn-ghost btn-sm" onclick="newSeason()">+ New season</button>
+  const live=VIEW==='era-2';
+  let html=`<div class="sys-toggle">
+    ${[['era-2','Era 2'],['era-1','Legacy'],['all','All eras']].map(([v,l])=>`<button class="${VIEW===v?'on':''}" onclick="setView('${v}')">${l}</button>`).join('')}
   </div>`;
-  // Only Season 1 (old system) gets the comparison toggle
+  if(VIEW!=='all'){
+    html+=`<div class="season-select">
+      <select onchange="switchSeason(this.value)">
+        <option value="-1" ${allTime?'selected':''}>★ All time (${live?'Era 2':'Legacy'})</option>
+        ${seasons.map((se,i)=>`<option value="${i}" ${i===curSeason?'selected':''}>${se.name}${live&&se.number===DATA.activeSeasonNumber?' (current)':''}</option>`).join('')}
+      </select>
+      ${live?`<button class="btn-ghost btn-sm" onclick="newSeason()">+ New season</button>`:''}
+    </div>`;
+  }
+  // Only the old-points season (Legacy Season 1) gets the comparison toggle
   if(isArchived){
     html+=`<div class="sys-toggle">
       <button class="${SYS==='pnl'?'on':''}" onclick="setSys('pnl')">Shrunk PnL</button>
@@ -228,11 +184,16 @@ function switchSeason(i){
 function setSys(s){SYS=s;renderSeasonBar();render();}
 
 async function newSeason(){
-  const n=seasons.length+1;
-  seasons.push({name:`Season ${n}`,system:"pnl",sessions:[]});
-  curSeason=seasons.length-1; SYS="pnl";
-  await persist();
-  renderSeasonBar(); render();
+  if(busy)return;
+  const n=DATA.activeSeasonNumber+1;
+  if(!confirm(`Start Season ${n} of Era 2?\n\nIt becomes the current season. Seasons can't be deleted.`))return;
+  busy=true;
+  try{
+    const se=await DB.startNewSeason(DATA.activeSeasonNumber);
+    era2().seasons.push(se); DATA.activeSeasonNumber=se.number;
+  }catch(e){saveFailed(e);return;}
+  finally{busy=false;}
+  setView('era-2');
   toast(`Season ${n} created`);
 }
 
@@ -254,7 +215,16 @@ function curSessions(){
   }
   return seasons[curSeason].sessions;
 }
-function isActiveSeason(){return !isAllTime() && curSeason===seasons.length-1;}
+// Sessions can be edited/deleted in any Era 2 season (Legacy and pooled views are read-only)...
+function canEdit(){return VIEW==='era-2' && !isAllTime();}
+// ...but new sessions are only added to the current Era 2 season.
+function isActiveSeason(){return canEdit() && seasons[curSeason].number===DATA.activeSeasonNumber;}
+function readOnlyMsg(){
+  if(VIEW==='all')return 'All eras — every session ever (read-only).';
+  if(isAllTime())return `All time (${VIEW==='era-1'?'Legacy':'Era 2'}) — read-only.`;
+  if(VIEW==='era-1')return `Legacy ${seasons[curSeason].name} is archived (read-only).`;
+  return `${seasons[curSeason].name} isn't the current season.`;
+}
 function avIdx(n){const i=KNOWN.indexOf(n);return i<0?(hashName(n)%CB.length):i;}
 function hashName(n){let h=0;for(let i=0;i<n.length;i++)h=(h*31+n.charCodeAt(i))>>>0;return h;}
 function av(n,s=28){const i=avIdx(n);return `<div class="av" style="width:${s}px;height:${s}px;font-size:${Math.round(s*.38)}px;background:${CB[i]};color:${CF[i]}">${n.slice(0,2).toUpperCase()}</div>`;}
@@ -392,17 +362,15 @@ function formChart(all,isPnl){
 function renderScorer(){
   const el=document.getElementById('pnl-scorer');
   if(!isActiveSeason()){
-    el.innerHTML=`<div class="card"><div class="note" style="margin:0;text-align:center;padding:1rem 0">${isAllTime()?'The all-time view is read-only. Switch to the current season to add sessions.':seasons[curSeason].name+' is archived. Switch to the current season to add sessions.'}</div></div>`;
+    el.innerHTML=`<div class="card"><div class="note" style="margin:0;text-align:center;padding:1rem 0">${readOnlyMsg()} Switch to the current Era 2 season to add sessions.</div></div>`;
     return;
   }
-  const seen=new Set();curSessions().forEach(s=>s.results.forEach(r=>seen.add(r.player)));
-  KNOWN.forEach(p=>seen.add(p));
-  const quick=[...seen].filter(p=>!scorerPlayers.includes(p));
+  const quick=DATA.players.filter(p=>!scorerPlayers.includes(p));
   el.innerHTML=`
     <div class="card">
       <div class="stitle">New session — ${seasons[curSeason].name}</div>
       <div style="margin-bottom:10px"><div style="font-size:12px;color:var(--text3);margin-bottom:4px">Session name</div>
-        <input id="sname" placeholder="Session ${curSessions().length+1}" value="${scorerName}" oninput="scorerName=this.value" style="max-width:280px"></div>
+        <input id="sname" placeholder="Session ${curSessions().length+1}" value="${scorerName}" maxlength="60" oninput="scorerName=this.value" style="max-width:280px"></div>
       <div style="display:flex;gap:8px;margin-bottom:8px">
         <input id="np" placeholder="Type a name or pick below" style="flex:1" onkeydown="if(event.key==='Enter')addP()">
         <button class="btn btn-sm" onclick="addP()">Add</button></div>
@@ -428,7 +396,8 @@ function renderScorer(){
     <div id="scorer-res">${scorerResult||''}</div>`;
 }
 function addPN(name){if(scorerPlayers.includes(name)){toast('Already added');return;}scorerPlayers.push(name);scorerRows[name]={buyin:20,final:''};renderScorer();}
-function addP(){const v=document.getElementById('np').value.trim();if(!v)return;addPN(v);}
+function addP(){const v=document.getElementById('np').value.trim();if(!v)return;
+  if(v.length>30||v.includes('/')){toast('Names: up to 30 characters, no "/"');return;}addPN(v);}
 function rmP(name){scorerPlayers=scorerPlayers.filter(p=>p!==name);delete scorerRows[name];renderScorer();}
 function readScorer(){return scorerPlayers.map(p=>{const b=parseFloat(scorerRows[p]?.buyin)||0;const f=parseFloat(scorerRows[p]?.final)||0;return{player:p,buyin:b,final:f};});}
 function calcScores(){
@@ -444,12 +413,18 @@ function calcScores(){
   renderScorer();
 }
 async function saveSession(){
-  if(!scorerPlayers.length){toast('Add players first');return;}
+  if(busy)return;
+  if(scorerPlayers.length<2){toast('Add at least 2 players');return;}
+  const se=seasons[curSeason];
   const rows=readScorer();const d=new Date();
   const date=`${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}/${d.getFullYear()}`;
-  const name=(document.getElementById('sname').value.trim())||`Session ${curSessions().length+1}`;
-  curSessions().push({name,date,results:rows});
-  await persist();
+  const name=(document.getElementById('sname').value.trim())||`Session ${se.sessions.length+1}`;
+  const seq=se.sessions.reduce((m,s)=>Math.max(m,s.seq||0),0)+1;
+  const s={seq,name,date,results:rows};
+  busy=true;
+  try{s.id=await DB.saveSession(se.id,s);}catch(e){saveFailed(e);return;}finally{busy=false;}
+  se.sessions.push(s);
+  rows.forEach(r=>{if(!DATA.players.includes(r.player))DATA.players.push(r.player);});
   scorerPlayers=[];scorerRows={};scorerName="";scorerResult=null;
   renderScorer();toast('Session saved!');
 }
@@ -460,8 +435,8 @@ function renderHist(){
   const SS=curSessions();
   if(SS.length===0){el.innerHTML=`<div class="card"><div class="note" style="margin:0;text-align:center;padding:1rem 0">No sessions yet.</div></div>`;return;}
   if(editIdx!==null&&editData){renderEdit(el);return;}
-  const isPnl=SYS==='pnl';const canEdit=isActiveSeason();
-  let html=canEdit?`<div class="warn-box">🗑 The red button permanently deletes a session — you'll be asked to confirm first.</div>`:`<div class="warn-box">📁 ${isAllTime()?'All-time view — every session across all seasons (read-only).':seasons[curSeason].name+' is archived (read-only).'}</div>`;
+  const isPnl=SYS==='pnl';const editable=canEdit();
+  let html=editable?`<div class="warn-box">🗑 The red button permanently deletes a session — you'll be asked to confirm first.</div>`:`<div class="warn-box">📁 ${readOnlyMsg()}</div>`;
   if(deleteIdx!==null){
     html+=`<div class="confirm-box"><div style="font-size:14px;margin-bottom:10px">Delete <strong>${SS[deleteIdx]?.name}</strong>? This cannot be undone.</div>
       <div style="display:flex;gap:8px"><button class="btn-ghost" onclick="deleteIdx=null;renderHist()">Cancel</button>
@@ -476,7 +451,7 @@ function renderHist(){
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
         <div><span style="font-weight:500;font-size:15px">${s.name}</span>
           <span style="font-size:11px;color:var(--text3);margin-left:8px">${s._season?s._season+' · ':''}${s.date} · £${pot} in play</span></div>
-        ${canEdit?`<div style="display:flex;gap:6px">
+        ${editable?`<div style="display:flex;gap:6px">
           <button class="btn-ghost btn-sm" onclick="openEdit(${idx})">✎ Edit</button>
           <button class="btn-red btn-sm" onclick="deleteIdx=${idx};renderHist()">🗑</button></div>`:''}
       </div>
@@ -502,7 +477,7 @@ function renderEdit(el){
       <span style="font-weight:500;font-size:15px">Edit: ${s.name}</span>
       <button class="btn-ghost" onclick="editIdx=null;editData=null;renderHist()">✕</button></div>
     <div class="two-col" style="margin-bottom:12px">
-      <div><div style="font-size:12px;color:var(--text3);margin-bottom:4px">Name</div><input id="e-name" value="${s.name}"></div>
+      <div><div style="font-size:12px;color:var(--text3);margin-bottom:4px">Name</div><input id="e-name" value="${s.name}" maxlength="60"></div>
       <div><div style="font-size:12px;color:var(--text3);margin-bottom:4px">Date</div><input id="e-date" value="${s.date}"></div></div>
     <div style="display:grid;grid-template-columns:1fr 70px 70px 72px;gap:6px;padding-bottom:6px;border-bottom:0.5px solid var(--border);margin-bottom:4px">
       <span style="font-size:11px;color:var(--text3)">Player</span><span style="font-size:11px;color:var(--text3);text-align:center">Buy-in</span>
@@ -521,10 +496,21 @@ function liveEdit(i){const b=parseFloat(document.getElementById('eb'+i).value)||
 async function saveEdit(){
   const s=editData;const n=document.getElementById('e-name').value.trim();const d=document.getElementById('e-date').value.trim();
   if(n)s.name=n;if(d)s.date=d;
+  if(!DATE_RE.test(s.date)){toast('Date must be DD/MM/YYYY');return;}
   s.results.forEach((r,i)=>{r.buyin=parseFloat(document.getElementById('eb'+i).value)||0;r.final=parseFloat(document.getElementById('ef'+i).value)||0;});
-  curSessions()[editIdx]=s;editIdx=null;editData=null;await persist();renderHist();toast('Session updated!');
+  if(busy)return;
+  const se=seasons[curSeason];
+  busy=true;
+  try{await DB.saveSession(se.id,s);}catch(e){saveFailed(e);return;}finally{busy=false;}
+  se.sessions[editIdx]=s;editIdx=null;editData=null;renderHist();toast('Session updated!');
 }
-async function confirmDelete(){curSessions().splice(deleteIdx,1);deleteIdx=null;await persist();renderHist();toast('Session deleted');}
+async function confirmDelete(){
+  if(busy)return;
+  const se=seasons[curSeason];
+  busy=true;
+  try{await DB.deleteSession(se.id,se.sessions[deleteIdx].id);}catch(e){saveFailed(e);return;}finally{busy=false;}
+  se.sessions.splice(deleteIdx,1);deleteIdx=null;renderHist();toast('Session deleted');
+}
 
 // ══════════════ STATS ══════════════
 function renderStats(){
@@ -628,7 +614,7 @@ function renderRules(){
   el.innerHTML=html;
 }
 
-init();
+startWhenDbReady();
 </script>
 </body>
 </html>
