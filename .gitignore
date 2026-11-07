@@ -1,0 +1,14 @@
+# Never commit credentials. The admin key lives outside this repo
+# (~/code/secrets/), but block key-like files in case one is copied in.
+*admin-key*.json
+*service-account*.json
+*-firebase-adminsdk-*.json
+secrets/
+.env
+
+# Python virtual environment for the migration script
+.venv/
+__pycache__/
+
+# macOS
+.DS_Store
