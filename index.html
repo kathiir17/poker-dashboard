@@ -225,6 +225,13 @@ function readOnlyMsg(){
   if(VIEW==='era-1')return `Legacy ${seasons[curSeason].name} is archived (read-only).`;
   return `${seasons[curSeason].name} isn't the current season.`;
 }
+// Full label for a session, e.g. "Era 2 · Season 1 · Session 3", in any view.
+// In pooled views the session carries _season; in the All eras view Legacy season names start with "Legacy ".
+function sessionLabel(s){
+  let season=s._season||seasons[curSeason].name, era=VIEW==='era-1'?'Legacy':'Era 2';
+  if(season.startsWith('Legacy ')){era='Legacy';season=season.slice(7);}
+  return `${era} · ${season} · ${s.name}`;
+}
 function avIdx(n){const i=KNOWN.indexOf(n);return i<0?(hashName(n)%CB.length):i;}
 function hashName(n){let h=0;for(let i=0;i<n.length;i++)h=(h*31+n.charCodeAt(i))>>>0;return h;}
 function av(n,s=28){const i=avIdx(n);return `<div class="av" style="width:${s}px;height:${s}px;font-size:${Math.round(s*.38)}px;background:${CB[i]};color:${CF[i]}">${n.slice(0,2).toUpperCase()}</div>`;}
@@ -241,7 +248,7 @@ function buildStats(){
     ranked.forEach(r=>{
       if(!m[r.player])m[r.player]={name:r.player,n:0,pnlTot:0,oldTot:0,winsP:0,winsO:0,rows:[],in:0,out:0};
       const e=m[r.player];e.n++;e.pnlTot+=r._p;e.oldTot+=r._o;e.in+=r.buyin;e.out+=r.final;
-      e.rows.push({sname:s.name,buyin:r.buyin,final:r.final,p:r._p,o:r._o});
+      e.rows.push({sname:sessionLabel(s),buyin:r.buyin,final:r.final,p:r._p,o:r._o});
     });
     if(sortP[0])m[sortP[0].player].winsP++;
     if(sortO[0])m[sortO[0].player].winsO++;
@@ -570,8 +577,9 @@ function renderStats(){
   let bestS={v:-1e9},worstS={v:1e9},bigPot={v:0},seconds={};
   curSessions().forEach(s=>{const rs=s.results.map(r=>({...r,p:pnl(r),o:oldPts(r.buyin,r.final)}));
     const sorted=[...rs].sort((a,b)=>isPnl?b.p-a.p:b.o-a.o);if(sorted[1])seconds[sorted[1].player]=(seconds[sorted[1].player]||0)+1;
-    const pot=rs.reduce((a,r)=>a+r.buyin,0);if(pot>bigPot.v)bigPot={v:pot,name:(s._season?s._season+' ':'')+s.name};
-    rs.forEach(r=>{const v=isPnl?r.p:r.o;const tag=(s._season?s._season+' ':'');if(v>bestS.v)bestS={v,player:r.player,sname:tag+s.name,buyin:r.buyin,final:r.final};if(v<worstS.v)worstS={v,player:r.player,sname:tag+s.name,buyin:r.buyin,final:r.final};});});
+    const label=sessionLabel(s);
+    const pot=rs.reduce((a,r)=>a+r.buyin,0);if(pot>bigPot.v)bigPot={v:pot,name:label};
+    rs.forEach(r=>{const v=isPnl?r.p:r.o;if(v>bestS.v)bestS={v,player:r.player,sname:label,buyin:r.buyin,final:r.final};if(v<worstS.v)worstS={v,player:r.player,sname:label,buyin:r.buyin,final:r.final};});});
   const ms=Object.entries(seconds).sort((a,b)=>b[1]-a[1])[0];const totalIn=curSessions().flatMap(s=>s.results).reduce((a,r)=>a+r.buyin,0);
   const facts=[
     {i:'🏆',l:'Best single session',v:isPnl?money(bestS.v,2):bestS.v+' pts',s:`${bestS.player} · ${bestS.sname} · £${bestS.buyin}→£${bestS.final.toFixed(2)}`},
