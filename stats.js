@@ -137,7 +137,7 @@ function headlines(sessions){
 //   champion / runnerUp / third / loser  value = shrunk average. Places use sports-style ranking (1, 1, 3:
 //                                        two tied champions means no runner-up). Last place wins over a
 //                                        podium place, so with 3 players the bottom one is Loser, not Third.
-//   donation   worst single-session PnL (value), with the session(s) it happened in (sessions)
+//   donation   worst single-session PnL (value), with who did it in which session (donors:[{player, session}])
 //   ironMan    played every session (value = how many sessions). Can be several people, or nobody.
 //   comeback   biggest rise in average PnL from the first half of the season to the second
 //              (value = second-half average − first-half average, must be above 0), with before/after.
@@ -175,7 +175,7 @@ function seasonAwards(data,eraId,seasonNumber){
   const all=ss.flatMap(s=>s.results.map(r=>({player:r.player,pnl:pnl(r),session:s})));
   const worst=Math.min(...all.map(x=>x.pnl));
   const donors=all.filter(x=>same(x.pnl,worst));
-  give('donation',[...new Set(donors.map(x=>x.player))],worst,{sessions:donors.map(x=>x.session)});
+  give('donation',[...new Set(donors.map(x=>x.player))],worst,{donors:donors.map(x=>({player:x.player,session:x.session}))});
 
   // Iron Man: played every session
   give('ironMan',ps.filter(p=>p.n===ss.length).map(p=>p.name),ss.length);

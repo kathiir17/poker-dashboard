@@ -311,7 +311,50 @@ input::placeholder{color:#6f675e}
 .rd-row.head{font-size:11px;color:var(--muted);padding-top:4px}
 .rd-row.head span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .rd-sum{margin-top:12px;font-size:13px;color:var(--muted);line-height:1.6}
-.rd-sum b{color:var(--text)}.rd-sum b.up{color:var(--up)}.rd-sum b.down{color:var(--down)}
+.rd-sum b{color:var(--text)}
+
+/* ── Awards: icon circles, rows, pills, pop-up, Trophy cabinet ── */
+.aw-ic{width:44px;height:44px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;color:var(--c);border:1.5px solid var(--c);background:color-mix(in srgb,var(--c) 12%,transparent)}
+.aw-ic svg.i{width:20px;height:20px}
+.aw-ic.live{border-style:dashed}   /* still being decided (current season) */
+.aw-row{display:flex;align-items:center;gap:14px;padding:12px 0;border-bottom:1px solid var(--border)}
+.aw-row:last-child{border-bottom:none}
+.aw-row .mid{flex:1;min-width:0}
+.aw-row .nm{font-size:16px;font-weight:600;line-height:1.25}
+.aw-row .sub{margin-top:2px;font-size:13px}
+.aw-tag{flex-shrink:0;font-size:12px;font-weight:600;color:var(--muted);border:1px solid var(--border);border-radius:999px;padding:4px 10px;white-space:nowrap}
+.aw-tag.live{background:var(--gold);border-color:var(--gold);color:#1A1612}
+.aw-pills{display:flex;flex-wrap:wrap;gap:8px;margin:14px 0 6px}
+.aw-pill{font-size:13px;border:1px solid var(--border);border-radius:999px;padding:5px 12px}
+.aw-pill.gold{border-color:#6E5137;color:var(--gold)}
+.aw-pill.bronze{color:var(--copper)}
+.aw-pill.muted{color:var(--muted)}
+.awards-btn{display:inline-flex;align-items:center;gap:7px;flex-shrink:0;background:#1B1714;border:1px solid #6E5137;color:var(--gold);border-radius:14px;padding:10px 12px;font-weight:600;font-size:14px;cursor:pointer;white-space:nowrap}
+.modal-bg{position:fixed;inset:0;z-index:100;background:rgba(0,0,0,.72);display:flex;align-items:center;justify-content:center;padding:calc(16px + env(safe-area-inset-top,0px)) 16px calc(16px + env(safe-area-inset-bottom,0px));animation:fade .14s ease-out}
+.modal{position:relative;width:100%;max-width:440px;max-height:100%;overflow:auto;background:var(--card);border:1px solid #3A2E25;border-radius:24px}
+.modal-head{display:flex;align-items:center;gap:14px;padding:24px 16px 18px 22px;border-bottom:1px solid var(--border)}
+.modal-head .title{font-size:clamp(17px,5.2vw,22px);overflow-wrap:anywhere}
+.modal .x{width:44px;height:44px;border-radius:50%;background:var(--raised);border:1px solid var(--border);margin-left:auto;flex-shrink:0;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text)}
+.modal .x svg.i{width:20px;height:20px}
+.modal-body{padding:2px 20px 14px}
+.deco{position:absolute;top:10px;left:10px;width:24px;height:24px;pointer-events:none}
+.seg.big{display:grid;grid-template-columns:1fr 1fr;border-radius:999px;padding:5px;margin:18px 0 16px}
+.seg.big button{padding:11px;border-radius:999px;font-size:15px}
+.seg.big button.on{background:var(--copper);color:var(--base);box-shadow:none;font-weight:600}
+.aw-card{padding:0;overflow:hidden}
+.aw-head{display:flex;align-items:center;gap:14px;width:100%;background:none;border:none;text-align:left;cursor:pointer;padding:14px 16px}
+.aw-head .mid{flex:1;min-width:0}
+.aw-head .nm{font-size:16px;font-weight:600}
+.aw-head .sub{font-size:13px}
+.aw-latest{text-align:right;flex-shrink:0;max-width:32%}
+.aw-latest .sub{display:block;font-size:11px}
+.aw-latest b{display:block;font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.aw-list{padding:0 16px 6px;border-top:1px solid var(--border)}
+.aw-season{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--border)}
+.aw-season:last-child{border-bottom:none}
+.aw-season .tagtxt{width:56px;flex-shrink:0;font-size:13px;color:var(--muted)}
+.aw-season .names{flex:1;min-width:0;display:flex;flex-wrap:wrap;gap:6px 14px}
+.aw-season .nm1{display:inline-flex;align-items:center;gap:8px;font-weight:600}.rd-sum b.up{color:var(--up)}.rd-sum b.down{color:var(--down)}
 .rv-row .nm{display:block;font-size:15px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}.glint,.tear .crack{display:none}}
 </style>
@@ -334,6 +377,7 @@ input::placeholder{color:#6f675e}
 <div class="pnl" id="pnl-colours"></div>
 <div class="pnl" id="pnl-player"></div>
 <div class="pnl" id="pnl-rivals"></div>
+<div class="pnl" id="pnl-awards"></div>
 <div class="toast" id="toast"></div>
 <div class="hint" id="a2hs-hint" hidden></div>
 
@@ -344,7 +388,7 @@ input::placeholder{color:#6f675e}
     <button class="nav-btn" data-tab="stats" data-also="player" onclick="goTab('stats')"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>Stats</button>
     <button class="nav-add" data-tab="scorer" onclick="goTab('scorer')" aria-label="New session"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></button>
     <button class="nav-btn" data-tab="hist" onclick="goTab('hist')"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="17" rx="3"/><path d="M3 9h18M8 2v4M16 2v4"/></svg>Sessions</button>
-    <button class="nav-btn" data-tab="more" data-also="rules colours rivals" onclick="goTab('more')"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><circle cx="5" cy="12" r="1.3"/><circle cx="12" cy="12" r="1.3"/><circle cx="19" cy="12" r="1.3"/></svg>More</button>
+    <button class="nav-btn" data-tab="more" data-also="rules colours rivals awards" onclick="goTab('more')"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><circle cx="5" cy="12" r="1.3"/><circle cx="12" cy="12" r="1.3"/><circle cx="19" cy="12" r="1.3"/></svg>More</button>
   </div>
 </nav>
 
@@ -419,6 +463,10 @@ const ICON_PATHS={
   right:'<path d="m9 6 6 6-6 6"/>',
   left:'<path d="m15 6-6 6 6 6"/>',
   open:'<path d="m6 9 6 6 6-6"/>',
+  'up-chev':'<path d="m6 15 6-6 6 6"/>',
+  arrowDown:'<path d="M12 5v14M6 13l6 6 6-6"/>',
+  coinMinus:'<circle cx="12" cy="12" r="8.5"/><path d="M8.5 12h7"/>',
+  shield:'<path d="M12 3 5 6v5c0 4.5 3 8 7 10 4-2 7-5.5 7-10V6Z"/>',
   plus:'<path d="M12 5v14M5 12h14"/>',
   check:'<path d="m5 12.5 4.5 4.5L19 7.5"/>',
   chip:'<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4.5"/><path d="M12 3v3M12 18v3M3 12h3M18 12h3"/>',
@@ -713,6 +761,7 @@ function render(){
   if(TAB==='colours')renderColours();
   if(TAB==='player')renderPlayer();
   if(TAB==='rivals')renderRivals();
+  if(TAB==='awards')renderAwards();
 }
 
 // ══════════════ PLAYER COLOURS SCREEN ══════════════
@@ -754,6 +803,7 @@ let moreA2hsOpen=false;   // Add to Home Screen instructions expanded
 function renderMore(){
   document.getElementById('pnl-more').innerHTML=`<div class="card" style="padding-top:6px;padding-bottom:6px">
     <button class="list-btn" onclick="colourFor=null;goTab('colours')"><span class="ic">${icon('chip')}</span>Player colours<span class="chev">${icon('right')}</span></button>
+    <button class="list-btn" onclick="goTab('awards')"><span class="ic">${icon('trophy')}</span>Awards<span class="chev">${icon('right')}</span></button>
     <button class="list-btn" onclick="openRivalAnalysis()"><span class="ic">${icon('users')}</span>Rival analysis<span class="chev">${icon('right')}</span></button>
     <button class="list-btn" onclick="openRules()"><span class="ic">${icon('book')}</span>Rules and scoring<span class="chev">${icon('right')}</span></button>
     <button class="list-btn" onclick="moreA2hsOpen=!moreA2hsOpen;renderMore()" aria-expanded="${moreA2hsOpen}"><span class="ic">${icon('phone')}</span>Add to Home Screen<span class="chev">${icon(moreA2hsOpen?'open':'right')}</span></button>
@@ -1246,10 +1296,12 @@ function renderPlayer(){
   if(!p){el.innerHTML=`<div class="pp-top">${back}</div>`+emptyCard(`${playerName} hasn't played in this selection.`);return;}
   const n=p.n,s=x=>x!==1?'s':'';
 
-  let html=`<div class="pp-top">${back}<span class="sub" style="font-size:14px">${scopeLabel()}</span></div>
+  const aw=awardsOf(p.name);   // awards from every season, whatever is selected
+  const where=VIEW==='all'?'all time':`in ${scopeLabel()}`;
+  let html=`<div class="pp-top">${back}${aw.length?`<button class="awards-btn" onclick="openAwards('${q(p.name)}')">${icon('trophy')}Awards · ${aw.filter(a=>a.status==='locked').length}</button>`:''}</div>
   <div class="pp-head">${av(p.name,64,p.rank===1?'ring':'')}
     <div class="mid"><h1 class="title">${p.name}</h1>
-      <div class="sub" style="font-size:14px;margin-top:6px">#${p.rank}${VIEW==='all'?' all time':''} · ${n} session${s(n)}</div></div></div>
+      <div class="sub" style="font-size:14px;margin-top:6px">#${p.rank} ${where} · ${n} session${s(n)}</div></div></div>
   <div class="tiles">
     <div class="tile"><div class="lbl">Average (ranked)</div>${bigMoney(money25(p.shrunk),cls(round25(p.shrunk)))}</div>
     <div class="tile"><div class="lbl">Total</div>${bigMoney(money25(p.pnlTot),cls(round25(p.pnlTot)))}</div>
@@ -1345,6 +1397,126 @@ function renderRivals(){
       <span class="st-bar centred"><span class="${c}" style="${r.avg>=0?'left':'right'}:50%;width:${w}%"></span></span>
       <span class="money r ${c}" style="font-size:15px">${money25(r.avg)}</span><span class="chev">${icon(open?'open':'right')}</span></button>
       ${open?detail(r):''}`;}).join('')}</div>`;
+}
+
+// ══════════════ AWARDS ══════════════
+// Awards come from allAwards() in stats.js (every season, newest first). They always cover every
+// season, whatever Chapter / Season is picked. Two places show them: the pop-up from a player page,
+// and More → Awards (the Trophy cabinet).
+const AWARD_INFO={
+  champion:{name:'Champion',              rule:'Top of the standings when the season closes', icon:'trophy',  c:'var(--gold)'},
+  runnerUp:{name:'Runner-up',             rule:'2nd when the season closes',                  icon:'trophy',  c:'var(--silver)'},
+  third:   {name:'Third',                 rule:'3rd when the season closes',                  icon:'trophy',  c:'var(--copper)'},
+  loser:   {name:'Loser',                 rule:'Last when the season closes',                 icon:'arrowDown',c:'var(--down)'},
+  donation:{name:'Donation of the Season',rule:'Worst single session',                        icon:'coinMinus',c:'var(--down)'},
+  ironMan: {name:'Iron Man',              rule:'Played every session',                        icon:'shield',  c:'#9AA6B8'},
+  comeback:{name:'Comeback of the Season',rule:'Biggest rise, 1st half to 2nd half',          icon:'up',      c:'var(--up)'},
+  falloff: {name:'Biggest Fall-off',      rule:'Biggest drop, 1st half to 2nd half',          icon:'down',    c:'var(--down)'},
+  whale:   {name:'Whale',                 rule:'Most money bought in',                        icon:'stack',   c:'#7B9BE0'},
+};
+// The number behind an award, for one player's list ("−£100 in Session 8")
+function awardDetail(a,name){
+  switch(a.type){
+    case 'champion':case 'runnerUp':case 'third':case 'loser':return `${money25(a.value)} ranked average`;
+    case 'donation':{const ses=a.donors.filter(d=>d.player===name).map(d=>d.session.name);
+      return `${money(a.value)} in ${ses.length?ses.join(' and '):a.donors[0].session.name}`;}
+    case 'ironMan':return `Played all ${a.value} session${a.value!==1?'s':''}`;
+    case 'comeback':return `${money25(a.value)} a game better in the second half`;
+    case 'falloff':return `${gbp25(-a.value)} a game worse in the second half`;
+    case 'whale':return `${gbp(a.value)} bought in across the season`;
+  }
+}
+const awTag=a=>`C${a.chapter} · S${a.season}`;
+const awIcon=(type,live)=>`<span class="aw-ic${live?' live':''}" style="--c:${AWARD_INFO[type].c}">${icon(AWARD_INFO[type].icon)}</span>`;
+const awardsOf=name=>allAwards(DATA).filter(a=>a.players.includes(name));
+
+// One row per award for one player: icon, name, the number behind it, and C1 · S2 or "Leading"
+function awardRows(list,name){
+  if(!list.length)return `<p class="note empty">No awards yet.</p>`;
+  return list.map(a=>{const live=a.status==='leading',others=a.players.filter(p=>p!==name);
+    return `<div class="aw-row">${awIcon(a.type,live)}
+      <div class="mid"><div class="nm">${AWARD_INFO[a.type].name}</div>
+        <div class="sub">${awardDetail(a,name)}${others.length?` · shared with ${others.length>2?others.length+' others':others.join(' and ')}`:''}</div></div>
+      <span class="aw-tag${live?' live':''}">${live?'Leading':awTag(a)}</span></div>`;}).join('');
+}
+// Summary pills: podium finishes by name, everything else as "N other" (locked awards only)
+function awardPills(list){
+  const won=list.filter(a=>a.status==='locked'),n=t=>won.filter(a=>a.type===t).length;
+  const pills=[['champion','Champion','gold'],['runnerUp','Runner-up',''],['third','Third','bronze']]
+    .filter(([t])=>n(t)).map(([t,l,c])=>`<span class="aw-pill ${c}">${n(t)} ${l}</span>`);
+  const other=won.filter(a=>!['champion','runnerUp','third'].includes(a.type)).length;
+  if(other)pills.push(`<span class="aw-pill muted">${other} other</span>`);
+  return pills.length?`<div class="aw-pills">${pills.join('')}</div>`:'';
+}
+const wonInPlay=list=>{const w=list.filter(a=>a.status==='locked').length;return `${w} won · ${list.length-w} in play`;};
+// Small Art Deco corner for the pop-up
+const DECO=`<svg class="deco" viewBox="0 0 24 24" aria-hidden="true"><path d="M1 23V1h22M5 23V5h18M9 23V9" fill="none" stroke="var(--copper)" stroke-width="1" opacity=".7"/></svg>`;
+
+// ── Player awards pop-up ──
+let awReturn=null;   // element to give focus back to when the pop-up closes
+function openAwards(name){
+  const list=awardsOf(name);
+  const bg=document.createElement('div');bg.className='modal-bg';bg.id='aw-modal';
+  bg.innerHTML=`<div class="modal" role="dialog" aria-modal="true" aria-labelledby="aw-title">${DECO}
+    <div class="modal-head">${av(name,52)}<div style="min-width:0"><h2 class="title" id="aw-title">${name}’s awards</h2>
+      <div class="sub" style="font-size:14px;margin-top:6px">${wonInPlay(list)}</div></div>
+      <button class="x" aria-label="Close" onclick="closeAwards()">${icon('x')}</button></div>
+    <div class="modal-body">${awardPills(list)}${awardRows(list,name)}</div></div>`;
+  bg.addEventListener('click',e=>{if(e.target===bg)closeAwards();});   // tap outside the panel to close
+  awReturn=document.activeElement;
+  document.body.appendChild(bg);document.body.style.overflow='hidden';
+  document.addEventListener('keydown',awEsc);
+  bg.querySelector('.x').focus();
+}
+function awEsc(e){if(e.key==='Escape')closeAwards();}
+function closeAwards(){
+  document.getElementById('aw-modal')?.remove();document.body.style.overflow='';
+  document.removeEventListener('keydown',awEsc);awReturn?.focus();
+}
+
+// ── Trophy cabinet (More → Awards) ──
+let cabinetView='award';                 // 'award' | 'player'
+let cabinetOpen=new Set(['champion']);   // expanded cards (award types or player names)
+function toggleCabinet(k){cabinetOpen.has(k)?cabinetOpen.delete(k):cabinetOpen.add(k);renderAwards();}
+function setCabinetView(v){cabinetView=v;renderAwards();}
+// Winner names for a row: avatar + name for each
+const winners=a=>a.players.map(p=>`<span class="nm1">${av(p,26)}${p}</span>`).join('');
+
+function renderAwards(){
+  const el=document.getElementById('pnl-awards');
+  const all=allAwards(DATA);
+  let html=`<button class="link back" onclick="goTab('more')">${icon('left')}More</button>
+    <h1 class="title" style="font-size:clamp(26px,8vw,36px)">Trophy cabinet</h1>
+    <p class="sub" style="font-size:14px;margin-top:8px">Awards lock in when a season closes. Live seasons show who’s leading.</p>
+    <div class="seg big" role="tablist"><button class="${cabinetView==='award'?'on':''}" aria-pressed="${cabinetView==='award'}" onclick="setCabinetView('award')">By award</button>
+      <button class="${cabinetView==='player'?'on':''}" aria-pressed="${cabinetView==='player'}" onclick="setCabinetView('player')">By player</button></div>`;
+
+  if(cabinetView==='award'){
+    html+=AWARD_TYPES.map(t=>{
+      const list=all.filter(a=>a.type===t),open=cabinetOpen.has(t);
+      // collapsed: the latest locked winner (or the current leader if none is locked yet)
+      const latest=list.find(a=>a.status==='locked')||list[0];
+      const side=latest&&!open?`<span class="aw-latest"><span class="sub">${latest.status==='leading'?'Leading':awTag(latest)}</span>
+        <b>${latest.players[0]}${latest.players.length>1?` +${latest.players.length-1}`:''}</b></span>`:'';
+      return `<div class="card aw-card"><button class="aw-head" aria-expanded="${open}" onclick="toggleCabinet('${t}')">${awIcon(t)}
+        <span class="mid"><span class="nm" style="display:block">${AWARD_INFO[t].name}</span><span class="sub">${AWARD_INFO[t].rule}</span></span>
+        ${side}<span class="sub">${icon(open?'up-chev':'open')}</span></button>
+        ${open?`<div class="aw-list">${list.length?list.map(a=>`<div class="aw-season"><span class="tagtxt">${awTag(a)}</span>
+          <span class="names">${winners(a)}</span>${a.status==='leading'?'<span class="aw-tag live">Leading</span>':''}</div>`).join('')
+          :'<p class="note empty">Not won yet.</p>'}</div>`:''}</div>`;}).join('');
+  }else{
+    // everyone with an award: most Champions first, then Runner-ups, then Thirds, then most awards won
+    const names=[...new Set(all.flatMap(a=>a.players))].map(n=>{const l=all.filter(a=>a.players.includes(n));
+      const won=l.filter(a=>a.status==='locked'),k=t=>won.filter(a=>a.type===t).length;
+      return {n,l,key:[k('champion'),k('runnerUp'),k('third'),won.length]};})
+      .sort((a,b)=>{for(let i=0;i<a.key.length;i++)if(a.key[i]!==b.key[i])return b.key[i]-a.key[i];return a.n.localeCompare(b.n);});
+    html+=names.map(({n,l})=>{const open=cabinetOpen.has('p:'+n);
+      return `<div class="card aw-card"><button class="aw-head" aria-expanded="${open}" onclick="toggleCabinet('p:${q(n)}')">${av(n,44)}
+        <span class="mid"><span class="nm" style="display:block">${n}</span><span class="sub">${wonInPlay(l)}</span></span>
+        <span class="sub">${icon(open?'up-chev':'open')}</span></button>
+        ${open?`<div class="aw-list">${awardPills(l)}${awardRows(l,n)}</div>`:''}</div>`;}).join('');
+  }
+  el.innerHTML=html;
 }
 
 // ══════════════ RULES ══════════════
