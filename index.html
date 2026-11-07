@@ -351,6 +351,18 @@ input::placeholder{color:#6f675e}
 .aw-season:last-child{border-bottom:none}
 .aw-season .tagtxt{width:56px;flex-shrink:0;font-size:13px;color:var(--muted)}
 .aw-season .names{flex:1;min-width:0;display:flex;flex-wrap:wrap;gap:6px 14px}
+.hr-card{padding:16px}
+.hr-card .aw-ic svg.i{width:26px;height:26px}
+.hr-head{display:flex;align-items:center;gap:14px;width:100%;background:none;border:none;padding:0;text-align:left;cursor:pointer}
+div.hr-head{cursor:default}
+.hr-name{font-family:var(--display);font-weight:800;font-stretch:112%;text-transform:uppercase;letter-spacing:.02em;font-size:17px}
+.hr-lines{list-style:none;margin-top:12px;display:flex;flex-direction:column;gap:7px;color:var(--muted);font-size:14px;line-height:1.55}
+.hr-lines li{position:relative;padding-left:14px}
+.hr-lines li::before{content:"";position:absolute;left:2px;top:.62em;width:5px;height:5px;border-radius:50%;background:var(--copper);opacity:.7}
+.hr-lines strong{color:var(--text);font-weight:600}
+.hr-stake{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:14px;padding-top:12px;border-top:1px solid var(--border);font-size:13px;color:var(--muted)}
+.hr-input{display:inline-flex;align-items:center;gap:4px;font:700 15px var(--display);color:var(--text)}
+.hr-input input{width:76px;text-align:right;font:600 15px var(--body)}
 .aw-season .nm1{display:inline-flex;align-items:center;gap:8px;font-weight:600}.rd-sum b.up{color:var(--up)}.rd-sum b.down{color:var(--down)}
 .rv-row .nm{display:block;font-size:15px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}.glint,.tear .crack{display:none}}
@@ -375,6 +387,7 @@ input::placeholder{color:#6f675e}
 <div class="pnl" id="pnl-player"></div>
 <div class="pnl" id="pnl-rivals"></div>
 <div class="pnl" id="pnl-awards"></div>
+<div class="pnl" id="pnl-house"></div>
 <div class="toast" id="toast"></div>
 <div class="hint" id="a2hs-hint" hidden></div>
 
@@ -385,7 +398,7 @@ input::placeholder{color:#6f675e}
     <button class="nav-btn" data-tab="stats" data-also="player" onclick="goTab('stats')"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>Stats</button>
     <button class="nav-add" data-tab="scorer" onclick="goTab('scorer')" aria-label="New session"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></button>
     <button class="nav-btn" data-tab="hist" onclick="goTab('hist')"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="17" rx="3"/><path d="M3 9h18M8 2v4M16 2v4"/></svg>Sessions</button>
-    <button class="nav-btn" data-tab="more" data-also="rules colours rivals awards" onclick="goTab('more')"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><circle cx="5" cy="12" r="1.3"/><circle cx="12" cy="12" r="1.3"/><circle cx="19" cy="12" r="1.3"/></svg>More</button>
+    <button class="nav-btn" data-tab="more" data-also="rules colours rivals awards house" onclick="goTab('more')"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><circle cx="5" cy="12" r="1.3"/><circle cx="12" cy="12" r="1.3"/><circle cx="19" cy="12" r="1.3"/></svg>More</button>
   </div>
 </nav>
 
@@ -470,6 +483,7 @@ const ICON_PATHS={
   book:'<path d="M4 4.5A1.5 1.5 0 0 1 5.5 3H20v15H5.5A1.5 1.5 0 0 0 4 19.5z"/><path d="M4 19.5A1.5 1.5 0 0 0 5.5 21H20v-3"/>',
   phone:'<rect x="6" y="2" width="12" height="20" rx="3"/><path d="M11 18h2"/>',
   users:'<circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0"/><circle cx="17" cy="9" r="2.5"/><path d="M16.5 14.5a5 5 0 0 1 5 5"/>',
+  spade:'<path d="M12 3c3 4 7 6 7 10a4 4 0 0 1-7 2.6A4 4 0 0 1 5 13c0-4 4-6 7-10Z"/><path d="M12 15.5V21M9 21h6"/>',
   calendar:'<rect x="3" y="4" width="18" height="17" rx="3"/><path d="M3 9h18M8 2v4M16 2v4"/>',
 };
 function icon(n){return `<svg class="i" viewBox="0 0 24 24" aria-hidden="true">${ICON_PATHS[n]}</svg>`;}
@@ -715,6 +729,7 @@ function render(){
   if(TAB==='player')renderPlayer();
   if(TAB==='rivals')renderRivals();
   if(TAB==='awards')renderAwards();
+  if(TAB==='house')renderHouse();
 }
 
 // ══════════════ PLAYER COLOURS SCREEN ══════════════
@@ -759,6 +774,7 @@ function renderMore(){
     <button class="list-btn" onclick="goTab('awards')"><span class="ic">${icon('trophy')}</span>Awards<span class="chev">${icon('right')}</span></button>
     <button class="list-btn" onclick="openRivalAnalysis()"><span class="ic">${icon('users')}</span>Rival analysis<span class="chev">${icon('right')}</span></button>
     <button class="list-btn" onclick="openRules()"><span class="ic">${icon('book')}</span>Rules and scoring<span class="chev">${icon('right')}</span></button>
+    <button class="list-btn" onclick="houseOpen=new Set();goTab('house')"><span class="ic">${icon('spade')}</span>House rules<span class="chev">${icon('right')}</span></button>
     <button class="list-btn" onclick="moreA2hsOpen=!moreA2hsOpen;renderMore()" aria-expanded="${moreA2hsOpen}"><span class="ic">${icon('phone')}</span>Add to Home Screen<span class="chev">${icon(moreA2hsOpen?'open':'right')}</span></button>
     ${moreA2hsOpen?`<div class="inset prose" style="margin:0 0 14px;font-size:13px">${isInstalled()?'You’re already using the home-screen app.':A2HS_STEPS+' On Android, use the browser menu and choose <strong>Install app</strong>.'}</div>`:''}
   </div>`;
@@ -1471,6 +1487,91 @@ function renderAwards(){
         ${open?`<div class="aw-list">${awardPills(l)}${awardRows(l,n)}</div>`:''}</div>`;}).join('');
   }
   el.innerHTML=html;
+}
+
+// ══════════════ HOUSE RULES ══════════════
+// More → House rules: optional rules we can play with, one card per rule. Rules with a stake
+// (stake:true) get a £ input; "{stake}" in their text shows the amount and updates as you type.
+// Stakes start at 50p and only live on this page (not saved): they're agreed on the night.
+const HOUSE_STAKES={sevenTwo:.5,squid:.5,threeRow:.5,bomb:.5};
+
+// Icons, 24×24, drawn in the card's colour (flags use their own colours)
+const HOUSE_ICONS={
+  sevenTwo:`<rect x="2.5" y="5" width="10" height="14" rx="2" transform="rotate(-8 7.5 12)"/><rect x="11.5" y="5" width="10" height="14" rx="2" transform="rotate(8 16.5 12)"/>
+    <text x="7.3" y="15.2" font-size="8.5" font-weight="800" text-anchor="middle" fill="currentColor" stroke="none" font-family="var(--display)">7</text>
+    <text x="16.7" y="15.2" font-size="8.5" font-weight="800" text-anchor="middle" fill="currentColor" stroke="none" font-family="var(--display)">2</text>`,
+  squid:`<circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3"/><path d="M12 1.5v5M12 17.5v5M1.5 12h5M17.5 12h5"/>`,
+  threeRow:`<path d="M9 3v18M15 3v18M3 9h18M3 15h18"/><path d="M4 20 20 4" stroke-width="2.6"/>`,
+  pineapple:`<path d="M8 9c-2.5 0-4 2.5-4 6s1.5 6.5 4 6.5 4-3 4-6.5-1.5-6-4-6Z"/><path d="M5.5 13.5l5 4M10.5 13.5l-5 4"/><path d="M8 9 6 4.5M8 9l0-5M8 9l2-4.5"/>
+    <path d="M14 9h7l-1 12.5h-5Z"/><path d="M14 12h7"/>`,
+  courchevel:`<rect x="1" y="5" width="7.4" height="14" fill="#2E59B5" stroke="none"/><rect x="8.3" y="5" width="7.4" height="14" fill="#ECE6DA" stroke="none"/><rect x="15.6" y="5" width="7.4" height="14" fill="#B23B37" stroke="none"/>`,
+  omaha:`<rect x="1" y="5" width="22" height="14" fill="#ECE6DA" stroke="none"/><path d="M1 6h22M1 10h22M1 14h22M1 18h22" stroke="#B23B37" stroke-width="2" stroke-linecap="butt"/><rect x="1" y="5" width="10" height="7.6" fill="#2E59B5" stroke="none"/>`,
+  bomb:`<circle cx="10" cy="14" r="7"/><rect x="13.4" y="6.6" width="3.6" height="3" rx=".6" transform="rotate(45 15.2 8.1)"/><path d="M6.6 12.6a3.6 3.6 0 0 1 2.6-2.6"/>
+    <path d="M16.6 6.4c.7-1.7 2.2-2.4 3.6-1.8"/><path d="M21.4 1.6v1.6M23 3.4h-1.6M20 2.2l.7.7"/>`,
+  double:`<text x="12" y="16.5" font-size="12" font-weight="800" text-anchor="middle" fill="currentColor" stroke="none" font-family="var(--display)">×2</text>`,
+};
+// Copy is exactly as written; **…** marks a variant name to show in bold.
+const HOUSE_RULES=[
+  {id:'sevenTwo',name:'7–2 Game',c:'var(--gold)',stake:true,lines:[
+    'Win a hand holding 7–2 (suited counts), by any means, and show it. Everyone pays you {stake}.']},
+  {id:'squid',name:'Squid Game',c:'var(--down)',stake:true,lines:[
+    'When announced, put dice in play: one fewer than the number of players.',
+    'Play as normal. Whoever wins a hand takes a dice.',
+    'You can only hold one. If you already have one, nothing is taken.',
+    'A split pot doesn’t win a dice.',
+    'When the dice run out, the player without one pays everyone {stake}.']},
+  {id:'threeRow',name:'Three in a Row',c:'var(--up)',stake:true,lines:[
+    'Win three hands in a row (split pots count). Everyone pays you {stake}.']},
+  {id:'pineapple',name:'Pineapple & Irish',c:'#C9B458',lines:[
+    'Extra cards, then discard down to two. Everything else plays as normal.'],more:[
+    '**Pineapple:** dealt 3. Bet preflop, then discard one before the flop.',
+    '**Crazy Pineapple:** dealt 3. See the flop, then discard one.',
+    '**Lazy Pineapple:** dealt 3. Keep all three to the end, then discard one before showdown.',
+    '**Irish:** dealt 4. Bet preflop and on the flop, then discard two before the turn.']},
+  {id:'courchevel',name:'Courchevel',c:'var(--muted)',lines:[
+    'One flop card is dealt face-up before preflop betting.',
+    'The other two flop cards come as normal.']},
+  {id:'omaha',name:'Omaha',c:'var(--muted)',lines:[
+    'Dealt 4 cards.',
+    'You must use exactly two of them with exactly three from the board.']},
+  {id:'bomb',name:'Bomb Pot',c:'var(--copper)',stake:true,lines:[
+    'When announced, everyone puts {stake} in the pot.',
+    'No preflop betting: deal straight to the flop.',
+    'Betting starts on the flop as normal.',
+    '**Pineapple Bomb:** everyone is dealt 3 and discards one after seeing the flop.']},
+  {id:'double',name:'Double Board',c:'#7B9BE0',lines:[
+    'Two boards are dealt instead of one.',
+    'Each board wins half the pot.',
+    'Your best hand on each board counts separately.',
+    'Works well as a Bomb Pot.']},
+];
+let houseOpen=new Set();   // expanded cards (the ones with more to show)
+
+// One line of copy: bold "Name:" prefix, and the live stake in place of {stake}
+function houseLine(t,id){
+  t=t.replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>');
+  return `<li>${t.replace('{stake}',`<strong class="stk-${id}">${gbp(HOUSE_STAKES[id])}</strong>`)}</li>`;
+}
+// Typing a stake updates the amount in that card's text without redrawing (so the input keeps focus)
+function setStake(id,v){
+  HOUSE_STAKES[id]=Math.max(0,parseFloat(v)||0);
+  document.querySelectorAll('.stk-'+id).forEach(e=>{e.textContent=gbp(HOUSE_STAKES[id]);});
+}
+function toggleHouse(id){houseOpen.has(id)?houseOpen.delete(id):houseOpen.add(id);renderHouse();}
+
+function renderHouse(){
+  document.getElementById('pnl-house').innerHTML=`<button class="link back" onclick="goTab('more')">${icon('left')}More</button>
+    <h1 class="title" style="font-size:clamp(26px,8vw,36px)">House rules</h1>
+    <p class="sub" style="font-size:14px;margin:8px 0 18px">Optional extras we can play with. Stakes are agreed on the night.</p>
+    ${HOUSE_RULES.map(r=>{const open=houseOpen.has(r.id);
+      const head=`${`<span class="aw-ic" style="--c:${r.c}"><svg class="i" viewBox="0 0 24 24" aria-hidden="true">${HOUSE_ICONS[r.id]}</svg></span>`}
+        <h2 class="hr-name">${r.name}</h2>${r.more?`<span class="sub" style="margin-left:auto">${icon(open?'up-chev':'open')}</span>`:''}`;
+      return `<div class="card hr-card">
+        ${r.more?`<button class="hr-head" aria-expanded="${open}" onclick="toggleHouse('${r.id}')">${head}</button>`:`<div class="hr-head">${head}</div>`}
+        <ul class="hr-lines">${r.lines.map(t=>houseLine(t,r.id)).join('')}${open&&r.more?r.more.map(t=>houseLine(t,r.id)).join(''):''}</ul>
+        ${r.more&&!open?`<button class="link" style="font-size:13px;margin-top:8px" onclick="toggleHouse('${r.id}')">Show the ${r.more.length} variants</button>`:''}
+        ${r.stake?`<label class="hr-stake">Stake <span class="hr-input">£<input type="number" min="0" step="0.5" inputmode="decimal" value="${HOUSE_STAKES[r.id].toFixed(2)}" oninput="setStake('${r.id}',this.value)" aria-label="${r.name} stake in pounds"></span></label>`:''}
+      </div>`;}).join('')}`;
 }
 
 // ══════════════ RULES ══════════════
