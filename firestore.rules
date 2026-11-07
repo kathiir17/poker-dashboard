@@ -1,0 +1,78 @@
+rules_version = '2';
+
+// Poker dashboard — Firestore security rules.
+//
+// Apply: Firebase console → Firestore Database → Rules → paste this whole file → Publish.
+//
+// Summary
+//   • Anyone can read everything.
+//   • Era 1 ("Legacy") can never be written — not by the app, not by anyone with the link.
+//     (Only the project owner, via the Firebase console or the admin key, bypasses rules.)
+//   • Era 2 sessions can be added, edited and deleted by anyone, if they have the right shape.
+//   • A new Era 2 season must be numbered exactly one above the current one, and is created
+//     together with the config/app update. Seasons can never be edited or deleted.
+//   • Players can be added, never changed or deleted.
+//   • Anything not mentioned below is denied.
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function activeSeasonNumber() {
+      return get(/databases/$(database)/documents/config/app).data.activeSeasonNumber;
+    }
+
+    // Shape of a session document.
+    function validSession(d) {
+      return d.keys().hasOnly(['seq', 'name', 'date', 'results'])
+          && d.keys().hasAll(['seq', 'name', 'date', 'results'])
+          && d.seq is int && d.seq >= 1
+          && d.name is string && d.name.size() >= 1 && d.name.size() <= 60
+          && d.date is string && d.date.matches('^[0-3][0-9]/[01][0-9]/20[0-9][0-9]$')
+          && d.results is list && d.results.size() >= 2 && d.results.size() <= 20;
+    }
+
+    // ── Reads: open to everyone ───────────────────────────────────────────
+    match /{document=**} {
+      allow read: if true;
+    }
+
+    // ── config/app: { activeSeasonNumber } ────────────────────────────────
+    // Only moves forward by one, and only when that new Era 2 season is
+    // being created in the same write.
+    match /config/app {
+      allow update: if request.resource.data.keys().hasOnly(['activeSeasonNumber'])
+        && request.resource.data.activeSeasonNumber == resource.data.activeSeasonNumber + 1
+        && existsAfter(/databases/$(database)/documents/eras/era-2/seasons/$('s' + string(request.resource.data.activeSeasonNumber)));
+    }
+
+    // ── Seasons ───────────────────────────────────────────────────────────
+    match /eras/{eraId}/seasons/{seasonId} {
+      allow create: if eraId == 'era-2'
+        && request.resource.data.keys().hasOnly(['name', 'number', 'system'])
+        && request.resource.data.number is int
+        && request.resource.data.number == activeSeasonNumber() + 1
+        && seasonId == 's' + string(request.resource.data.number)
+        && request.resource.data.name is string
+        && request.resource.data.name.size() >= 1 && request.resource.data.name.size() <= 40
+        && request.resource.data.system == 'pnl'
+        && getAfter(/databases/$(database)/documents/config/app).data.activeSeasonNumber == request.resource.data.number;
+
+      // ── Sessions: Era 2 only ────────────────────────────────────────────
+      match /sessions/{sessionId} {
+        allow create, update: if eraId == 'era-2'
+          && exists(/databases/$(database)/documents/eras/era-2/seasons/$(seasonId))
+          && validSession(request.resource.data);
+        allow delete: if eraId == 'era-2';
+      }
+    }
+
+    // ── Players: { name }, document ID is the name ────────────────────────
+    // "update" is allowed only because re-saving an existing player is a
+    // harmless no-op: the only field must equal the document ID.
+    match /players/{playerId} {
+      allow create, update: if request.resource.data.keys().hasOnly(['name'])
+        && request.resource.data.name == playerId
+        && playerId.size() >= 1 && playerId.size() <= 30;
+    }
+  }
+}
