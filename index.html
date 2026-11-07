@@ -29,7 +29,8 @@
   --copper:#C08A5B;   /* accent: primary buttons, active states */
   --link:#D9A273;     /* text links */
   --gold:#DDB872;     /* 1st place */
-  --ivory:#ECE6DA;    /* 2nd place */
+  --ivory:#ECE6DA;
+  --silver:#C5CCD6;   /* 2nd place */
   --text:#EDEAE4;
   --muted:#A39A8E;
   --up:#6FBF8A;
@@ -154,7 +155,14 @@ svg.i{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:1.75;str
 
 /* ── Ranks and avatars ── */
 .rank{width:20px;text-align:center;font-family:var(--display);font-weight:800;font-size:15px;color:var(--muted);flex-shrink:0;font-variant-numeric:tabular-nums}
-.rank.r1{color:var(--gold)}.rank.r2{color:var(--ivory)}.rank.r3{color:var(--copper)}
+.rank.r1{color:var(--gold)}.rank.r2{color:var(--silver)}.rank.r3{color:var(--copper)}
+/* Names by finishing place: gold / silver / bronze, red for last, each with a faint glow.
+   The padding + negative margin gives the glow room so overflow:hidden (for long names) doesn't clip it. */
+.pl1,.pl2,.pl3,.pl-last{padding:6px 8px;margin:-6px -8px}
+.pl1{color:var(--gold);text-shadow:0 0 9px rgba(221,184,114,.45)}
+.pl2{color:var(--silver);text-shadow:0 0 9px rgba(197,204,214,.35)}
+.pl3{color:var(--copper);text-shadow:0 0 9px rgba(192,138,91,.45)}
+.pl-last{color:var(--down);text-shadow:0 0 9px rgba(224,113,95,.45)}
 .av{border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-weight:600;flex-shrink:0;letter-spacing:.02em}
 
 /* ── Tables of results (history, edit, scorer) ── */
@@ -236,11 +244,14 @@ input::placeholder{color:#6f675e}
 .sec-head{display:flex;justify-content:space-between;align-items:baseline;margin:0 2px 10px}
 .sec-head .h2{margin:0}
 .standings{padding:6px 14px}
-.st-row{display:grid;grid-template-columns:20px 32px minmax(0,1fr) 30% 70px;align-items:center;gap:10px;width:100%;background:none;border:none;border-bottom:1px solid var(--border);padding:11px 0;text-align:left;cursor:pointer}
+/* The card is one grid shared by every row (subgrid), so the name column is exactly as wide as the
+   longest name, the score column fits the widest score, and the bar takes all the space left over. */
+.standings{display:grid;grid-template-columns:20px 32px minmax(0,max-content) minmax(56px,1fr) max-content;column-gap:10px}
+.st-row{grid-column:1/-1;display:grid;grid-template-columns:subgrid;align-items:center;width:100%;background:none;border:none;border-bottom:1px solid var(--border);padding:11px 0;text-align:left;cursor:pointer}
 .st-row:last-child{border-bottom:none}
 .st-name{font-size:15px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .st-bar{position:relative;height:10px}
-.st-bar.centred::before{content:"";position:absolute;left:50%;top:-6px;bottom:-6px;width:1px;background:var(--border)}
+.st-bar.centred::before{content:"";position:absolute;left:var(--z,50%);top:-6px;bottom:-6px;width:1px;background:var(--border)}
 .st-bar span{position:absolute;top:0;bottom:0;border-radius:5px;min-width:3px}
 .st-bar .up{background:var(--up)}.st-bar .down{background:var(--down)}.st-bar .flat{background:var(--muted)}.st-bar .pts{background:var(--copper)}
 .st-num{text-align:right;font-size:15px}
@@ -248,6 +259,7 @@ input::placeholder{color:#6f675e}
 .sess-card{display:flex;align-items:center;gap:14px;width:100%;text-align:left;cursor:pointer;padding:14px}
 .date-tile{display:flex;flex-direction:column;align-items:center;justify-content:center;width:52px;height:52px;border-radius:12px;background:var(--raised);flex-shrink:0;line-height:1.1}
 .date-tile span{font-size:11px;color:var(--muted);text-transform:uppercase}
+.date-tile svg.i{width:22px;height:22px}
 .date-tile b{font:800 19px var(--display);font-variant-numeric:tabular-nums}
 .sess-mid{display:flex;flex-direction:column;min-width:0;flex:1}
 .sess-name{font-size:16px;font-weight:600}
@@ -261,7 +273,7 @@ input::placeholder{color:#6f675e}
 </head>
 <body>
 
-<div class="hdr">
+<div class="hdr" id="hdr">
   <h1 class="title">Family poker night</h1>
 </div>
 
@@ -358,6 +370,7 @@ const ICON_PATHS={
   chip:'<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4.5"/><path d="M12 3v3M12 18v3M3 12h3M18 12h3"/>',
   book:'<path d="M4 4.5A1.5 1.5 0 0 1 5.5 3H20v15H5.5A1.5 1.5 0 0 0 4 19.5z"/><path d="M4 19.5A1.5 1.5 0 0 0 5.5 21H20v-3"/>',
   phone:'<rect x="6" y="2" width="12" height="20" rx="3"/><path d="M11 18h2"/>',
+  calendar:'<rect x="3" y="4" width="18" height="17" rx="3"/><path d="M3 9h18M8 2v4M16 2v4"/>',
 };
 function icon(n){return `<svg class="i" viewBox="0 0 24 24" aria-hidden="true">${ICON_PATHS[n]}</svg>`;}
 
@@ -465,7 +478,7 @@ function renderSeasonBar(){
   const s=allTime?null:seasons[curSeason];
   const isArchived = s && s.system==="old";
   const live=VIEW==='era-2';
-  const chapterItems=CHAPTERS.map(([v,l])=>({value:v,label:l,on:VIEW===v}));
+  const chapterItems=CHAPTERS.map(([v,l])=>({value:v,label:l,on:VIEW===v,current:v==='era-2'}));
   // In the pooled All time view there's only one choice, so the Season picker is disabled
   const seasonItems=VIEW==='all'?null:[
     {value:-1,label:'All seasons',on:allTime},
@@ -528,8 +541,14 @@ async function newSeason(){
 }
 
 // Show one panel and light up its bottom-bar button (More stays lit while Rules is open).
+// The title and Chapter / Season pickers only appear on the tabs that depend on them.
+const HEADER_TABS=['lb','stats','hist'];
 function goTab(id){
   TAB=id;
+  const hdr=HEADER_TABS.includes(id);
+  document.getElementById('hdr').hidden=!hdr;
+  document.getElementById('season-bar').hidden=!hdr;
+  if(!hdr&&openPicker){openPicker=null;renderSeasonBar();}
   document.querySelectorAll('.pnl').forEach(p=>p.classList.toggle('on',p.id==='pnl-'+id));
   document.querySelectorAll('.nav [data-tab]').forEach(b=>b.classList.toggle('on',b.dataset.tab===id||(b.dataset.also||'').split(' ').includes(id)));
   window.scrollTo(0,0);
@@ -584,6 +603,9 @@ function sessionLabel(s){
 }
 function av(n,s=28,ring){const c=chipOf(n);return `<div class="av${ring?' ring':''}" style="width:${s}px;height:${s}px;font-size:${Math.round(s*.38)}px;background:${c.hex};color:${c.dark?'#1A1612':'#F4EFE6'}">${n.slice(0,2).toUpperCase()}</div>`;}
 function rank(i){return `<span class="rank${i<3?' r'+(i+1):''}">${i+1}</span>`;}
+// Name colour class for finishing place i of n: pl1/pl2/pl3 for the podium, pl-last for last place
+// (last wins over the podium, so with 2 or 3 players the bottom one is red, not silver/bronze)
+function place(i,n){return n>1&&i===n-1?'pl-last':i<3?'pl'+(i+1):'';}
 
 // Money. Every format drops ".00" on whole pounds.
 //   money(v)   exact, signed       (+£12.35)  for amounts people entered: a session's in/out and PnL
@@ -731,36 +753,49 @@ function renderLB(){
     <button class="hero-card leader" onclick="showPlayer('${q(first.name)}')">
       ${INLAY}
       <div class="hero-lbl">${leaderLabel()}</div>
-      <div class="hero-who">${av(first.name,38,'ring')}<span>${first.name}</span></div>
+      <div class="hero-who">${av(first.name,38,'ring')}<span class="pl1">${first.name}</span></div>
       <div class="hero-num money">${score(first.metric)}</div>
       ${second?`<span class="hero-badge">${first.metric-second.metric<0.125?'Level with 2nd':`+${gap(first.metric-second.metric)} clear of&nbsp;2nd`}</span>`:''}
     </button>
     ${n>1?`<button class="hero-card loser" onclick="showPlayer('${q(last.name)}')">
       ${TORN}
       <div class="hero-lbl">${loserLabel()}</div>
-      <div class="hero-who">${av(last.name,38)}<span>${last.name}</span></div>
+      <div class="hero-who">${av(last.name,38)}<span class="pl-last">${last.name}</span></div>
       <div class="hero-num money">${score(last.metric)}</div>
       <span class="hero-badge">${aboveLast.metric-last.metric<0.125?`Level with&nbsp;${n>2?'2nd‑last':'the&nbsp;leader'}`:`${gap(aboveLast.metric-last.metric)} adrift of&nbsp;${n>2?'2nd‑last':'the&nbsp;leader'}`}</span>
     </button>`:''}
   </div>`;
 
-  // Standings: bars grow right (green) or left (red) from a centre line, scaled to the biggest absolute score.
+  // Standings: bars grow right (green) or left (red) from a zero line. The zero line sits where the
+  // biggest win just reaches the right edge and the biggest loss just reaches the left edge, so the
+  // bars always use the full width (all positive → zero line at the left edge).
   // The old points system has no negatives, so its bars all grow right from the left edge.
   const isPnl=SYS==='pnl';
-  const maxAbs=Math.max(...all.map(p=>Math.abs(p.metric)),0.01);
+  const maxUp=Math.max(...all.map(p=>p.metric),0), maxDown=Math.max(...all.map(p=>-p.metric),0);
+  const span=Math.max(maxUp+maxDown,0.01);
+  const zero=maxDown/span*100;   // zero line, as % from the left of the bar
   html+=`<div class="sec-head"><h2 class="h2">${VIEW==='all'?'All-time standings':'Standings'}</h2><button class="link" onclick="openRules()">How it's scored</button></div>
   <div class="card standings">
     ${all.map((p,i)=>{
-      const w=Math.abs(p.metric)/maxAbs*(isPnl?50:100);
-      const bar=isPnl?(p.metric>=0?`left:50%;width:${w}%`:`right:50%;width:${w}%`):`left:0;width:${w}%`;
+      const w=Math.abs(p.metric)/span*100;
+      const bar=isPnl?(p.metric>=0?`left:${zero}%;width:${w}%`:`right:${100-zero}%;width:${w}%`):`left:0;width:${w}%`;
       const c=isPnl?cls(round25(p.metric)):'pts';
       return `<button class="st-row" onclick="showPlayer('${q(p.name)}')">
-        ${rank(i)}${av(p.name,32)}<span class="st-name">${p.name}</span>
-        <span class="st-bar${isPnl?' centred':''}"><span class="${c}" style="${bar}"></span></span>
+        ${rank(i)}${av(p.name,32)}<span class="st-name ${place(i,n)}">${p.name}</span>
+        <span class="st-bar${isPnl?' centred':''}" style="--z:${zero}%"><span class="${c}" style="${bar}"></span></span>
         <span class="money st-num ${c}">${score(p.metric)}</span></button>`;}).join('')}
   </div>`;
 
-  // Recent sessions: the latest two, newest first
+  // Past seasons and pooled views just get a link to Sessions; the current season shows its latest two
+  if(!isActiveSeason()){
+    html+=`<button class="card sess-card" onclick="goTab('hist')">
+      <span class="date-tile accent">${icon('calendar')}</span>
+      <span class="sess-mid"><span class="sess-name">See all sessions</span>
+        <span class="sub">${SS.length} session${SS.length!==1?'s':''} played</span></span>
+      <span class="sub">${icon('right')}</span></button>`;
+    el.innerHTML=html;
+    return;
+  }
   const recent=SS.slice(-2).reverse();
   html+=`<div class="sec-head"><h2 class="h2">Recent sessions</h2><button class="link" onclick="goTab('hist')">See all</button></div>
   ${recent.map(s=>{
@@ -818,7 +853,10 @@ function formChart(all,isPnl){
 function renderScorer(){
   const el=document.getElementById('pnl-scorer');
   if(!isActiveSeason()){
-    el.innerHTML=emptyCard(`${readOnlyMsg()} Switch to the current Chapter 2 season to add sessions.`);
+    // The pickers are hidden on this screen, so offer a one-tap jump back to the current season
+    const cur=era2().seasons.find(s=>s.number===DATA.activeSeasonNumber);
+    el.innerHTML=`<div class="card"><p class="note">${readOnlyMsg()} New sessions go into the current season, Chapter 2 ${cur?cur.name:''}.</p>
+      <button class="btn" onclick="setView('era-2')">Go to current season</button></div>`;
     return;
   }
   const quick=DATA.players.filter(p=>!scorerPlayers.includes(p));
@@ -909,7 +947,7 @@ function renderHist(){
       ${rows.map((r,i)=>{
         const val=isPnl?`<span class="money ${cls(r.p)}">${money(r.p)}</span>`:`<span class="pts">${r.o}</span>`;
         return `<div class="grid-res">
-          <div class="who">${rank(i)}${av(r.player,22)}<span style="font-size:13px">${r.player}</span></div>
+          <div class="who">${rank(i)}${av(r.player,22)}<span class="${place(i,rows.length)}" style="font-size:13px">${r.player}</span></div>
           <span class="sub c">${gbp(r.buyin)}</span>
           <span class="sub c">${gbp(r.final)}</span>
           <span class="r" style="font-size:13px">${val}</span></div>`;}).join('')}
