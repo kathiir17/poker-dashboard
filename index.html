@@ -67,7 +67,8 @@ svg.i{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:1.75;str
 .icon-btn{display:inline-flex;align-items:center;justify-content:center;width:36px;height:36px;border-radius:10px;background:none;border:1px solid transparent;color:var(--muted);cursor:pointer}
 .icon-btn:hover{color:var(--text);border-color:var(--border)}
 .icon-btn svg.i{width:20px;height:20px}
-.season-bar{padding:0 16px 4px;position:relative;z-index:60}  /* above the dropdown dimmer */
+.season-bar{padding:0 16px 4px;position:relative;z-index:60}
+.season-bar.solo{padding-top:20px}  /* above the dropdown dimmer */
 .pickers{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 /* A picker: a box showing the current choice; tapping it drops a themed list down beneath it. */
 .picker-wrap{position:relative;min-width:0}
@@ -462,7 +463,7 @@ const ICON_PATHS={
   'up-chev':'<path d="m6 15 6-6 6 6"/>',
   arrowDown:'<path d="M12 5v14M6 13l6 6 6-6"/>',
   coinMinus:'<circle cx="12" cy="12" r="8.5"/><path d="M8.5 12h7"/>',
-  shield:'<path d="M12 3 5 6v5c0 4.5 3 8 7 10 4-2 7-5.5 7-10V6Z"/>',
+  house:'<path d="M3 11.5 12 4l9 7.5"/><path d="M5.5 10v10h13V10"/><path d="M10 20v-5h4v5"/>',
   plus:'<path d="M12 5v14M5 12h14"/>',
   check:'<path d="m5 12.5 4.5 4.5L19 7.5"/>',
   chip:'<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4.5"/><path d="M12 3v3M12 18v3M3 12h3M18 12h3"/>',
@@ -622,14 +623,17 @@ async function newSeason(){
 }
 
 // Show one panel and light up its bottom-bar button (More stays lit while Rules is open).
-// The title and Chapter / Season pickers only appear on the tabs that depend on them.
-const HEADER_TABS=['lb','stats','hist'];
+// The Chapter / Season pickers only appear on the tabs that depend on them, and the big title
+// only on the main three.
+const TITLE_TABS=['lb','stats','hist'], PICKER_TABS=[...TITLE_TABS,'rivals'];
 function goTab(id){
   TAB=id;
-  const hdr=HEADER_TABS.includes(id);
-  document.getElementById('hdr').hidden=!hdr;
-  document.getElementById('season-bar').hidden=!hdr;
-  if(!hdr)openPicker=null;
+  const title=TITLE_TABS.includes(id),pickers=PICKER_TABS.includes(id);
+  const bar=document.getElementById('season-bar');
+  document.getElementById('hdr').hidden=!title;
+  bar.hidden=!pickers;
+  bar.classList.toggle('solo',pickers&&!title);   // no title above, so it needs its own top spacing
+  if(!pickers)openPicker=null;
   document.querySelectorAll('.pnl').forEach(p=>p.classList.toggle('on',p.id==='pnl-'+id));
   document.querySelectorAll('.nav [data-tab]').forEach(b=>b.classList.toggle('on',b.dataset.tab===id||(b.dataset.also||'').split(' ').includes(id)));
   window.scrollTo(0,0);
@@ -1033,7 +1037,8 @@ function selSessions(){return selectSessions(DATA,VIEW,isAllTime()?-1:seasons[cu
 // Players whose chart lines are coloured. Goes back to just the leader when the Chapter / Season changes.
 let chartSel=[],chartKey=null;
 let chartFit=false;   // "Fit to selected": zoom the chart to just the coloured players
-let chartEnds=false;  // "End values": label where each coloured player finished
+let chartEnds=false;  // "End values" (running total): label where each coloured player finished
+let chartAvg=false;   // "Show shrunk avg" (per session): a dashed line at each coloured player's shrunk average
 
 function renderStats(){
   const el=document.getElementById('pnl-stats');
@@ -1055,8 +1060,8 @@ function renderStats(){
 
   const opt=(on,label,flip)=>`<button class="fit-btn${on?' on':''}" aria-pressed="${on}" ${chartSel.length?'':'disabled'} onclick="${flip};renderStats()">${on?icon('check'):''}${label}</button>`;
   html+=`<div class="sec-head chart-head">${chartToggle()}</div>
-  <div class="card chart-card" id="run-chart">${lineChart(ss,{mode:chartMode,sel:chartSel,fit:chartFit,ends:chartEnds})}
-    <div class="chart-opts">${opt(chartFit,'Fit to selected','chartFit=!chartFit')}${opt(chartEnds,'End values','chartEnds=!chartEnds')}</div>
+  <div class="card chart-card" id="run-chart">${lineChart(ss,{mode:chartMode,sel:chartSel,fit:chartFit,ends:chartEnds,avg:chartAvg})}
+    <div class="chart-opts">${opt(chartFit,'Fit to selected','chartFit=!chartFit')}${chartMode==='run'?opt(chartEnds,'End values','chartEnds=!chartEnds'):opt(chartAvg,'Show shrunk avg','chartAvg=!chartAvg')}</div>
     <div class="sub" style="margin-top:12px">Tap names to compare</div>
     <div class="pchips">${ps.map(p=>{const on=chartSel.includes(p.name);
       return `<button class="pchip${on?' on':''}" style="--c:${lineCol(p.name)}" aria-pressed="${on}" onclick="toggleLine('${q(p.name)}')"><span class="dot"></span>${p.name}</button>`;}).join('')}</div></div>`;
@@ -1091,17 +1096,21 @@ function chartToggle(){
 //   fit:  zoom to the coloured players: the y-axis covers only their highs and lows, the x-axis only
 //         the sessions from their first (just before it, for a running total) to their last.
 //         Everyone else's grey lines are cut off at the edges.
-//   ends: label each coloured player's final value (running total: where they finished; per session:
-//         their last session) in a strip down the right edge, nudged apart so labels don't overlap.
+//   ends: running total only. Label where each coloured player finished, in a strip down the right
+//         edge, nudged apart so labels don't overlap.
+//   avg:  per session only. A dashed line in each coloured player's colour at their shrunk average
+//         (the number in the Players list), labelled in the same right-hand strip.
 // One season: x = session number, evenly spaced. A chapter or All time: x = real dates, with
 // month labels and a dashed copper line where each season starts. Sessions on the same day sit
 // a few pixels apart so a 4-session night shows as quick steps rather than one vertical jump.
 const GREY_LINE='#3A3633';
 let chartN=0;   // gives each chart's clipping area its own id
-function lineChart(ss,{mode='run',sel=[],only=null,fit=false,ends=false}={}){
+function lineChart(ss,{mode='run',sel=[],only=null,fit=false,ends=false,avg=false}={}){
   const run=mode==='run';
+  const showEnds=ends&&run,showAvg=avg&&!run;
+  const shrunk=showAvg?Object.fromEntries(playerStats(ss).map(p=>[p.name,p.shrunk])):{};
   const byDate=isAllTime();   // true for a chapter's All seasons and for the pooled All time view
-  const W=340,padL=42,padR=ends?60:12,padT=byDate?20:10,padB=22,H=byDate?236:226;
+  const W=340,padL=42,padR=showEnds||showAvg?60:12,padT=byDate?20:10,padB=22,H=byDate?236:226;
   const iW=W-padL-padR,iH=H-padT-padB;
 
   // xs[i] = x of session i, in px from the plot's left edge. x=0 is the start, before any session.
@@ -1195,14 +1204,17 @@ function lineChart(ss,{mode='run',sel=[],only=null,fit=false,ends=false}={}){
     // dots: just the end of a running total; every session for per-session
     (run?[lines[n].at(-1)]:lines[n]).forEach(p=>{svg+=`<circle cx="${X(xs[p.o])}" cy="${Y(p.v)}" r="${run?3.6:2.8}" fill="${c}"/>`;});
     // a running total that stopped early stays at its final value: a dotted line carries it to the edge
-    if(ends&&run&&end(n)<xb)svg+=`<line x1="${X(end(n))}" x2="${W-padR}" y1="${Y(lines[n].at(-1).v)}" y2="${Y(lines[n].at(-1).v)}" stroke="${c}" stroke-opacity=".6" stroke-dasharray="1.5 3"/>`;});
+    if(showEnds&&end(n)<xb)svg+=`<line x1="${X(end(n))}" x2="${W-padR}" y1="${Y(lines[n].at(-1).v)}" y2="${Y(lines[n].at(-1).v)}" stroke="${c}" stroke-opacity=".6" stroke-dasharray="1.5 3"/>`;});
+  // shrunk-average lines, across the whole plot
+  if(showAvg)sel.filter(n=>lines[n]).forEach(n=>{
+    svg+=`<line x1="${padL}" x2="${W-padR}" y1="${Y(shrunk[n])}" y2="${Y(shrunk[n])}" stroke="${lineCol(n)}" stroke-width="1.4" stroke-dasharray="5 4"/>`;});
   svg+=`</g>`;
-  if(ends){
-    // end labels: start at each player's final value, then push apart (at least 11px) and keep inside
-    const labs=sel.filter(n=>lines[n]).map(n=>{const v=lines[n].at(-1).v;return {n,v,y:+Y(v)};}).sort((a,b)=>a.y-b.y);
+  if(showEnds||showAvg){
+    // right-hand labels: start at each value, then push apart (at least 11px) and keep inside
+    const labs=sel.filter(n=>lines[n]).map(n=>{const v=showEnds?lines[n].at(-1).v:shrunk[n];return {n,v,y:+Y(v)};}).sort((a,b)=>a.y-b.y);
     labs.forEach((l,i)=>{l.y=Math.max(l.y,padT+4,i?labs[i-1].y+11:0);});
     for(let i=labs.length-1;i>=0;i--)labs[i].y=Math.min(labs[i].y,H-padB-2-(labs.length-1-i)*11);
-    labs.forEach(l=>{svg+=`<text x="${W-padR+6}" y="${(l.y+3.5).toFixed(1)}" font-size="9.5" font-weight="600" fill="${lineCol(l.n)}">${run?money25(l.v):money(l.v)}</text>`;});
+    labs.forEach(l=>{svg+=`<text x="${W-padR+6}" y="${(l.y+3.5).toFixed(1)}" font-size="9.5" font-weight="600" fill="${lineCol(l.n)}">${money25(l.v)}</text>`;});
   }
   return svg+`</svg>`;
 }
@@ -1257,9 +1269,9 @@ function renderPlayer(){
       <span class="money ${cls(p.worst.pnl)}" style="font-size:18px">${money(p.worst.pnl)}</span></div>`:''}
   </div>
   <div class="sec-head chart-head">${chartToggle()}</div>
-  <div class="card chart-card">${lineChart(ss,{mode:chartMode,sel:[p.name],only:[p.name],fit:true,ends:true})}
+  <div class="card chart-card">${lineChart(ss,{mode:chartMode,sel:[p.name],only:[p.name],fit:true,ends:true,avg:true})}
     <div class="spread" style="align-items:center;margin-top:8px">
-      <span class="sub"><span class="swatch" style="background:${lineCol(p.name)}"></span>${p.name}</span>
+      <span class="sub"><span class="swatch" style="background:${lineCol(p.name)}"></span>${p.name}${chartMode==='form'?' · dashed = shrunk avg':''}</span>
       <button class="link" style="font-size:13px" onclick="compareOnStats('${q(p.name)}')">Compare on Stats</button></div></div>`;
 
   // Rivals: opponents they've shared 3+ sessions with, worst first. Hidden until there are any.
@@ -1290,7 +1302,7 @@ function renderPlayer(){
 // ══════════════ RIVAL ANALYSIS ══════════════
 // The working behind the Rivals numbers. Pick a player, tap one of their rivals, and see every
 // session the two both played: each one's in → out and P&L, the gap, and the average at the bottom.
-// Follows the current Chapter / Season choice, like the player page. Opened from More, or from
+// Uses the Chapter / Season pickers, which show above it. Opened from More, or from
 // "See the working" on a player page.
 let rivalOf=null;        // player whose rivals are listed
 let rivalOpen=null;      // rival whose table is expanded
@@ -1308,7 +1320,7 @@ function shortDate(d){const [dd,mm]=d.split('/');return `${+dd} ${MONTHS[+mm-1]}
 function renderRivals(){
   const el=document.getElementById('pnl-rivals');
   const back=`<button class="link back" style="margin:0" onclick="goTab('${rivalsFrom}')">${icon('left')}${rivalsFrom==='player'?playerName:'More'}</button>`;
-  const top=`<div class="pp-top">${back}<span class="sub" style="font-size:14px">${scopeLabel()}</span></div>`;
+  const top=`<div class="pp-top">${back}</div>`;
   const ss=selSessions(),rv=rivals(ss);
   const ps=playerStats(ss).filter(p=>rv[p.name]);   // only players with at least one rival, by rank
   if(!ps.length){el.innerHTML=top+emptyCard('No two players have shared 3+ sessions in this selection yet.');return;}
@@ -1351,7 +1363,7 @@ const AWARD_INFO={
   third:   {name:'Third',                 rule:'3rd when the season closes',                  icon:'trophy',  c:'var(--copper)'},
   loser:   {name:'Loser',                 rule:'Last when the season closes',                 icon:'arrowDown',c:'var(--down)'},
   donation:{name:'Donation of the Season',rule:'Worst single session',                        icon:'coinMinus',c:'var(--down)'},
-  ironMan: {name:'Iron Man',              rule:'Played every session',                        icon:'shield',  c:'#9AA6B8'},
+  fullHouse: {name:'Full House',              rule:'Played every session',                        icon:'house',   c:'#B391E8'},
   comeback:{name:'Comeback of the Season',rule:'Biggest rise, 1st half to 2nd half',          icon:'up',      c:'var(--up)'},
   falloff: {name:'Biggest Fall-off',      rule:'Biggest drop, 1st half to 2nd half',          icon:'down',    c:'var(--down)'},
   whale:   {name:'Whale',                 rule:'Most money bought in',                        icon:'stack',   c:'#7B9BE0'},
@@ -1362,7 +1374,7 @@ function awardDetail(a,name){
     case 'champion':case 'runnerUp':case 'third':case 'loser':return `${money25(a.value)} ranked average`;
     case 'donation':{const ses=a.donors.filter(d=>d.player===name).map(d=>d.session.name);
       return `${money(a.value)} in ${ses.length?ses.join(' and '):a.donors[0].session.name}`;}
-    case 'ironMan':return `Played all ${a.value} session${a.value!==1?'s':''}`;
+    case 'fullHouse':return `Played all ${a.value} session${a.value!==1?'s':''}`;
     case 'comeback':return `${money25(a.value)} a game better in the second half`;
     case 'falloff':return `${gbp25(-a.value)} a game worse in the second half`;
     case 'whale':return `${gbp(a.value)} bought in across the season`;

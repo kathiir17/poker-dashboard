@@ -113,7 +113,7 @@ async function run(){
   check('Champion Sanj, Runner-up Varunn, Third Vittu, Loser Kathiir',['champion','runnerUp','third','loser'].map(t=>who(2,1,t)[0]),['Sanj','Varunn','Vittu','Kathiir']);
   check('All locked',aw.filter(a=>a.chapter===2&&a.season===1).every(a=>a.status==='locked'),true);
   check('Donation: Vittu −£100',[who(2,1,'donation'),find(2,1,'donation').value],[['Vittu'],-100]);
-  check('Iron Man: Aaron and Varunn (all 10 sessions)',[who(2,1,'ironMan'),find(2,1,'ironMan').value],[['Aaron','Varunn'],10]);
+  check('Full House: Aaron and Varunn (all 10 sessions)',[who(2,1,'fullHouse'),find(2,1,'fullHouse').value],[['Aaron','Varunn'],10]);
   check('Comeback: Varunn, +£31.25 a game better in the second half',[who(2,1,'comeback'),find(2,1,'comeback').value],[['Varunn'],31.25]);
   check('Fall-off: Vittu',who(2,1,'falloff'),['Vittu']);
   check('Whale: Aaron, £330 bought in',[who(2,1,'whale'),find(2,1,'whale').value],[['Aaron'],330]);
@@ -122,7 +122,7 @@ async function run(){
   check('C1 S1 Runner-up: Ami',who(1,1,'runnerUp'),['Ami']);
   check('C1 S2 Donation is a tie: Ami and Varunn, −£40 each',[who(1,2,'donation'),find(1,2,'donation').value],[['Ami','Varunn'],-40]);
   check('C1 S1 Whale is a tie: Aaron and Vittu, £420 each',[who(1,1,'whale'),find(1,1,'whale').value],[['Aaron','Vittu'],420]);
-  check('C1 S3 Iron Man: Aaron, Kathiir, Varunn',who(1,3,'ironMan'),['Aaron','Kathiir','Varunn']);
+  check('C1 S3 Full House: Aaron, Kathiir, Varunn',who(1,3,'fullHouse'),['Aaron','Kathiir','Varunn']);
   check('C1 S1 Comeback: Sanj, Fall-off: Ami',[who(1,1,'comeback'),who(1,1,'falloff')],[['Sanj'],['Ami']]);
   section('Awards: Chapter 2 · Season 2 (live)');
   check('Leading, not locked',aw.filter(a=>a.chapter===2&&a.season===2).every(a=>a.status==='leading'),true,1);
@@ -147,7 +147,7 @@ async function run(){
    check('Fall-off: B, −£20',[get('falloff').players,get('falloff').value],[['B'],-20]);
    check('Only 1 session in the first half → no Comeback/Fall-off for C',[typesOf(d,1,'C').includes('comeback'),typesOf(d,1,'C').includes('falloff')],[false,false]);}
   {const d=fake([{A:5,B:-5},{C:5,D:-5}]);
-   check('Iron Man can be nobody',seasonAwards(d,'era-2',1).some(a=>a.type==='ironMan'),false);}
+   check('Full House can be nobody',seasonAwards(d,'era-2',1).some(a=>a.type==='fullHouse'),false);}
   {const d=fake([{A:5,B:-5}],[{A:5,B:-5}]);
    check('Older season locked, newest leading',[seasonAwards(d,'era-2',1)[0].status,seasonAwards(d,'era-2',2)[0].status],['locked','leading']);}
   {const d=fake([{A:5,B:-5,C:0}],[]);

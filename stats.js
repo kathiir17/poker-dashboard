@@ -138,14 +138,14 @@ function headlines(sessions){
 //                                        two tied champions means no runner-up). Last place wins over a
 //                                        podium place, so with 3 players the bottom one is Loser, not Third.
 //   donation   worst single-session PnL (value), with who did it in which session (donors:[{player, session}])
-//   ironMan    played every session (value = how many sessions). Can be several people, or nobody.
+//   fullHouse  played every session (value = how many sessions). Can be several people, or nobody.
 //   comeback   biggest rise in average PnL from the first half of the season to the second
 //              (value = second-half average − first-half average, must be above 0), with before/after.
 //              Halves are by session order; with an odd number the middle session goes in the second
 //              half. Only players with 2+ sessions in each half count.
 //   falloff    the same, biggest fall (value below 0)
 //   whale      most money bought in across the season (value = total buy-ins, rebuys included)
-const AWARD_TYPES=['champion','runnerUp','third','loser','donation','ironMan','comeback','falloff','whale'];
+const AWARD_TYPES=['champion','runnerUp','third','loser','donation','fullHouse','comeback','falloff','whale'];
 
 function seasonAwards(data,eraId,seasonNumber){
   const ss=selectSessions(data,eraId,seasonNumber);
@@ -177,8 +177,8 @@ function seasonAwards(data,eraId,seasonNumber){
   const donors=all.filter(x=>same(x.pnl,worst));
   give('donation',[...new Set(donors.map(x=>x.player))],worst,{donors:donors.map(x=>({player:x.player,session:x.session}))});
 
-  // Iron Man: played every session
-  give('ironMan',ps.filter(p=>p.n===ss.length).map(p=>p.name),ss.length);
+  // Full House: played every session
+  give('fullHouse',ps.filter(p=>p.n===ss.length).map(p=>p.name),ss.length);
 
   // Comeback / Fall-off: first half vs second half
   const half=Math.floor(ss.length/2);
