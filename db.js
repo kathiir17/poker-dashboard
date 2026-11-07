@@ -7,14 +7,16 @@
 //
 // Firestore layout (see firestore.rules for who may write what):
 //   config/app                                { activeSeasonNumber }
+//   config/colours                            { colours: { playerName: colourId } }  chip colour per player
 //   eras/{eraId}                              { name, number }          era-1 = Legacy, era-2 = current
 //   eras/{eraId}/seasons/s{n}                 { name, number, system }  system: "pnl" | "old"
-//   eras/{eraId}/seasons/s{n}/sessions/{id}   { seq, name, date, results:[{player,buyin,final}] }
+//   eras/{eraId}/seasons/s{n}/sessions/{id}   { seq, name, date, results:[{player,buyin,final}], deleted? }
+//                                             deleted:true = "deleted" in the app; kept so it can be restored
 //   players/{name}                            { name }
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import {
-  getFirestore, collection, doc, getDoc, getDocs, writeBatch, deleteDoc,
+  getFirestore, collection, doc, getDoc, getDocs, writeBatch, updateDoc, setDoc,
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 // Public web config — safe to publish; access is controlled by firestore.rules.
@@ -32,11 +34,12 @@ const LIVE_ERA = "era-2"; // the only era the app ever writes to
 
 // ── Reads ────────────────────────────────────────────────────────────────
 
-// Sessions of one season, in play order.
+// Sessions of one season, in play order. Sessions marked deleted are left out.
 async function loadSeason(eraId, seasonId) {
   const snap = await getDocs(collection(db, "eras", eraId, "seasons", seasonId, "sessions"));
   return snap.docs
     .map(d => ({ id: d.id, ...d.data() }))
+    .filter(s => s.deleted !== true)
     .sort((a, b) => a.seq - b.seq || a.id.localeCompare(b.id));
 }
 
@@ -56,14 +59,16 @@ async function loadEra(eraId) {
 
 // Everything the app needs at start-up.
 async function loadAll() {
-  const [cfgSnap, legacy, live, players] = await Promise.all([
+  const [cfgSnap, legacy, live, players, coloursSnap] = await Promise.all([
     getDoc(doc(db, "config", "app")),
     loadEra("era-1"),
     loadEra(LIVE_ERA),
     loadPlayers(),
+    getDoc(doc(db, "config", "colours")),
   ]);
   if (!cfgSnap.exists()) throw new Error("config/app not found in Firestore");
-  return { activeSeasonNumber: cfgSnap.data().activeSeasonNumber, eras: { "era-1": legacy, [LIVE_ERA]: live }, players };
+  const colours = coloursSnap.exists() ? (coloursSnap.data().colours || {}) : {};
+  return { activeSeasonNumber: cfgSnap.data().activeSeasonNumber, eras: { "era-1": legacy, [LIVE_ERA]: live }, players, colours };
 }
 
 async function loadPlayers() {
@@ -74,8 +79,9 @@ async function loadPlayers() {
 // ── Writes (Era 2 only) ──────────────────────────────────────────────────
 
 // Add (no session.id) or overwrite (session.id set) a session in an Era 2 season.
-// Also records any new player names. Returns the session's id.
-async function saveSession(seasonId, session) {
+// Also records any new player names, and if `colours` is given saves the full
+// player→colour map in the same write (used when a new player joins). Returns the session's id.
+async function saveSession(seasonId, session, colours) {
   const sessions = collection(db, "eras", LIVE_ERA, "seasons", seasonId, "sessions");
   const ref = session.id ? doc(sessions, session.id) : doc(sessions); // doc(sessions) = new random id
   const data = {
@@ -87,12 +93,20 @@ async function saveSession(seasonId, session) {
   const batch = writeBatch(db);
   batch.set(ref, data);
   for (const r of data.results) batch.set(doc(db, "players", r.player), { name: r.player });
+  if (colours) batch.set(doc(db, "config", "colours"), { colours });
   await batch.commit();
   return ref.id;
 }
 
+// "Delete" only marks the session deleted: the app stops showing it, but it stays in
+// Firestore so it can be restored (Firebase console: remove the `deleted` field).
 async function deleteSession(seasonId, sessionId) {
-  await deleteDoc(doc(db, "eras", LIVE_ERA, "seasons", seasonId, "sessions", sessionId));
+  await updateDoc(doc(db, "eras", LIVE_ERA, "seasons", seasonId, "sessions", sessionId), { deleted: true });
+}
+
+// Save the whole player→colour-id map (the rules check every id is a palette colour and none repeat).
+async function saveColours(colours) {
+  await setDoc(doc(db, "config", "colours"), { colours });
 }
 
 // Start Era 2 season number currentNumber+1 and make it the active one, in one atomic write.
@@ -106,5 +120,5 @@ async function startNewSeason(currentNumber) {
   return { id: `s${number}`, ...season, sessions: [] };
 }
 
-window.DB = { loadAll, loadEra, loadSeason, loadPlayers, saveSession, deleteSession, startNewSeason };
+window.DB = { loadAll, loadEra, loadSeason, loadPlayers, saveSession, deleteSession, startNewSeason, saveColours };
 window.dispatchEvent(new Event("db-ready"));

@@ -8,10 +8,12 @@ rules_version = '2';
 //   • Anyone can read everything.
 //   • Era 1 ("Legacy") can never be written — not by the app, not by anyone with the link.
 //     (Only the project owner, via the Firebase console or the admin key, bypasses rules.)
-//   • Era 2 sessions can be added, edited and deleted by anyone, if they have the right shape.
+//   • Era 2 sessions can be added and edited by anyone, if they have the right shape.
+//     Nobody can really delete one: the app "deletes" by setting deleted:true, so it can be restored.
 //   • A new Era 2 season must be numbered exactly one above the current one, and is created
 //     together with the config/app update. Seasons can never be edited or deleted.
 //   • Players can be added, never changed or deleted.
+//   • config/colours maps player names to chip colour ids: only palette ids, no two players sharing.
 //   • Anything not mentioned below is denied.
 
 service cloud.firestore {
@@ -21,10 +23,11 @@ service cloud.firestore {
       return get(/databases/$(database)/documents/config/app).data.activeSeasonNumber;
     }
 
-    // Shape of a session document.
+    // Shape of a session document. `deleted` is optional (true = hidden in the app).
     function validSession(d) {
-      return d.keys().hasOnly(['seq', 'name', 'date', 'results'])
+      return d.keys().hasOnly(['seq', 'name', 'date', 'results', 'deleted'])
           && d.keys().hasAll(['seq', 'name', 'date', 'results'])
+          && (!('deleted' in d) || d.deleted is bool)
           && d.seq is int && d.seq >= 1
           && d.name is string && d.name.size() >= 1 && d.name.size() <= 60
           && d.date is string && d.date.matches('^[0-3][0-9]/[01][0-9]/20[0-9][0-9]$')
@@ -62,8 +65,21 @@ service cloud.firestore {
         allow create, update: if eraId == 'era-2'
           && exists(/databases/$(database)/documents/eras/era-2/seasons/$(seasonId))
           && validSession(request.resource.data);
-        allow delete: if eraId == 'era-2';
+        // no `allow delete`: sessions are only ever marked deleted, never removed
       }
+    }
+
+    // ── config/colours: { colours: { playerName: colourId } } ──────────────
+    // Every value must be a palette id (keep in sync with PALETTE in index.html),
+    // and no colour may be used twice (set of values is as big as the map).
+    match /config/colours {
+      allow create, update: if request.resource.data.keys().hasOnly(['colours'])
+        && request.resource.data.colours is map
+        && request.resource.data.colours.size() <= 100
+        && request.resource.data.colours.values().hasOnly([
+             'ivory', 'red', 'blue', 'gold', 'copper', 'oxblood', 'navy', 'jade',
+             'teal', 'plum', 'violet', 'orange', 'rose', 'olive', 'slate'])
+        && request.resource.data.colours.values().toSet().size() == request.resource.data.colours.size();
     }
 
     // ── Players: { name }, document ID is the name ────────────────────────
