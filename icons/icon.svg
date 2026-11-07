@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <!-- App icon: a copper poker chip on the app's dark base. Rendered to PNGs (icon-180/192/512.png). -->
+  <rect width="512" height="512" fill="#0B0B0C"/>
+  <circle cx="256" cy="256" r="168" fill="#C08A5B"/>
+  <!-- edge spots -->
+  <g fill="#0B0B0C">
+    <rect x="236" y="88" width="40" height="44" rx="6"/>
+    <rect x="236" y="88" width="40" height="44" rx="6" transform="rotate(60 256 256)"/>
+    <rect x="236" y="88" width="40" height="44" rx="6" transform="rotate(120 256 256)"/>
+    <rect x="236" y="88" width="40" height="44" rx="6" transform="rotate(180 256 256)"/>
+    <rect x="236" y="88" width="40" height="44" rx="6" transform="rotate(240 256 256)"/>
+    <rect x="236" y="88" width="40" height="44" rx="6" transform="rotate(300 256 256)"/>
+  </g>
+  <circle cx="256" cy="256" r="104" fill="none" stroke="#0B0B0C" stroke-width="6" opacity=".55"/>
+  <circle cx="256" cy="256" r="88" fill="#DDB872"/>
+  <!-- spade -->
+  <path fill="#0B0B0C" d="M256 196c-10 22-58 48-58 82 0 20 15 33 32 33 9 0 16-3 21-9-2 14-8 24-17 32h44c-9-8-15-18-17-32 5 6 12 9 21 9 17 0 32-13 32-33 0-34-48-60-58-82z"/>
+</svg>

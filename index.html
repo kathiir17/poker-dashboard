@@ -5,6 +5,14 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="theme-color" content="#0B0B0C">
 <title>Family Poker Night</title>
+<!-- Installable as a full-screen home-screen app -->
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icons/icon-180.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Poker Night">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <!-- Archivo (with its width axis, for the expanded titles) and Inter -->
@@ -30,10 +38,13 @@
   --body:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
   --r-card:18px;
   --r-ctl:12px;
+  --nav-h:64px;
 }
 *{box-sizing:border-box;margin:0;padding:0}
 [hidden]{display:none!important}  /* so el.hidden always wins over inline display:flex */
-body{font-family:var(--body);font-size:14px;line-height:1.45;background:var(--base);color:var(--text);max-width:640px;margin:0 auto;padding-bottom:48px;-webkit-font-smoothing:antialiased}
+body{font-family:var(--body);font-size:14px;line-height:1.45;background:var(--base);color:var(--text);max-width:640px;margin:0 auto;-webkit-font-smoothing:antialiased;
+  /* clear the notch at the top (full-screen app) and the bottom bar + home indicator at the bottom */
+  padding-top:env(safe-area-inset-top,0px);padding-bottom:calc(var(--nav-h) + env(safe-area-inset-bottom,0px) + 16px)}
 button{font-family:inherit;color:inherit}
 :focus-visible{outline:2px solid var(--copper);outline-offset:2px}
 svg.i{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:1.75;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0;vertical-align:-3px}
@@ -64,10 +75,27 @@ svg.i{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:1.75;str
 .seg button{border:none;background:none;font-size:13px;font-weight:500;padding:7px 12px;border-radius:9px;cursor:pointer;color:var(--muted);white-space:nowrap}
 .seg button.on{background:var(--raised);color:var(--text);box-shadow:inset 0 0 0 1px var(--copper)}
 select{appearance:none;-webkit-appearance:none;background:var(--card) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' fill='none' stroke='%23A39A8E' stroke-width='1.75' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M1 1.5l5 5 5-5'/%3E%3C/svg%3E") no-repeat right 12px center;color:var(--text);border:1px solid var(--border);border-radius:var(--r-ctl);padding:9px 34px 9px 12px;font:500 14px var(--body);cursor:pointer}
-.tabs{display:flex;gap:4px;padding:0 12px;border-bottom:1px solid var(--border);overflow-x:auto;scrollbar-width:none}
-.tab{padding:11px 10px;font-size:14px;cursor:pointer;border:none;background:none;white-space:nowrap;font-weight:500;color:var(--muted);border-bottom:2px solid transparent;margin-bottom:-1px}
-.tab:hover{color:var(--text)}
-.tab.on{color:var(--text);border-bottom-color:var(--copper)}
+
+/* ── Bottom navigation bar ── */
+.nav{position:fixed;left:0;right:0;bottom:0;z-index:40;background:var(--card);border-top:1px solid var(--border);padding-bottom:env(safe-area-inset-bottom,0px)}
+.nav-in{max-width:640px;margin:0 auto;height:var(--nav-h);display:grid;grid-template-columns:repeat(5,1fr);align-items:center}
+.nav-btn{display:flex;flex-direction:column;align-items:center;gap:4px;background:none;border:none;color:var(--muted);font-size:11px;font-weight:500;cursor:pointer;padding:8px 0}
+.nav-btn svg.i{width:22px;height:22px}
+.nav-btn.on{color:var(--copper)}
+.nav-add{justify-self:center;width:56px;height:56px;border-radius:50%;background:var(--copper);color:var(--base);border:4px solid var(--base);margin-top:-22px;display:flex;align-items:center;justify-content:center;cursor:pointer}
+.nav-add svg.i{width:26px;height:26px;stroke-width:2.25}
+.nav-add.on,.nav-add:hover{background:var(--link)}
+/* ── More list and back link ── */
+.list-btn{display:flex;align-items:center;gap:12px;width:100%;background:none;border:none;border-bottom:1px solid var(--border);padding:14px 0;font-size:15px;text-align:left;cursor:pointer}
+.list-btn:last-child{border-bottom:none}
+.list-btn .ic{width:36px;height:36px;border-radius:10px;background:var(--raised);display:flex;align-items:center;justify-content:center;color:var(--copper);flex-shrink:0}
+.list-btn .chev{margin-left:auto;color:var(--muted)}
+.back{display:inline-flex;align-items:center;gap:4px;margin-bottom:12px}
+/* ── One-time Add to Home Screen hint, floating above the bottom bar ── */
+.hint{position:fixed;left:12px;right:12px;bottom:calc(var(--nav-h) + env(safe-area-inset-bottom,0px) + 12px);z-index:45;max-width:616px;margin:0 auto;background:var(--raised);border:1px solid var(--copper);border-radius:16px;padding:14px 44px 14px 14px;display:flex;gap:12px;align-items:flex-start}
+.hint .icon-btn{position:absolute;top:6px;right:6px}
+.hint img{width:40px;height:40px;border-radius:10px;flex-shrink:0}
+.share{display:inline-block;color:var(--link);vertical-align:-3px}
 
 /* ── Panels and cards ── */
 .pnl{display:none;padding:16px}
@@ -117,7 +145,7 @@ input::placeholder{color:#6f675e}
 .tag{display:inline-flex;align-items:center;gap:6px;font-size:13px;padding:5px 10px 5px 5px;border-radius:999px;cursor:pointer;border:1px solid var(--border);background:var(--raised)}
 .tag:hover{border-color:var(--muted)}
 .link{background:none;border:none;color:var(--link);font-size:14px;cursor:pointer;padding:0}
-.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--raised);color:var(--text);border:1px solid var(--copper);padding:9px 20px;border-radius:999px;font-size:14px;font-weight:500;z-index:999;pointer-events:none;opacity:0;transition:opacity .25s}
+.toast{position:fixed;bottom:calc(var(--nav-h) + env(safe-area-inset-bottom,0px) + 16px);left:50%;transform:translateX(-50%);background:var(--raised);color:var(--text);border:1px solid var(--copper);padding:9px 20px;border-radius:999px;font-size:14px;font-weight:500;z-index:999;pointer-events:none;opacity:0;transition:opacity .25s}
 .toast.on{opacity:1}
 .pts{font-family:var(--display);font-weight:700;color:var(--copper)}
 .badge{display:inline-block;background:var(--raised);color:var(--copper);border:1px solid var(--border);border-radius:8px;padding:3px 10px;font:700 13px var(--display);min-width:36px;text-align:center}
@@ -152,20 +180,25 @@ input::placeholder{color:#6f675e}
 
 <div class="season-bar" id="season-bar"></div>
 
-<div class="tabs" id="tabs">
-  <button class="tab on" onclick="goTab('lb',this)">Leaderboard</button>
-  <button class="tab" onclick="goTab('scorer',this)">Session</button>
-  <button class="tab" onclick="goTab('hist',this)">History</button>
-  <button class="tab" onclick="goTab('stats',this)">Stats</button>
-  <button class="tab" onclick="goTab('rules',this)">Rules</button>
-</div>
-
 <div class="pnl on" id="pnl-lb"><div class="loading">Loading…</div></div>
 <div class="pnl" id="pnl-scorer"></div>
 <div class="pnl" id="pnl-hist"></div>
 <div class="pnl" id="pnl-stats"></div>
+<div class="pnl" id="pnl-more"></div>
 <div class="pnl" id="pnl-rules"></div>
 <div class="toast" id="toast"></div>
+<div class="hint" id="a2hs-hint" hidden></div>
+
+<!-- Bottom bar. data-tab says which panel each button opens; Rules lives under More. -->
+<nav class="nav" aria-label="Main">
+  <div class="nav-in">
+    <button class="nav-btn on" data-tab="lb" onclick="goTab('lb')"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><ellipse cx="12" cy="12" rx="9.5" ry="6.5"/><ellipse cx="12" cy="12" rx="5.5" ry="3.2"/></svg>Table</button>
+    <button class="nav-btn" data-tab="stats" onclick="goTab('stats')"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>Stats</button>
+    <button class="nav-add" data-tab="scorer" onclick="goTab('scorer')" aria-label="New session"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></button>
+    <button class="nav-btn" data-tab="hist" onclick="goTab('hist')"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="17" rx="3"/><path d="M3 9h18M8 2v4M16 2v4"/></svg>Sessions</button>
+    <button class="nav-btn" data-tab="more" data-also="rules" onclick="goTab('more')"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><circle cx="5" cy="12" r="1.3"/><circle cx="12" cy="12" r="1.3"/><circle cx="19" cy="12" r="1.3"/></svg>More</button>
+  </div>
+</nav>
 
 <script type="module" src="db.js"></script>
 <script>
@@ -186,6 +219,11 @@ const ICON_PATHS={
   award:'<circle cx="12" cy="9" r="6"/><path d="M8.5 14 7 22l5-3 5 3-1.5-8"/>',
   stack:'<ellipse cx="12" cy="6" rx="8" ry="3"/><path d="M4 6v6c0 1.7 3.6 3 8 3s8-1.3 8-3V6"/><path d="M4 12v6c0 1.7 3.6 3 8 3s8-1.3 8-3v-6"/>',
   coins:'<circle cx="9" cy="9" r="6"/><path d="M15.5 9.2A6 6 0 1 1 9.2 15.5"/>',
+  right:'<path d="m9 6 6 6-6 6"/>',
+  left:'<path d="m15 6-6 6 6 6"/>',
+  open:'<path d="m6 9 6 6 6-6"/>',
+  book:'<path d="M4 4.5A1.5 1.5 0 0 1 5.5 3H20v15H5.5A1.5 1.5 0 0 0 4 19.5z"/><path d="M4 19.5A1.5 1.5 0 0 0 5.5 21H20v-3"/>',
+  phone:'<rect x="6" y="2" width="12" height="20" rx="3"/><path d="M11 18h2"/>',
 };
 function icon(n){return `<svg class="i" viewBox="0 0 24 24" aria-hidden="true">${ICON_PATHS[n]}</svg>`;}
 
@@ -216,6 +254,7 @@ async function init(){
   try{DATA=await DB.loadAll();}
   catch(e){console.error(e);showLoadError("Couldn't load data. Check your connection and refresh.");return;}
   setView('era-2');
+  showA2hsHint();
 }
 // db.js is a module and loads after this script, so wait for its "db-ready" event.
 function startWhenDbReady(){
@@ -301,13 +340,33 @@ function toggleSettings(open){
 }
 document.addEventListener('click',e=>{if(!e.target.closest('#settings'))toggleSettings(false);});
 
-function goTab(id,el){
+// Show one panel and light up its bottom-bar button (More stays lit while Rules is open).
+function goTab(id){
   TAB=id;
-  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('on'));
-  document.querySelectorAll('.pnl').forEach(p=>p.classList.remove('on'));
-  el.classList.add('on');
-  document.getElementById('pnl-'+id).classList.add('on');
+  document.querySelectorAll('.pnl').forEach(p=>p.classList.toggle('on',p.id==='pnl-'+id));
+  document.querySelectorAll('.nav [data-tab]').forEach(b=>b.classList.toggle('on',b.dataset.tab===id||b.dataset.also===id));
+  window.scrollTo(0,0);
   render();
+}
+
+// ══════════════ ADD TO HOME SCREEN ══════════════
+// Running as an installed home-screen app? (iOS uses navigator.standalone)
+function isInstalled(){return window.navigator.standalone===true||matchMedia('(display-mode: standalone)').matches;}
+const SHARE_ICON=`<svg class="i share" viewBox="0 0 24 24" aria-label="Share"><path d="M12 15V3M8 7l4-4 4 4"/><path d="M6 11H5a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-8a1 1 0 0 0-1-1h-1"/></svg>`;
+const A2HS_STEPS=`In Safari, tap ${SHARE_ICON} <strong>Share</strong>, then <strong>Add to Home Screen</strong>. It opens full screen, like an app.`;
+// One-time hint on phones that haven't installed it; dismissing is remembered on this device.
+function showA2hsHint(){
+  let seen=false;try{seen=localStorage.getItem('a2hsHintDismissed')==='1';}catch(e){}
+  if(seen||isInstalled()||!matchMedia('(pointer: coarse)').matches)return;
+  const el=document.getElementById('a2hs-hint');
+  el.innerHTML=`<img src="icons/icon-180.png" alt="">
+    <div><div style="font-weight:600;margin-bottom:2px">Put Poker Night on your home screen</div><div class="sub" style="font-size:13px;line-height:1.5">${A2HS_STEPS}</div></div>
+    <button class="icon-btn" onclick="dismissA2hsHint()" aria-label="Dismiss">${icon('x')}</button>`;
+  el.hidden=false;
+}
+function dismissA2hsHint(){
+  document.getElementById('a2hs-hint').hidden=true;
+  try{localStorage.setItem('a2hsHintDismissed','1');}catch(e){}
 }
 
 // ══════════════ HELPERS ══════════════
@@ -385,14 +444,25 @@ function render(){
   if(TAB==='scorer')renderScorer();
   if(TAB==='hist')renderHist();
   if(TAB==='stats')renderStats();
+  if(TAB==='more')renderMore();
   if(TAB==='rules')renderRules();
+}
+
+// ══════════════ MORE ══════════════
+let moreA2hsOpen=false;   // Add to Home Screen instructions expanded
+function renderMore(){
+  document.getElementById('pnl-more').innerHTML=`<div class="card" style="padding-top:6px;padding-bottom:6px">
+    <button class="list-btn" onclick="goTab('rules')"><span class="ic">${icon('book')}</span>Rules and scoring<span class="chev">${icon('right')}</span></button>
+    <button class="list-btn" onclick="moreA2hsOpen=!moreA2hsOpen;renderMore()" aria-expanded="${moreA2hsOpen}"><span class="ic">${icon('phone')}</span>Add to Home Screen<span class="chev">${icon(moreA2hsOpen?'open':'right')}</span></button>
+    ${moreA2hsOpen?`<div class="inset prose" style="margin:0 0 14px;font-size:13px">${isInstalled()?'You’re already using the home-screen app.':A2HS_STEPS+' On Android, use the browser menu and choose <strong>Install app</strong>.'}</div>`:''}
+  </div>`;
 }
 
 // ══════════════ LEADERBOARD ══════════════
 function renderLB(){
   const total=curSessions().length;
   if(total===0){
-    document.getElementById('pnl-lb').innerHTML=emptyCard(`No sessions yet${isAllTime()?'':' in '+seasons[curSeason].name}. Add one from the <strong>Session</strong> tab to get started.`);
+    document.getElementById('pnl-lb').innerHTML=emptyCard(`No sessions yet${isAllTime()?'':' in '+seasons[curSeason].name}. Tap <strong>+</strong> to add one.`);
     return;
   }
   const all=ranked();const isPnl=SYS==='pnl';
@@ -707,21 +777,22 @@ function renderStats(){
 
 // ══════════════ RULES ══════════════
 function renderRules(){
-  const el=document.getElementById('pnl-rules');const isPnl=SYS==='pnl';let html='';
+  const el=document.getElementById('pnl-rules');const isPnl=SYS==='pnl';
+  let html=`<button class="link back" onclick="goTab('more')">${icon('left')}More</button>`;
   if(isPnl){
-    html=`<div class="card"><h2 class="h2">How scoring works</h2>
+    html+=`<div class="card"><h2 class="h2">How scoring works</h2>
       <p class="prose">Your score for a session is simply <strong>final chips − total buy-in</strong>. No multipliers, no brackets, no rebuy penalties. Win money, score positive. Lose money, score negative.</p></div>
     <div class="card"><h2 class="h2">The standings</h2>
       <p class="prose">Ranked by <strong>total PnL ÷ (sessions played + ${K})</strong>.</p>
       <div class="inset prose" style="margin-top:12px">Everyone is treated as though they'd also played ${K} break-even sessions. Play once and those ${K} imaginary sessions dominate, so you sit near £0. Play the whole season and they barely matter. This stops someone winning big on their debut and topping the table above a season-long grinder.</div>
-      <div class="inset prose"><strong>Example.</strong> +£348.25 across 10 sessions → 348.25 ÷ 13 = <strong>+£26.79</strong>. One session of −£20 → −20 ÷ 4 = <strong>−£5</strong>.</div></div>
+      <div class="inset prose"><strong>Example.</strong> +£348.25 across 10 sessions → 348.25 ÷ 13 = <strong>+£26.79</strong>. One session of <span style="white-space:nowrap">−£20</span> → −20 ÷ 4 = <strong>−£5</strong>.</div></div>
     <div class="card"><h2 class="h2">Buy-ins and rebuys</h2>
       <p class="prose">Everyone starts with <strong>£20</strong>. If you bust, rebuy for any amount between <strong>£20</strong> and the <strong>largest stack at the table</strong>.</p>
       <div class="inset prose" style="margin-top:12px;font-size:13px">Buying in for more than the biggest stack is pointless: the excess can never be won or lost. The table sets the limit; no house rule needed.</div></div>`;
   } else {
     const brackets=[[0,'0x'],[5,'0.5x'],[8,'0.8x'],[10,'1x'],[13,'1.2x'],[16,'1.5x'],[19,'2x'],[22,'2.5x'],[25,'3x'],[30,'4x'],[35,'5x+']];
     const rb=[['0 rebuys','£20','×1.0'],['1 rebuy','£40','×1.0'],['2 rebuys','£60','×0.9'],['3 rebuys','£80','×0.5'],['4 rebuys','£100','×0.25'],['5+ rebuys','£120+','halves each time']];
-    html=`<div class="card"><h2 class="h2">Old system (reference only)</h2>
+    html+=`<div class="card"><h2 class="h2">Old system (reference only)</h2>
       <p class="prose">Multiplier = final ÷ buy-in, mapped to bracket points with interpolation, then multiplied by a rebuy penalty. Retired after Season 1.</p></div>
     <div class="card"><h2 class="h2" style="margin-bottom:8px">Multiplier to points</h2>
       ${brackets.map(([p,m])=>`<div class="row" style="padding:6px 0"><span class="sub" style="width:40px;font-weight:500">${m}</span><span class="badge">${m==='5x+'?'∞':p}</span></div>`).join('')}</div>
