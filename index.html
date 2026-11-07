@@ -196,18 +196,6 @@ input::placeholder{color:#6f675e}
 .badge{display:inline-block;background:var(--raised);color:var(--copper);border:1px solid var(--border);border-radius:8px;padding:3px 10px;font:700 13px var(--display);min-width:36px;text-align:center}
 
 /* ── Charts and head-to-head ── */
-.legend{display:flex;flex-wrap:wrap;gap:4px 6px;margin-top:12px}
-.legend button{display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer;border:none;padding:4px 8px;border-radius:8px;background:transparent}
-.legend button.on{background:var(--raised)}
-.legend .swatch{width:14px;height:3px;border-radius:2px;display:inline-block}
-.h2h{table-layout:fixed;min-width:300px;border-collapse:collapse;width:100%}
-.h2h th,.h2h td{padding:5px 1px;text-align:center;border-bottom:1px solid var(--border);font-size:10px}
-.h2h th{color:var(--muted);font-weight:500}
-.h2h .dot{width:7px;height:7px;border-radius:50%;display:inline-block;flex-shrink:0}
-.h2h .win{background:rgba(111,191,138,.12)}.h2h .loss{background:rgba(224,113,95,.12)}.h2h .self{background:var(--raised)}
-.fact{display:flex;align-items:center;gap:14px;padding:12px 0;border-bottom:1px solid var(--border)}
-.fact:last-child{border-bottom:none}
-.fact .ic{width:36px;height:36px;border-radius:10px;background:var(--raised);display:flex;align-items:center;justify-content:center;color:var(--copper);flex-shrink:0}
 
 /* ── Table: hero cards ── */
 .hero{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:22px}
@@ -265,9 +253,35 @@ input::placeholder{color:#6f675e}
 .sess-name{font-size:16px;font-weight:600}
 .sess-mid .sub{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .sess-pot{font-size:17px}
-/* Stats: briefly highlight the card you jumped to from the Table */
-.player-card{scroll-margin-top:16px;transition:border-color .4s}
-.player-card.flash{border-color:var(--copper)}
+
+/* ── Stats: headline tiles, running-total chart, players list ── */
+.tiles{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px}
+.tile{background:var(--card);border:1px solid var(--border);border-radius:var(--r-card);padding:14px 16px;min-width:0}
+.tile .lbl{font-size:13px;color:var(--muted);margin-bottom:4px}
+.tile .big{font-size:clamp(22px,6.6vw,30px);line-height:1.1}
+.tile .sub{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-top:3px}
+.tile.wide{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:22px}
+.chart-card{padding:14px 14px 16px;margin-bottom:22px}
+.chart-card svg{width:100%;display:block}
+/* one chip per player under the chart; --c is that player's line colour */
+.pchips{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+.pchip{display:inline-flex;align-items:center;gap:8px;background:none;border:1px solid var(--border);border-radius:999px;padding:7px 14px;font-size:14px;color:var(--muted);cursor:pointer}
+.pchip .dot{width:8px;height:8px;border-radius:50%;background:#4A4540}
+.pchip.on{border-color:var(--c);color:var(--text);background:color-mix(in srgb,var(--c) 10%,transparent)}
+.pchip.on .dot{background:var(--c)}
+.plist{padding:2px 16px}
+.prow{display:flex;align-items:center;gap:12px;width:100%;background:none;border:none;border-bottom:1px solid var(--border);padding:12px 0;text-align:left;cursor:pointer;transition:background .4s}
+.prow:last-child{border-bottom:none}
+.prow .mid{flex:1;min-width:0}
+.prow .nm{display:block;font-size:16px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.prow .money{font-size:17px}
+.prow .chev{color:var(--muted)}
+.prow .mid .sub{display:block}
+.fit-btn{display:inline-flex;align-items:center;gap:5px;background:none;border:1px solid var(--border);border-radius:999px;padding:5px 12px;font-size:13px;color:var(--muted);cursor:pointer}
+.fit-btn.on{border-color:var(--copper);color:var(--text);background:rgba(192,138,91,.12)}
+.fit-btn.on svg.i{width:14px;height:14px;color:var(--copper)}
+.fit-btn:disabled{opacity:.4;cursor:default}
+.prow.flash{background:var(--raised)}
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}.glint,.tear .crack{display:none}}
 </style>
 </head>
@@ -307,23 +321,25 @@ input::placeholder{color:#6f675e}
 // ══════════════ PLAYER COLOURS ══════════════
 // Each player has one poker-chip colour; no two share. To add a colour, add a line here
 // AND add its id to the list in firestore.rules (config/colours), or saving it will be rejected.
-// dark:true = light chip, so it gets dark text.
+// dark:true = light chip, so it gets dark text. lift = how much white to mix into its chart line,
+// because the darkest chips vanish against the black chart; line = a hand-picked line colour instead
+// (navy and slate both turn grey-blue with white mixed in, so they get distinct ones).
 const PALETTE=[
   {id:'ivory',  name:'Ivory',        hex:'#ECE6DA', dark:true},
   {id:'red',    name:'Chip red',     hex:'#B23B37'},
   {id:'blue',   name:'Chip blue',    hex:'#2E59B5'},
   {id:'gold',   name:'Chip gold',    hex:'#DDB872', dark:true},
   {id:'copper', name:'Copper',       hex:'#C08A5B', dark:true},
-  {id:'oxblood',name:'Oxblood',      hex:'#7E2A2E'},
-  {id:'navy',   name:'Navy',         hex:'#1F3A73'},
+  {id:'oxblood',name:'Oxblood',      hex:'#7E2A2E', lift:.4},
+  {id:'navy',   name:'Navy',         hex:'#1F3A73', line:'#7894D6'},
   {id:'jade',   name:'Jade',         hex:'#2F7A5C'},
   {id:'teal',   name:'Teal',         hex:'#2A7A85'},
-  {id:'plum',   name:'Plum',         hex:'#6B3A7A'},
+  {id:'plum',   name:'Plum',         hex:'#6B3A7A', lift:.4},
   {id:'violet', name:'Violet',       hex:'#5B4BA8'},
   {id:'orange', name:'Burnt orange', hex:'#A9542A'},
   {id:'rose',   name:'Rose',         hex:'#B85A72'},
   {id:'olive',  name:'Olive',        hex:'#7F7A3A'},
-  {id:'slate',  name:'Slate',        hex:'#5E6B7A'},
+  {id:'slate',  name:'Slate',        hex:'#5E6B7A', line:'#AAB2BC'},
 ];
 const PAL=Object.fromEntries(PALETTE.map(c=>[c.id,c]));
 const DEFAULT_COLOURS={Ami:'red',Kathiir:'jade',Sanj:'orange',Aaron:'violet',Varunn:'blue',Vittu:'navy',Ari:'oxblood'};
@@ -347,6 +363,11 @@ function resolveColours(extra=[]){
   return out;   // if the palette ever runs out, extra players have no entry and show as slate
 }
 function chipOf(n){return PAL[COLOURS[n]]||PAL.slate;}
+// A player's chart-line colour: their chip colour, lightened for the dark chips
+function lineCol(n){const c=chipOf(n);return c.line||(c.lift?mix(c.hex,'#ffffff',c.lift):c.hex);}
+// Blend two #rrggbb colours: t=0 gives a, t=1 gives b
+function mix(a,b,t){const p=h=>[1,3,5].map(i=>parseInt(h.slice(i,i+2),16));const A=p(a),B=p(b);
+  return '#'+A.map((v,i)=>Math.round(v+(B[i]-v)*t).toString(16).padStart(2,'0')).join('');}
 // True if `map` differs from what's saved, i.e. it should be written to Firestore
 function coloursChanged(map){return Object.keys(map).some(n=>DATA.colours[n]!==map[n]);}
 
@@ -390,7 +411,6 @@ let seasons=[];       // seasons shown in the current VIEW: [{id, name, number, 
 let curSeason=0;      // index into seasons, or -1 for "All time"
 let SYS='pnl';        // display system for the old-points season (Chapter 1 Season 1)
 let TAB='lb';
-let formActive=null;
 let scorerPlayers=[], scorerRows={}, scorerName="", scorerResult=null;
 let editIdx=null, editData=null;
 let busy=false;       // true while a save is in flight, to stop double-clicks saving twice
@@ -431,7 +451,7 @@ function setView(v){
     curSeason=v==='era-2'?seasons.findIndex(s=>s.number===DATA.activeSeasonNumber):seasons.length-1;
   }
   SYS='pnl';
-  formActive=null; scorerResult=null; editIdx=null;
+  scorerResult=null; editIdx=null;
   renderSeasonBar(); render();
 }
 
@@ -489,7 +509,7 @@ function renderSeasonBar(){
   // Dim the page behind an open list; tapping the dim closes it
   document.getElementById('dd-dim').hidden=!openPicker;
   // Only the old-points season (Chapter 1 Season 1) gets the comparison toggle
-  if(isArchived){
+  if(isArchived&&TAB!=='stats'){
     html+=`<div class="seg">
       <button class="${SYS==='pnl'?'on':''}" onclick="setSys('pnl')">Shrunk PnL</button>
       <button class="${SYS==='old'?'on':''}" onclick="setSys('old')">Old points</button>
@@ -501,7 +521,7 @@ function renderSeasonBar(){
 function switchSeason(i){
   curSeason=+i;
   SYS = (isAllTime()||seasons[curSeason].system!=="old") ? "pnl" : SYS;
-  formActive=null; scorerResult=null; editIdx=null;
+  scorerResult=null; editIdx=null;
   renderSeasonBar(); render();
 }
 function setSys(s){SYS=s;renderSeasonBar();render();}
@@ -548,7 +568,8 @@ function goTab(id){
   const hdr=HEADER_TABS.includes(id);
   document.getElementById('hdr').hidden=!hdr;
   document.getElementById('season-bar').hidden=!hdr;
-  if(!hdr&&openPicker){openPicker=null;renderSeasonBar();}
+  if(!hdr)openPicker=null;
+  if(DATA)renderSeasonBar();   // the old-points toggle shows on Table and Sessions, not Stats
   document.querySelectorAll('.pnl').forEach(p=>p.classList.toggle('on',p.id==='pnl-'+id));
   document.querySelectorAll('.nav [data-tab]').forEach(b=>b.classList.toggle('on',b.dataset.tab===id||(b.dataset.also||'').split(' ').includes(id)));
   window.scrollTo(0,0);
@@ -612,7 +633,7 @@ function place(i,n){return n>1&&i===n-1?'pl-last':i<3?'pl'+(i+1):'';}
 //   money25(v) nearest 25p, signed (+£12.25)  for summaries: standings, totals, averages
 //   gbp(v)     exact, no sign      (£12.35)
 // Ranking always uses exact values; rounding is display only.
-function amt(a){a=Math.round(Math.abs(a)*100)/100;return a%1?a.toFixed(2):String(a);}
+function amt(a){a=Math.round(Math.abs(a)*100)/100;return a.toLocaleString('en-GB',{minimumFractionDigits:a%1?2:0,maximumFractionDigits:2});}   // 1965 → 1,965
 function gbp(v){return '£'+amt(v);}
 function money(v){return `${Math.round(v*100)/100>=0?'+':'−'}£${amt(v)}`;}
 function round25(v){return Math.round(v*4)/4||0;}
@@ -811,43 +832,17 @@ function renderLB(){
 }
 // Escape a name for use inside an onclick='...' string
 function q(s){return s.replace(/\\/g,'\\\\').replace(/'/g,"\\'");}
-// Open Stats scrolled to one player's card
+// Open Stats at one player's row in the Players list, briefly highlighted
+// (until the player page exists, this is where tapping a player on the Table goes)
 function showPlayer(name){
   goTab('stats');
-  const card=document.getElementById(playerCardId(name));
-  if(card){card.scrollIntoView({block:'start'});card.classList.add('flash');setTimeout(()=>card.classList.remove('flash'),1200);}
+  const row=document.getElementById(playerRowId(name));
+  if(row){row.scrollIntoView({block:'center'});row.classList.add('flash');setTimeout(()=>row.classList.remove('flash'),1200);}
 }
-function playerCardId(name){return 'player-'+name.replace(/[^A-Za-z0-9]/g,'_');}
+function playerRowId(name){return 'prow-'+name.replace(/[^A-Za-z0-9]/g,'_');}
 // Rules can be opened from More or from the Table; its back link returns to where you came from
 let rulesFrom='more';
 function openRules(){rulesFrom=TAB;goTab('rules');}
-function toggleForm(n){formActive=formActive===n?null:n;render();}
-
-function formChart(all,isPnl){
-  const SS=curSessions();const W=320,H=210,padL=34,padR=10,padT=10,padB=26;
-  const iW=W-padL-padR,iH=H-padT-padB;const n=SS.length;
-  const vals=SS.flatMap(s=>s.results.map(r=>isPnl?pnl(r):oldPts(r.buyin,r.final)));
-  let lo=Math.min(...vals,0),hi=Math.max(...vals,1);const span=hi-lo||1;lo-=span*0.06;hi+=span*0.06;
-  const toX=i=>padL+i*(iW/Math.max(n-1,1));const toY=v=>padT+iH-((v-lo)/(hi-lo))*iH;
-  let ticks=isPnl?[-80,-40,0,40,80,120]:[0,10,20,30];ticks=ticks.filter(t=>t>=lo&&t<=hi);
-  let s=`<svg viewBox="0 0 ${W} ${H}" style="width:100%;display:block">`;
-  ticks.forEach(t=>{const z=t===0;
-    s+=`<line x1="${padL}" x2="${W-padR}" y1="${toY(t)}" y2="${toY(t)}" stroke="var(--border)" stroke-width="1" ${z?'':'stroke-dasharray="3,3"'}/>`;
-    s+=`<text x="${padL-5}" y="${toY(t)+3.5}" font-size="8.5" fill="var(--muted)" text-anchor="end">${isPnl?(t<0?'−£'+Math.abs(t):'£'+t):t}</text>`;});
-  SS.forEach((_,i)=>{s+=`<text x="${toX(i)}" y="${H-7}" font-size="8.5" fill="var(--muted)" text-anchor="middle">S${i+1}</text>`;});
-  all.forEach(p=>{const c=chipOf(p.name).hex;const act=formActive===p.name;const fade=formActive&&!act;
-    const pts=SS.map(s2=>{const r=s2.results.find(x=>x.player===p.name);return r?(isPnl?pnl(r):oldPts(r.buyin,r.final)):null;});
-    const segs=[];let seg=[];pts.forEach((v,i)=>{if(v!==null)seg.push([i,v]);else{if(seg.length>=2)segs.push(seg);seg=[];}});
-    if(seg.length>=2)segs.push(seg);
-    // also plot single isolated points as dots
-    const dots=pts.map((v,i)=>v!==null?[i,v]:null).filter(Boolean);
-    s+=`<g style="opacity:${fade?0.09:1}">`;
-    segs.forEach(sg=>{const d=sg.map(([i,v],j)=>`${j===0?'M':'L'}${toX(i).toFixed(1)},${toY(v).toFixed(1)}`).join(' ');
-      s+=`<path d="${d}" fill="none" stroke="${c}" stroke-width="${act?2.4:1.4}" stroke-linejoin="round" stroke-linecap="round"/>`;});
-    dots.forEach(([i,v])=>{s+=`<circle cx="${toX(i).toFixed(1)}" cy="${toY(v).toFixed(1)}" r="${act?3.6:2.4}" fill="${c}"/>`;});
-    s+=`</g>`;});
-  return s+`</svg>`;
-}
 
 // ══════════════ SESSION SCORER ══════════════
 function renderScorer(){
@@ -1008,85 +1003,150 @@ async function confirmDelete(){
 }
 
 // ══════════════ STATS ══════════════
+// Headlines, running-total chart and players list for the current Chapter / Season choice.
+// The numbers come from stats.js and are always PnL (the old points system isn't shown here).
+function selSessions(){return selectSessions(DATA,VIEW,isAllTime()?-1:seasons[curSeason].number);}
+
+// Players whose chart lines are coloured. Goes back to just the leader when the Chapter / Season changes.
+let chartSel=[],chartKey=null;
+let chartFit=false;   // "Fit to selected": zoom the chart to just the coloured players
+
 function renderStats(){
   const el=document.getElementById('pnl-stats');
-  if(curSessions().length===0){el.innerHTML=emptyCard('No sessions yet.');return;}
-  const isPnl=SYS==='pnl';const all=ranked();
-  let html=`<div class="card"><h2 class="h2" style="margin-bottom:12px">Form: ${isPnl?'PnL':'points'} per session${isAllTime()?' (all seasons)':''}</h2>${formChart(all,isPnl)}
-    <div class="legend">
-      ${all.map(p=>{const c=chipOf(p.name).hex;const act=formActive===p.name;const fade=formActive&&!act;
-        return `<button class="${act?'on':''}" onclick="toggleForm('${q(p.name)}')" style="opacity:${fade?0.35:1}">
-          <span class="swatch" style="background:${c};height:${act?4:3}px"></span>${p.name}</button>`;}).join('')}
-    </div>${formActive?`<p class="sub" style="margin-top:6px;text-align:center">Tap ${formActive} again to reset</p>`:''}</div>`;
-  all.forEach(p=>{
-    const rows=p.rows;const key=r=>isPnl?r.p:r.o;
-    const best=[...rows].sort((a,b)=>key(b)-key(a))[0];const worst=[...rows].sort((a,b)=>key(a)-key(b))[0];
-    const mean=rows.reduce((a,r)=>a+key(r),0)/p.n;const sd=Math.sqrt(rows.reduce((a,r)=>a+Math.pow(key(r)-mean,2),0)/p.n);
-    const up=rows.filter(r=>r.p>0.004).length,down=rows.filter(r=>r.p<-0.004).length,even=rows.filter(r=>Math.abs(r.p)<=0.004).length;
-    const wins=isPnl?p.winsP:p.winsO;const wr=Math.round(wins/p.n*100);
-    let cLabel,cCol;
-    if(isPnl){cLabel=sd<15?'Very consistent':sd<25?'Consistent':sd<35?'Mixed':sd<45?'Volatile':'Boom or bust';cCol=sd<25?'var(--up)':sd<35?'var(--text)':sd<45?'var(--copper)':'var(--down)';}
-    else{cLabel=sd<3?'Very consistent':sd<6?'Consistent':sd<9?'Mixed':sd<12?'Volatile':'Boom or bust';cCol=sd<6?'var(--up)':sd<9?'var(--text)':sd<12?'var(--copper)':'var(--down)';}
-    const headline=isPnl?`<span class="money ${cls(round25(p.shrunk))}" style="font-size:22px">${money25(p.shrunk)}</span>`:`<span class="pts" style="font-size:22px">${p.oldAvg.toFixed(1)}</span>`;
-    const val=(r,v)=>isPnl?`<span class="money ${cls(r.p)}">${money(r.p)}</span>`:`<span class="pts">${r.o} pts</span>`;
-    html+=`<div class="card player-card" id="${playerCardId(p.name)}">
-      <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px">${av(p.name,40)}
-        <div><div style="font-size:17px;font-weight:600">${p.name}</div><div class="sub">${p.n}${isAllTime()?' sessions all-time':' of '+p.seasonTotal+' sessions'}</div></div></div>
-      <div class="two-col">
-        <div class="inset"><div class="lbl">${isPnl?'Shrunk avg PnL':'Avg points'}</div>${headline}
-          ${isPnl?`<div class="sub" style="margin-top:2px">raw avg ${money25(p.rawAvg)}</div>`:''}</div>
-        <div class="inset"><div class="lbl">Win rate</div><span class="money" style="font-size:22px">${wr}%</span>
-          <div class="sub" style="margin-top:2px">${wins} win${wins!==1?'s':''} from ${p.n}</div>
-          <div class="sub" style="margin-top:3px"><span class="up">${up} up</span> · <span class="down">${down} down</span>${even?` · ${even} even`:''}</div></div>
-      </div>
-      <div class="inset" style="margin-top:10px"><div class="lbl" style="margin-bottom:8px">Best and worst session</div>
-        <div style="display:flex;align-items:center;gap:8px"><span class="up">${icon('up')}</span>${val(best)}<span class="sub" style="min-width:0">${best.sname}</span></div>
-        <div style="display:flex;align-items:center;gap:8px;margin-top:6px"><span class="down">${icon('down')}</span>${val(worst)}<span class="sub" style="min-width:0">${worst.sname}</span></div></div>
-      <div class="inset"><div class="lbl">Profit and loss</div>
-        <div class="spread" style="align-items:center">
-          <span class="sub">In <strong style="color:var(--text)">${gbp(p.in)}</strong> · Out <strong style="color:var(--text)">${gbp(p.out)}</strong></span>
-          <span class="money ${cls(round25(p.pnlTot))}" style="font-size:18px">${money25(p.pnlTot)}</span></div></div>
-      <div class="inset"><div class="lbl">Consistency</div>
-        <div class="spread" style="align-items:center">
-          <span class="sub">σ ${isPnl?gbp25(sd):sd.toFixed(1)+' pts'}</span>
-          <span style="font-weight:500;color:${cCol}">${cLabel}</span></div></div>
-    </div>`;
-  });
-  // H2H
-  const names=all.map(p=>p.name);const h={};
-  names.forEach(a=>{h[a]={};names.forEach(b=>{if(a!==b)h[a][b]={mine:0,theirs:0,n:0};});});
-  curSessions().forEach(s=>{const rs=s.results.map(r=>({...r,p:pnl(r),o:oldPts(r.buyin,r.final)}));
-    rs.forEach(a=>rs.forEach(b=>{if(a.player!==b.player&&h[a.player]?.[b.player]){const e=h[a.player][b.player];e.mine+=SYS==='pnl'?a.p:a.o;e.theirs+=SYS==='pnl'?b.p:b.o;e.n++;}}));});
-  const dot=n=>`<span class="dot" style="background:${chipOf(n).hex}"></span>`;
-  html+=`<div class="card"><h2 class="h2">Head-to-head</h2>
-    <p class="note">Average ${isPnl?'PnL':'points'} difference in shared sessions. Green means the row player did better.</p>
-    <div style="overflow-x:auto"><table class="h2h"><thead><tr><td style="width:40px;border-bottom:1px solid var(--border)"></td>
-      ${names.map(n=>`<th><div style="display:flex;flex-direction:column;align-items:center;gap:3px">${dot(n)}${n.slice(0,3)}</div></th>`).join('')}</tr></thead><tbody>
-      ${names.map(row=>`<tr><td style="text-align:left;font-weight:500"><div style="display:flex;align-items:center;gap:4px">${dot(row)}${row.slice(0,3)}</div></td>
-        ${names.map(col=>{if(row===col)return `<td class="self"><span class="flat">–</span></td>`;
-          const d=h[row]?.[col];if(!d||d.n===0)return `<td><span class="flat">–</span></td>`;
-          const diff=(d.mine-d.theirs)/d.n;const win=diff>0;const txt=isPnl?(win?'+':'−')+'£'+Math.abs(diff).toFixed(0):(win?'+':'')+diff.toFixed(1);
-          return `<td class="${win?'win':'loss'}"><div class="money ${win?'up':'down'}" style="font-size:10px">${txt}</div><div class="flat" style="font-size:8px">${d.n}g</div></td>`;}).join('')}</tr>`).join('')}
-    </tbody></table></div></div>`;
-  // Records
-  let bestS={v:-1e9},worstS={v:1e9},bigPot={v:0},seconds={};
-  curSessions().forEach(s=>{const rs=s.results.map(r=>({...r,p:pnl(r),o:oldPts(r.buyin,r.final)}));
-    const sorted=[...rs].sort((a,b)=>isPnl?b.p-a.p:b.o-a.o);if(sorted[1])seconds[sorted[1].player]=(seconds[sorted[1].player]||0)+1;
-    const label=sessionLabel(s);
-    const pot=rs.reduce((a,r)=>a+r.buyin,0);if(pot>bigPot.v)bigPot={v:pot,name:label};
-    rs.forEach(r=>{const v=isPnl?r.p:r.o;if(v>bestS.v)bestS={v,player:r.player,sname:label,buyin:r.buyin,final:r.final};if(v<worstS.v)worstS={v,player:r.player,sname:label,buyin:r.buyin,final:r.final};});});
-  const ms=Object.entries(seconds).sort((a,b)=>b[1]-a[1])[0];const totalIn=curSessions().flatMap(s=>s.results).reduce((a,r)=>a+r.buyin,0);
-  const facts=[
-    {i:'up',l:'Best single session',v:isPnl?money(bestS.v):bestS.v+' pts',s:`${bestS.player} · ${bestS.sname} · ${gbp(bestS.buyin)} → ${gbp(bestS.final)}`},
-    {i:'down',l:'Worst single session',v:isPnl?money(worstS.v):worstS.v+' pts',s:`${worstS.player} · ${worstS.sname} · ${gbp(worstS.buyin)} → ${gbp(worstS.final)}`},
-    {i:'award',l:'Most runner-up finishes',v:ms?ms[0]:'–',s:`${ms?ms[1]:0} second places`},
-    {i:'stack',l:'Most expensive session',v:`${gbp(bigPot.v)} in play`,s:bigPot.name||'–'},
-    {i:'coins',l:'Total money this season',v:gbp(totalIn),s:`over ${curSessions().length} sessions`},
-  ];
-  html+=`<div class="card"><h2 class="h2" style="margin-bottom:4px">${isAllTime()?'All-time records':seasons[curSeason].name+' records'}</h2>
-    ${facts.map(f=>`<div class="fact"><span class="ic">${icon(f.i)}</span>
-      <div style="flex:1;min-width:0"><div class="sub">${f.l}</div><div class="money" style="font-size:16px;margin:1px 0">${f.v}</div><div class="sub">${f.s}</div></div></div>`).join('')}</div>`;
+  const ss=selSessions();
+  if(!ss.length){el.innerHTML=emptyCard('No sessions yet.');return;}
+  const ps=playerStats(ss),h=headlines(ss);
+  const key=VIEW+'|'+curSeason;
+  if(key!==chartKey){chartKey=key;chartSel=[ps[0].name];}
+  chartSel=chartSel.filter(n=>ps.some(p=>p.name===n));
+
+  const tile=(lbl,x)=>`<div class="tile"><div class="lbl">${lbl}</div>
+    <div class="money big ${cls(x.pnl)}">${money(x.pnl)}</div>
+    <div class="sub">${x.player} · ${seasonTag(x.session)}</div><div class="sub" style="margin-top:0">${x.session.name}</div></div>`;
+  let html=`<div class="sec-head"><h2 class="h2">Headlines</h2></div>
+  <div class="tiles">${tile('Best session',h.best)}${tile('Worst session',h.worst)}</div>
+  <div class="tile wide"><div style="min-width:0"><div class="lbl">Money played</div>
+    <div class="sub">${h.sessions} session${h.sessions!==1?'s':''} · ${h.players} players</div></div>
+    <div class="money" style="font-size:clamp(24px,7.5vw,34px)">${gbp(h.money)}</div></div>`;
+
+  html+=`<div class="sec-head"><h2 class="h2">Running total</h2>
+    <button class="fit-btn${chartFit?' on':''}" aria-pressed="${chartFit}" ${chartSel.length?'':'disabled'} onclick="chartFit=!chartFit;renderStats()">${chartFit?icon('check'):''}Fit to selected</button></div>
+  <div class="card chart-card" id="run-chart">${runChart(ss,{sel:chartSel,fit:chartFit})}
+    <div class="sub" style="margin-top:10px">Tap names to compare</div>
+    <div class="pchips">${ps.map(p=>{const on=chartSel.includes(p.name);
+      return `<button class="pchip${on?' on':''}" style="--c:${lineCol(p.name)}" aria-pressed="${on}" onclick="toggleLine('${q(p.name)}')"><span class="dot"></span>${p.name}</button>`;}).join('')}</div></div>`;
+
+  html+=`<div class="sec-head"><h2 class="h2">Players</h2></div>
+  <div class="card plist">${ps.map(p=>`<button class="prow" id="${playerRowId(p.name)}" onclick="openPlayer('${q(p.name)}')">
+    ${av(p.name,40)}<span class="mid"><span class="nm">${p.name}</span><span class="sub">#${p.rank} · ${p.n} session${p.n!==1?'s':''}</span></span>
+    <span class="money ${cls(round25(p.shrunk))}">${money25(p.shrunk)}</span><span class="chev">${icon('right')}</span></button>`).join('')}</div>`;
   el.innerHTML=html;
+}
+
+// Tap a chip: colour that player's line, or grey it again
+function toggleLine(n){
+  const i=chartSel.indexOf(n);
+  if(i>=0)chartSel.splice(i,1);else chartSel.push(n);
+  renderStats();
+}
+// Until the player page exists, tapping a player shows just their line on the chart
+function openPlayer(name){
+  chartSel=[name];renderStats();
+  document.getElementById('run-chart')?.scrollIntoView({block:'center',behavior:'smooth'});
+}
+
+// Running-total chart, as an SVG string.
+//   sel:  players drawn in their colour (thicker, with a dot at the end); everyone else is a grey line
+//   only: if given, draw just these players (for one player's own chart)
+//   fit:  zoom to the coloured players: the y-axis covers only their highs and lows, the x-axis only
+//         the sessions from just before the first of them started to the last one they played.
+//         Everyone else's grey lines are cut off at the edges.
+// One season: x = session number, evenly spaced. A chapter or All time: x = real dates, with
+// month labels and a dashed copper line where each season starts. Sessions on the same day sit
+// a few pixels apart so a 4-session night shows as quick steps rather than one vertical jump.
+const GREY_LINE='#3A3633';
+let chartN=0;   // gives each chart's clipping area its own id
+function runChart(ss,{sel=[],only=null,fit=false}={}){
+  const byDate=isAllTime();   // true for a chapter's All seasons and for the pooled All time view
+  const W=340,padL=42,padR=12,padT=byDate?20:10,padB=22,H=byDate?236:226;
+  const iW=W-padL-padR,iH=H-padT-padB;
+
+  // xs[i] = x of session i, in px from the plot's left edge. x=0 is the start, before any session.
+  let xs;
+  if(!byDate)xs=ss.map((_,i)=>(i+1)/ss.length*iW);
+  else{
+    const t0=ss[0].t,span=Math.max(ss.at(-1).t-t0,1),GAP=3;
+    xs=[];ss.forEach((s,i)=>xs.push(Math.max(GAP+(s.t-t0)/span*iW,(i?xs[i-1]:0)+GAP)));
+    const k=iW/xs.at(-1);xs=xs.map(x=>x*k);   // squeeze back to fit if the nudges pushed past the edge
+  }
+
+  const lines=runningTotals(ss);
+  const names=only||Object.keys(lines);
+  const focus=fit?sel.filter(n=>lines[n]):[];   // players the axes fit to ([] = everyone)
+  const start=n=>{const o=lines[n][0].session.order;return o?xs[o-1]:0;};   // x where a line starts (£0)
+  const end=n=>xs[lines[n].at(-1).session.order];
+  // x range shown: everything, or just the focused players' span
+  const xa=focus.length?Math.min(...focus.map(start)):0, xb=focus.length?Math.max(...focus.map(end)):xs.at(-1);
+  const inX=x=>x>=xa-0.01&&x<=xb+0.01;
+
+  // y scale: a round step so the top and bottom labels are tidy (+£150, −£100…)
+  const vals=(focus.length?focus:names).flatMap(n=>lines[n].map(p=>p.total));
+  const hi=Math.max(0,...vals),lo=Math.min(0,...vals);
+  const step=[2,5,10,20,25,50,100,150,200,250,500,1000,2000].find(s=>s*4>=hi-lo)||5000;
+  let top=Math.ceil(hi/step)*step,bot=Math.floor(lo/step)*step;
+  if(top===bot)top=step;
+  const X=x=>(padL+(x-xa)/(xb-xa)*iW).toFixed(1), Y=v=>(padT+(top-v)/(top-bot)*iH).toFixed(1);
+  const lbl=v=>v>0?'+£'+amt(v):v<0?'−£'+amt(v):'£0';
+  const txt=(x,y,t,a='end',extra='')=>`<text x="${x}" y="${y}" font-size="9" fill="var(--muted)" text-anchor="${a}" ${extra}>${t}</text>`;
+
+  let svg=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Running total chart">`;
+  [top,0,bot].filter((v,i,a)=>a.indexOf(v)===i&&(v===0||v===top&&v>0||v===bot&&v<0))
+    .forEach(v=>{svg+=txt(padL-6,+Y(v)+3,lbl(v));});
+  svg+=`<line x1="${padL}" x2="${W-padR}" y1="${Y(0)}" y2="${Y(0)}" stroke="var(--border)"/>`;
+
+  if(!byDate){
+    // session numbers along the bottom (every other one if there are lots)
+    const shown=ss.map((_,i)=>i).filter(i=>inX(xs[i])),every=Math.ceil(shown.length/12);
+    shown.forEach((i,j)=>{if(j%every===0||j===shown.length-1)svg+=txt(X(xs[i]),H-6,i+1,'middle');});
+  }else{
+    // date → x, following the sessions (so labels stay in step with the nudged points)
+    const pts=ss.map((s,i)=>[s.t,xs[i]]).filter((p,i,a)=>!i||p[0]!==a[i-1][0]);
+    const tx=t=>{if(t<=pts[0][0])return pts[0][1];
+      for(let i=1;i<pts.length;i++)if(t<=pts[i][0]){const[a,xa]=pts[i-1],[b,xb]=pts[i];return xa+(xb-xa)*(t-a)/(b-a);}
+      return pts.at(-1)[1];};
+    const t0=ss[0].t,tN=ss.at(-1).t,d0=new Date(t0*864e5);
+    // month labels, centred in the part of each month the chart covers; a small tick where a month starts
+    for(let y=d0.getUTCFullYear(),m=d0.getUTCMonth();;m++){
+      const ms=Date.UTC(y,m,1)/864e5,me=Date.UTC(y,m+1,1)/864e5;
+      if(ms>tN)break;
+      const x1=Math.max(tx(Math.max(ms,t0)),xa),x2=Math.min(tx(Math.min(me,tN)),xb);
+      if(x2<=x1)continue;
+      if(ms>t0&&inX(tx(ms)))svg+=`<line x1="${X(x1)}" x2="${X(x1)}" y1="${H-padB}" y2="${H-padB+4}" stroke="var(--border)"/>`;
+      const mon=new Date(ms*864e5).getUTCMonth();
+      if(X(x2)-X(x1)>=20)svg+=txt(X((x1+x2)/2),H-6,MONTHS[mon]+(mon===0?' ’'+String(new Date(ms*864e5).getUTCFullYear()).slice(2):''),'middle');
+    }
+    // a dashed copper line where each season starts (not the first), labelled "C1 S2"
+    let lastLbl=-99;
+    ss.forEach((s,i)=>{
+      if(!i||(ss[i-1].chapter===s.chapter&&ss[i-1].season===s.season))return;
+      const x=(xs[i-1]+xs[i])/2;
+      if(x<=xa||x>=xb)return;
+      svg+=`<line x1="${X(x)}" x2="${X(x)}" y1="${padT}" y2="${H-padB}" stroke="var(--copper)" stroke-opacity=".45" stroke-dasharray="3 3"/>`;
+      if(X(x)-lastLbl>=30){svg+=`<text x="${X(x)}" y="${padT-7}" font-size="8.5" fill="var(--copper)" text-anchor="middle">${seasonTag(s)}</text>`;lastLbl=+X(x);}
+    });
+  }
+
+  // lines: each starts at £0 just before the player's first session
+  // (clipped to the plot, with a little room for the end dots, so a fitted chart cuts other lines off)
+  const path=n=>`M${X(start(n))},${Y(0)} `+lines[n].map(p=>`L${X(xs[p.session.order])},${Y(p.total)}`).join(' ');
+  const clip='rc'+(++chartN);
+  svg+=`<clipPath id="${clip}"><rect x="${padL-5}" y="${padT-5}" width="${iW+10}" height="${iH+10}"/></clipPath><g clip-path="url(#${clip})">`;
+  names.filter(n=>!sel.includes(n)).forEach(n=>{
+    svg+=`<path d="${path(n)}" fill="none" stroke="${GREY_LINE}" stroke-width="1.3" stroke-linejoin="round" stroke-linecap="round"/>`;});
+  sel.filter(n=>lines[n]).forEach(n=>{const c=lineCol(n),e=lines[n].at(-1);
+    svg+=`<path d="${path(n)}" fill="none" stroke="${c}" stroke-width="2.4" stroke-linejoin="round" stroke-linecap="round"/>
+      <circle cx="${X(xs[e.session.order])}" cy="${Y(e.total)}" r="3.6" fill="${c}"/>`;});
+  return svg+`</g></svg>`;
 }
 
 // ══════════════ RULES ══════════════
