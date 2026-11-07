@@ -132,12 +132,12 @@ const DATE_RE=/^[0-3][0-9]\/[01][0-9]\/20[0-9][0-9]$/;
 function toast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('on');setTimeout(()=>t.classList.remove('on'),2200);}
 
 // ══════════════ SEASON BAR ══════════════
-// Switch between Era 2, Legacy (era 1) and All eras.
+// Switch between Chapter 2 (era-2), Chapter 1 (era-1) and All chapters.
 function setView(v){
   VIEW=v;
   if(v==='all'){
-    // pooled read-only view; legacy season names are prefixed so History can tell them apart
-    seasons=[...DATA.eras['era-1'].seasons.map(s=>({...s,name:'Legacy '+s.name})),...era2().seasons];
+    // pooled read-only view; Chapter 1 season names are prefixed so History can tell them apart
+    seasons=[...DATA.eras['era-1'].seasons.map(s=>({...s,name:'Chapter 1 '+s.name})),...era2().seasons];
     curSeason=-1;
   }else{
     seasons=DATA.eras[v].seasons;
@@ -154,12 +154,12 @@ function renderSeasonBar(){
   const isArchived = s && s.system==="old";
   const live=VIEW==='era-2';
   let html=`<div class="sys-toggle">
-    ${[['era-2','Era 2'],['era-1','Legacy'],['all','All eras']].map(([v,l])=>`<button class="${VIEW===v?'on':''}" onclick="setView('${v}')">${l}</button>`).join('')}
+    ${[['era-2','Chapter 2'],['era-1','Chapter 1'],['all','All chapters']].map(([v,l])=>`<button class="${VIEW===v?'on':''}" onclick="setView('${v}')">${l}</button>`).join('')}
   </div>`;
   if(VIEW!=='all'){
     html+=`<div class="season-select">
       <select onchange="switchSeason(this.value)">
-        <option value="-1" ${allTime?'selected':''}>★ All time (${live?'Era 2':'Legacy'})</option>
+        <option value="-1" ${allTime?'selected':''}>★ All time (${live?'Chapter 2':'Chapter 1'})</option>
         ${seasons.map((se,i)=>`<option value="${i}" ${i===curSeason?'selected':''}>${se.name}${live&&se.number===DATA.activeSeasonNumber?' (current)':''}</option>`).join('')}
       </select>
       ${live?`<button class="btn-ghost btn-sm" onclick="newSeason()">+ New season</button>`:''}
@@ -186,7 +186,7 @@ function setSys(s){SYS=s;renderSeasonBar();render();}
 async function newSeason(){
   if(busy)return;
   const n=DATA.activeSeasonNumber+1;
-  if(!confirm(`Start Season ${n} of Era 2?\n\nIt becomes the current season. Seasons can't be deleted.`))return;
+  if(!confirm(`Start Season ${n} of Chapter 2?\n\nIt becomes the current season. Seasons can't be deleted.`))return;
   busy=true;
   try{
     const se=await DB.startNewSeason(DATA.activeSeasonNumber);
@@ -220,16 +220,16 @@ function canEdit(){return VIEW==='era-2' && !isAllTime();}
 // ...but new sessions are only added to the current Era 2 season.
 function isActiveSeason(){return canEdit() && seasons[curSeason].number===DATA.activeSeasonNumber;}
 function readOnlyMsg(){
-  if(VIEW==='all')return 'All eras — every session ever (read-only).';
-  if(isAllTime())return `All time (${VIEW==='era-1'?'Legacy':'Era 2'}) — read-only.`;
-  if(VIEW==='era-1')return `Legacy ${seasons[curSeason].name} is archived (read-only).`;
+  if(VIEW==='all')return 'All chapters — every session ever (read-only).';
+  if(isAllTime())return `All time (${VIEW==='era-1'?'Chapter 1':'Chapter 2'}) — read-only.`;
+  if(VIEW==='era-1')return `Chapter 1 ${seasons[curSeason].name} is archived (read-only).`;
   return `${seasons[curSeason].name} isn't the current season.`;
 }
-// Full label for a session, e.g. "Era 2 · Season 1 · Session 3", in any view.
-// In pooled views the session carries _season; in the All eras view Legacy season names start with "Legacy ".
+// Full label for a session, e.g. "Chapter 2 · Season 1 · Session 3", in any view.
+// In pooled views the session carries _season; in the All chapters view Chapter 1 season names start with "Chapter 1 ".
 function sessionLabel(s){
-  let season=s._season||seasons[curSeason].name, era=VIEW==='era-1'?'Legacy':'Era 2';
-  if(season.startsWith('Legacy ')){era='Legacy';season=season.slice(7);}
+  let season=s._season||seasons[curSeason].name, era=VIEW==='era-1'?'Chapter 1':'Chapter 2';
+  if(season.startsWith('Chapter 1 ')){era='Chapter 1';season=season.slice(10);}
   return `${era} · ${season} · ${s.name}`;
 }
 function avIdx(n){const i=KNOWN.indexOf(n);return i<0?(hashName(n)%CB.length):i;}
@@ -369,7 +369,7 @@ function formChart(all,isPnl){
 function renderScorer(){
   const el=document.getElementById('pnl-scorer');
   if(!isActiveSeason()){
-    el.innerHTML=`<div class="card"><div class="note" style="margin:0;text-align:center;padding:1rem 0">${readOnlyMsg()} Switch to the current Era 2 season to add sessions.</div></div>`;
+    el.innerHTML=`<div class="card"><div class="note" style="margin:0;text-align:center;padding:1rem 0">${readOnlyMsg()} Switch to the current Chapter 2 season to add sessions.</div></div>`;
     return;
   }
   const quick=DATA.players.filter(p=>!scorerPlayers.includes(p));
