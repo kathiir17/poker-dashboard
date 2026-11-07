@@ -110,9 +110,11 @@ svg.i{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:1.75;str
 .nav-btn{display:flex;flex-direction:column;align-items:center;gap:4px;background:none;border:none;color:var(--muted);font-size:11px;font-weight:500;cursor:pointer;padding:8px 0}
 .nav-btn svg.i{width:22px;height:22px}
 .nav-btn.on{color:var(--copper)}
+.nav-btn.on svg.i{filter:drop-shadow(0 0 6px rgba(192,138,91,.6))}
 .nav-add{justify-self:center;width:56px;height:56px;border-radius:50%;background:var(--copper);color:var(--base);border:4px solid var(--base);margin-top:-22px;display:flex;align-items:center;justify-content:center;cursor:pointer}
 .nav-add svg.i{width:26px;height:26px;stroke-width:2.25}
 .nav-add.on,.nav-add:hover{background:var(--link)}
+.nav-add{box-shadow:0 0 22px -4px rgba(192,138,91,.55)}
 /* ── More list and back link ── */
 .list-btn{display:flex;align-items:center;gap:12px;width:100%;background:none;border:none;border-bottom:1px solid var(--border);padding:14px 0;font-size:15px;text-align:left;cursor:pointer}
 .list-btn:last-child{border-bottom:none}
@@ -198,25 +200,44 @@ input::placeholder{color:#6f675e}
 /* ── Table: hero cards ── */
 .hero{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:22px}
 .hero-card{position:relative;overflow:hidden;text-align:left;border-radius:var(--r-card);padding:16px 14px 14px;cursor:pointer;display:flex;flex-direction:column;align-items:flex-start;gap:10px;min-width:0}
-.hero-card.leader{background:#1B1714;border:1px solid #6E5137}
-.hero-card.loser{background:#191313;border:1px solid #5A2C2A}
+.hero-card.leader{background:#1B1714;border:1px solid #6E5137;box-shadow:0 0 26px -8px rgba(221,184,114,.35)}
+/* a steady warm gold glow with a faint, uneven flicker, like the hum of a light bulb */
+.hero-card.leader{animation:hum 2.6s linear infinite}
+@keyframes hum{
+  0%,100%{box-shadow:0 0 28px -5px rgba(221,184,114,.42)}
+  13%{box-shadow:0 0 28px -5px rgba(221,184,114,.47)}  21%{box-shadow:0 0 28px -5px rgba(221,184,114,.4)}
+  34%{box-shadow:0 0 28px -5px rgba(221,184,114,.46)}  47%{box-shadow:0 0 28px -5px rgba(221,184,114,.41)}
+  58%{box-shadow:0 0 28px -5px rgba(221,184,114,.48)}  66%{box-shadow:0 0 28px -5px rgba(221,184,114,.42)}
+  79%{box-shadow:0 0 28px -5px rgba(221,184,114,.46)}  88%{box-shadow:0 0 28px -5px rgba(221,184,114,.4)}}
+.hero-card.loser{background:#191313;border:1px solid #5A2C2A;box-shadow:0 0 26px -8px rgba(224,113,95,.3)}
 .hero-card .inlay{position:absolute;top:-12px;right:-30px;width:104px;height:104px;pointer-events:none;opacity:.8;overflow:visible}
 .loser .inlay{top:-2px;right:-12px}
 /* torn £: crack draws (1.2s in), then the halves drift apart and fade; forwards = stays gone until redrawn */
-.tear .crack{stroke-dasharray:100;stroke-dashoffset:100;animation:crack .6s ease-out 1.2s forwards,crack-fade 1.8s ease-in 2.2s forwards}
-@keyframes crack{to{stroke-dashoffset:0}}
-@keyframes crack-fade{to{opacity:0}}
+/* One 8s cycle, repeating: the £ fades in (0–0.5s), the crack draws (2.5–3s: after the 1.6s
+   count-up, the 0.4s pence fade-in and a 0.5s pause), the halves drift apart and fade (3.1–5.1s),
+   then nothing until 8s. Redrawing the Table restarts it from the top, so it always follows the count. */
+.tear .crack{stroke-dasharray:100;animation:crack 8s infinite}
+@keyframes crack{0%,31.25%{stroke-dashoffset:100;opacity:1;animation-timing-function:ease-out}37.5%,41.25%{stroke-dashoffset:0;opacity:1;animation-timing-function:ease-in}57.5%,100%{stroke-dashoffset:0;opacity:0}}
 .tear .half{transform-box:fill-box;transform-origin:50% 100%}
-.tear .half.l{animation:tear-l 2.4s cubic-bezier(.4,0,.7,1) 2s forwards}
-.tear .half.r{animation:tear-r 2.4s cubic-bezier(.4,0,.7,1) 2s forwards}
-@keyframes tear-l{to{transform:translate(-10px,7px) rotate(-11deg);opacity:0}}
-@keyframes tear-r{to{transform:translate(10px,9px) rotate(9deg);opacity:0}}
+.tear .half.l{animation:tear-l 8s infinite}
+.tear .half.r{animation:tear-r 8s infinite}
+@keyframes tear-l{0%{opacity:0;transform:none}6%,38.75%{opacity:1;transform:none;animation-timing-function:cubic-bezier(.4,0,.7,1)}63.75%,100%{opacity:0;transform:translate(-10px,7px) rotate(-11deg)}}
+@keyframes tear-r{0%{opacity:0;transform:none}6%,38.75%{opacity:1;transform:none;animation-timing-function:cubic-bezier(.4,0,.7,1)}63.75%,100%{opacity:0;transform:translate(10px,9px) rotate(9deg)}}
 .hero-lbl{font-size:13px;font-weight:500;position:relative}
 .leader .hero-lbl{color:var(--link)}
 .loser .hero-lbl{color:var(--down)}
 .hero-who{display:flex;align-items:center;gap:8px;font-size:16px;font-weight:600;min-width:0;max-width:100%;position:relative}
 .hero-who span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .hero-num{font-size:clamp(22px,6.6vw,34px);line-height:1;position:relative}
+.hero-num .pence{display:inline-block;animation:pence-in .4s ease-out both}
+/* odometer: every character is 1em tall; each digit's reel slides up to its value (--to = how many digits up) */
+.odo{display:inline-flex;align-items:flex-start;height:1em;overflow:hidden}
+.odo-ch,.odo-col{display:block;height:1em;line-height:1em}
+.odo-col{overflow:hidden}
+.odo-reel{display:block;transition:transform 1.5s cubic-bezier(.16,1,.3,1)}
+.odo-reel span{display:block;height:1em;line-height:1em;text-align:center}
+.odo.go .odo-reel{transform:translateY(calc(var(--to) * -1em))}
+@keyframes pence-in{from{opacity:0;transform:translateX(-4px)}}
 .loser .hero-num{color:var(--down)}
 .hero-badge{font-size:12px;font-weight:600;line-height:1.3;border-radius:10px;padding:5px 9px;position:relative}
 .leader .hero-badge{color:var(--gold);background:rgba(221,184,114,.1)}
@@ -265,7 +286,7 @@ input::placeholder{color:#6f675e}
 .pchips{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
 .pchip{display:inline-flex;align-items:center;gap:8px;background:none;border:1px solid var(--border);border-radius:999px;padding:7px 14px;font-size:14px;color:var(--muted);cursor:pointer}
 .pchip .dot{width:8px;height:8px;border-radius:50%;background:#4A4540}
-.pchip.on{border-color:var(--c);color:var(--text);background:color-mix(in srgb,var(--c) 10%,transparent)}
+.pchip.on{border-color:var(--c);color:var(--text);background:color-mix(in srgb,var(--c) 10%,transparent);box-shadow:0 0 12px -3px var(--c)}
 .pchip.on .dot{background:var(--c)}
 .plist{padding:2px 16px}
 .prow{display:flex;align-items:center;gap:12px;width:100%;background:none;border:none;border-bottom:1px solid var(--border);padding:12px 0;text-align:left;cursor:pointer;transition:background .4s}
@@ -320,7 +341,8 @@ input::placeholder{color:#6f675e}
 .aw-row .nm{font-size:16px;font-weight:600;line-height:1.25}
 .aw-row .sub{margin-top:2px;font-size:13px}
 .aw-tag{flex-shrink:0;font-size:12px;font-weight:600;color:var(--muted);border:1px solid var(--border);border-radius:999px;padding:4px 10px;white-space:nowrap}
-.aw-tag.live{background:var(--gold);border-color:var(--gold);color:#1A1612}
+.aw-tag.live{background:var(--gold);border-color:var(--gold);color:#1A1612;box-shadow:0 0 12px -2px rgba(221,184,114,.55)}
+.aw-ic.champ{box-shadow:0 0 14px -3px rgba(221,184,114,.6)}
 .aw-pills{display:flex;flex-wrap:wrap;gap:8px;margin:14px 0 6px}
 .aw-pill{font-size:13px;border:1px solid var(--border);border-radius:999px;padding:5px 12px}
 .aw-pill.gold{border-color:#6E5137;color:var(--gold)}
@@ -365,6 +387,30 @@ div.hr-head{cursor:default}
 .hr-input input{width:76px;text-align:right;font:600 15px var(--body)}
 .aw-season .nm1{display:inline-flex;align-items:center;gap:8px;font-weight:600}.rd-sum b.up{color:var(--up)}.rd-sum b.down{color:var(--down)}
 .rv-row .nm{display:block;font-size:15px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+/* ── Motion: screen entrances (only when you arrive), cascades, reveals, line draw-ins, presses ── */
+.pnl.in-rise{animation:in-rise .24s ease-out both}
+.pnl.in-push{animation:in-push .26s cubic-bezier(.2,.8,.2,1) both}
+.pnl.in-pop{animation:in-pop .26s cubic-bezier(.2,.8,.2,1) both}
+@keyframes in-rise{from{opacity:0;transform:translateY(8px)}}
+@keyframes in-push{from{opacity:0;transform:translateX(22px)}}
+@keyframes in-pop{from{opacity:0;transform:translateX(-22px)}}
+.pnl.entering :is(.st-row,.prow,.sess-card,.aw-card,.hr-card,.rv-row,.list-btn,.tile){animation:row-in .32s ease-out both;animation-delay:calc(var(--i,0)*28ms + 40ms)}
+@keyframes row-in{from{opacity:0;transform:translateY(6px)}}
+.pnl.entering .st-bar span{animation:bar-grow .55s cubic-bezier(.2,.7,.2,1) both;animation-delay:calc(var(--i,0)*28ms + 140ms)}
+@keyframes bar-grow{from{transform:scaleX(0)}}
+.reveal{animation:reveal .22s ease-out both}
+@keyframes reveal{from{opacity:0;transform:translateY(-5px)}}
+.draw{stroke-dasharray:1;stroke-dashoffset:1;animation:draw .7s ease-out forwards}
+@keyframes draw{to{stroke-dashoffset:0}}
+.draw-dot{animation:fade-in .3s ease-out .45s both}
+@keyframes fade-in{from{opacity:0}}
+.modal{animation:pop .2s cubic-bezier(.2,.8,.2,1)}
+@keyframes pop{from{opacity:0;transform:scale(.96)}}
+.sheet-bg{animation:fade .16s ease-out}
+.sheet{animation:sheet-up .24s cubic-bezier(.2,.8,.2,1)}
+@keyframes sheet-up{from{opacity:0;transform:translateY(18px)}}
+:is(.st-row,.prow,.rv-row,.hero-card,.sess-card,.list-btn,.aw-head,.hr-head,.btn,.btn-ghost,.btn-danger,.pchip,.fit-btn,.tag,.awards-btn,.nav-btn,.nav-add,.picker,.seg button){transition:transform .12s ease-out}
+:is(.st-row,.prow,.rv-row,.hero-card,.sess-card,.list-btn,.aw-head,.btn,.btn-ghost,.btn-danger,.pchip,.fit-btn,.tag,.awards-btn,.nav-btn,.nav-add,.picker,.seg button,button.hr-head):active{transform:scale(.97)}
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}.glint,.tear .crack{display:none}}
 </style>
 </head>
@@ -538,7 +584,7 @@ function setView(v){
     curSeason=v==='era-2'?seasons.findIndex(s=>s.number===DATA.activeSeasonNumber):seasons.length-1;
   }
   scorerResult=null; editIdx=null;
-  renderSeasonBar(); render();
+  renderSeasonBar(); render(); enterPanel('rise');
 }
 
 // ── Chapter / Season pickers ──
@@ -599,7 +645,7 @@ function renderSeasonBar(){
 function switchSeason(i){
   curSeason=+i;
   scorerResult=null; editIdx=null;
-  renderSeasonBar(); render();
+  renderSeasonBar(); render(); enterPanel('rise');
 }
 
 // In-app confirmation dialog. Resolves true if the user presses the confirm button.
@@ -640,7 +686,12 @@ async function newSeason(){
 // The Chapter / Season pickers only appear on the tabs that depend on them, and the big title
 // only on the main three.
 const TITLE_TABS=['lb','stats','hist'], PICKER_TABS=[...TITLE_TABS,'rivals'];
+// How a screen arrives: deeper screens slide in from the right, going back slides the other way,
+// and moving between the main tabs fades up.
+const DEPTH={player:1,awards:1,house:1,rules:1,colours:1,rivals:2};
 function goTab(id){
+  const from=TAB,d=DEPTH[id]||0,dFrom=DEPTH[from]||0;
+  const how=d>dFrom||(id===from&&id==='player')?'push':d<dFrom?'pop':'rise';
   TAB=id;
   const title=TITLE_TABS.includes(id),pickers=PICKER_TABS.includes(id);
   const bar=document.getElementById('season-bar');
@@ -652,6 +703,42 @@ function goTab(id){
   document.querySelectorAll('.nav [data-tab]').forEach(b=>b.classList.toggle('on',b.dataset.tab===id||(b.dataset.also||'').split(' ').includes(id)));
   window.scrollTo(0,0);
   render();
+  enterPanel(how);
+}
+// Animate the current screen arriving. Only called on arrival (a tab, Back, a new Chapter / Season),
+// never on the redraws from taps inside a screen, so toggling a chip doesn't replay everything.
+const CASCADE='.st-row,.prow,.sess-card,.aw-card,.hr-card,.rv-row,.list-btn,.tile';
+function enterPanel(how){
+  const el=document.getElementById('pnl-'+TAB);if(!el)return;
+  el.classList.remove('in-rise','in-push','in-pop','entering');void el.offsetWidth;   // restart
+  // number each row / card within its list, so they cascade in one after another (capped at 10)
+  el.querySelectorAll(CASCADE).forEach(e=>e.style.setProperty('--i',Math.min([...e.parentNode.children].indexOf(e),10)));
+  el.classList.add('in-'+how,'entering');
+  clearTimeout(el._enterT);el._enterT=setTimeout(()=>el.classList.remove('in-'+how,'entering'),900);   // cascades are done by then
+  if(TAB==='lb')countUp();
+}
+// Hero amounts roll in like an odometer, the way finance apps do it: each digit is a reel of 0–9
+// that rolls up to its value, all easing to a stop together over 1.6s. Lower digits spin through
+// extra turns (a £16 lead: the units reel passes 0–9 once, then on to 6), so it reads as counting.
+// The number has its final width from the first frame, so nothing shifts sideways. Once the reels
+// settle, the plain number replaces them and the pence (if any) ease in.
+function countUp(){
+  if(matchMedia('(prefers-reduced-motion: reduce)').matches)return;
+  document.querySelectorAll('#pnl-lb .hero-num[data-v]').forEach(el=>{
+    const v=+el.dataset.v,[pounds,pence]=money25(v).split('.');
+    const whole=Math.floor(Math.abs(round25(v)));
+    const chars=[...pounds];
+    let place=chars.filter(c=>/\d/.test(c)).length;   // counts down to 0 = the units digit
+    el.innerHTML=`<span class="odo">${chars.map(c=>{
+      if(!/\d/.test(c))return `<span class="odo-ch">${c}</span>`;   // sign, £ and commas stay still
+      place--;
+      const turns=Math.min(Math.floor(whole/10**(place+1)),2);   // full spins before landing (max 2)
+      const reel=Array.from({length:(turns+1)*10},(_,i)=>`<span>${i%10}</span>`).join('');
+      return `<span class="odo-col"><span class="odo-reel" style="--to:${turns*10+(+c)}">${reel}</span></span>`;}).join('')}</span>`;
+    requestAnimationFrame(()=>requestAnimationFrame(()=>el.querySelector('.odo')?.classList.add('go')));   // start rolling next frame
+    clearTimeout(el._odoT);
+    el._odoT=setTimeout(()=>{el.innerHTML=pounds+(pence?`<span class="pence">.${pence}</span>`:'');},1600);
+  });
 }
 
 // ══════════════ ADD TO HOME SCREEN ══════════════
@@ -830,14 +917,14 @@ function renderLB(){
       ${INLAY}
       <div class="hero-lbl">${leaderLabel()}</div>
       <div class="hero-who">${av(first.name,38,'ring')}<span class="pl1">${first.name}</span></div>
-      <div class="hero-num money">${money25(first.shrunk)}</div>
+      <div class="hero-num money" data-v="${first.shrunk}">${money25(first.shrunk)}</div>
       ${second?`<span class="hero-badge">${first.shrunk-second.shrunk<0.125?'Level with 2nd':`+${gbp25(first.shrunk-second.shrunk)} clear of&nbsp;2nd`}</span>`:''}
     </button>
     ${n>1?`<button class="hero-card loser" onclick="openPlayer('${q(last.name)}')">
       ${TORN}
       <div class="hero-lbl">${loserLabel()}</div>
       <div class="hero-who">${av(last.name,38)}<span class="pl-last">${last.name}</span></div>
-      <div class="hero-num money">${money25(last.shrunk)}</div>
+      <div class="hero-num money" data-v="${last.shrunk}">${money25(last.shrunk)}</div>
       <span class="hero-badge">${aboveLast.shrunk-last.shrunk<0.125?`Level with&nbsp;${n>2?'2nd‑last':'the&nbsp;leader'}`:`${gbp25(aboveLast.shrunk-last.shrunk)} adrift of&nbsp;${n>2?'2nd‑last':'the&nbsp;leader'}`}</span>
     </button>`:''}
   </div>`;
@@ -852,7 +939,7 @@ function renderLB(){
   <div class="card standings">
     ${all.map((p,i)=>{
       const w=Math.abs(p.shrunk)/span*100;
-      const bar=p.shrunk>=0?`left:${zero}%;width:${w}%`:`right:${100-zero}%;width:${w}%`;
+      const bar=p.shrunk>=0?`left:${zero}%;width:${w}%;transform-origin:left`:`right:${100-zero}%;width:${w}%;transform-origin:right`;
       const c=cls(round25(p.shrunk));
       return `<button class="st-row" onclick="openPlayer('${q(p.name)}')">
         ${rank(i)}${av(p.name,32)}<span class="st-name ${place(i,n)}">${p.name}</span>
@@ -1090,10 +1177,11 @@ function renderStats(){
 }
 
 // Tap a chip: colour that player's line, or grey it again
+let drawLine=null;   // the line just tapped on: it draws itself in
 function toggleLine(n){
   const i=chartSel.indexOf(n);
-  if(i>=0)chartSel.splice(i,1);else chartSel.push(n);
-  renderStats();
+  if(i>=0)chartSel.splice(i,1);else{chartSel.push(n);drawLine=n;}
+  renderStats();drawLine=null;
 }
 // Which chart Stats and the player page show: 'run' = running total, 'form' = PnL in each session
 let chartMode='run';
@@ -1201,24 +1289,30 @@ function lineChart(ss,{mode='run',sel=[],only=null,fit=false,ends=false,avg=fals
     });
   }
 
-  // Draw the lines, clipped to the plot (with a little room for the dots) so a fitted chart cuts
+  // Draw the lines, clipped to the plot (with a little room for the dots and their halos) so a fitted chart cuts
   // other lines off at the edges. A running total is one line from £0; a per-session line is split
   // into runs of back-to-back sessions, and a run of one is drawn as a dot.
   const pt=p=>`${X(xs[p.o])},${Y(p.v)}`;
   const runs=n=>{const out=[];lines[n].forEach((p,i,l)=>{if(!i||(!run&&p.o!==l[i-1].o+1))out.push([]);out.at(-1).push(p);});return out;};
-  const draw=(n,colour,width,dotR)=>{let g='';
+  const draw=(n,colour,width,dotR,anim)=>{let g='';const a=anim?' class="draw" pathLength="1"':'',ad=anim?' class="draw-dot"':'';
     runs(n).forEach((r,i)=>{
       const d=(run&&i===0?`M${X(start(n))},${Y(0)} L`:'M')+r.map(pt).join(' L');
-      if(r.length>1||run)g+=`<path d="${d}" fill="none" stroke="${colour}" stroke-width="${width}" stroke-linejoin="round" stroke-linecap="round"/>`;
-      else g+=`<circle cx="${X(xs[r[0].o])}" cy="${Y(r[0].v)}" r="${dotR}" fill="${colour}"/>`;});
+      if(r.length>1||run)g+=`<path${a} d="${d}" fill="none" stroke="${colour}" stroke-width="${width}" stroke-linejoin="round" stroke-linecap="round"/>`;
+      else g+=`<circle${ad} cx="${X(xs[r[0].o])}" cy="${Y(r[0].v)}" r="${dotR}" fill="${colour}"/>`;});
     return g;};
   const clip='rc'+(++chartN);
-  svg+=`<clipPath id="${clip}"><rect x="${padL-5}" y="${padT-5}" width="${iW+10}" height="${iH+10}"/></clipPath><g clip-path="url(#${clip})">`;
+  // glow for coloured lines: a soft blur of the line itself underneath it (whole-chart region, so flat lines keep it)
+  svg+=`<clipPath id="${clip}"><rect x="${padL-9}" y="${padT-9}" width="${iW+18}" height="${iH+18}"/></clipPath>
+    <filter id="${clip}g" filterUnits="userSpaceOnUse" x="0" y="0" width="${W}" height="${H}"><feGaussianBlur stdDeviation="2.2" result="b"/>
+      <feComponentTransfer in="b" result="s"><feFuncA type="linear" slope=".6"/></feComponentTransfer><feMerge><feMergeNode in="s"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+    <g clip-path="url(#${clip})">`;
   names.filter(n=>!sel.includes(n)).forEach(n=>{svg+=draw(n,GREY_LINE,1.3,1.8);});
-  sel.filter(n=>lines[n]).forEach(n=>{const c=lineCol(n);
-    svg+=draw(n,c,2.4,2.8);
-    // dots: just the end of a running total; every session for per-session
-    (run?[lines[n].at(-1)]:lines[n]).forEach(p=>{svg+=`<circle cx="${X(xs[p.o])}" cy="${Y(p.v)}" r="${run?3.6:2.8}" fill="${c}"/>`;});
+  sel.filter(n=>lines[n]).forEach(n=>{const c=lineCol(n),anim=n===drawLine,ad=anim?' class="draw-dot"':'';
+    svg+=`<g filter="url(#${clip}g)">`+draw(n,c,2.4,2.8,anim);
+    // dots: just the end of a running total (with a soft halo); every session for per-session
+    if(run){const e=lines[n].at(-1);svg+=`<circle${ad} cx="${X(xs[e.o])}" cy="${Y(e.v)}" r="7.5" fill="${c}" opacity=".18"/>`;}
+    (run?[lines[n].at(-1)]:lines[n]).forEach(p=>{svg+=`<circle${ad} cx="${X(xs[p.o])}" cy="${Y(p.v)}" r="${run?3.6:2.8}" fill="${c}"/>`;});
+    svg+=`</g>`;
     // a running total that stopped early stays at its final value: a dotted line carries it to the edge
     if(showEnds&&end(n)<xb)svg+=`<line x1="${X(end(n))}" x2="${W-padR}" y1="${Y(lines[n].at(-1).v)}" y2="${Y(lines[n].at(-1).v)}" stroke="${c}" stroke-opacity=".6" stroke-dasharray="1.5 3"/>`;});
   // shrunk-average lines, across the whole plot
@@ -1329,7 +1423,10 @@ function openRivalAnalysis(name){
   goTab('rivals');
 }
 function pickRivalOf(name){rivalOf=name;rivalOpen=null;renderRivals();}
-function toggleRival(name){rivalOpen=rivalOpen===name?null:name;renderRivals();}
+// revealKey: the thing just opened, so only it animates (the screen is redrawn on every tap)
+let revealKey=null;
+function reveal(k,draw){revealKey=k;draw();revealKey=null;}
+function toggleRival(name){rivalOpen=rivalOpen===name?null:name;reveal(rivalOpen,renderRivals);}
 // "24/10/2026" → "24 Oct"
 function shortDate(d){const [dd,mm]=d.split('/');return `${+dd} ${MONTHS[+mm-1]}`;}
 
@@ -1348,7 +1445,7 @@ function renderRivals(){
     <span class="sub" style="font-size:11px;white-space:nowrap">${gbp(v.buyin)}→${gbp(v.final)}</span></span>`;
   const detail=r=>{
     const sh=sharedSessions(ss,rivalOf,r.opp),tot=sh.reduce((t,x)=>t+x.gap,0),avg=tot/sh.length;
-    return `<div class="rv-detail">
+    return `<div class="rv-detail${revealKey===r.opp?' reveal':''}">
       <div class="rd-row head"><span>Session</span><span class="r">${rivalOf}</span><span class="r">${r.opp}</span><span class="r">Gap</span></div>
       ${sh.map(x=>`<div class="rd-row"><span style="min-width:0"><span style="display:block">${x.session.name}</span><span class="sub">${seasonTag(x.session)} · ${shortDate(x.session.date)}</span></span>
         ${cell(x.a)}${cell(x.b)}<span class="money r ${cls(x.gap)}">${money(x.gap)}</span></div>`).join('')}
@@ -1397,7 +1494,7 @@ function awardDetail(a,name){
   }
 }
 const awTag=a=>`C${a.chapter} · S${a.season}`;
-const awIcon=(type,live)=>`<span class="aw-ic${live?' live':''}" style="--c:${AWARD_INFO[type].c}">${icon(AWARD_INFO[type].icon)}</span>`;
+const awIcon=(type,live)=>`<span class="aw-ic${live?' live':''}${type==='champion'?' champ':''}" style="--c:${AWARD_INFO[type].c}">${icon(AWARD_INFO[type].icon)}</span>`;
 const awardsOf=name=>allAwards(DATA).filter(a=>a.players.includes(name));
 
 // One row per award for one player: icon, name, the number behind it, and C1 · S2 or "Leading"
@@ -1447,7 +1544,7 @@ function closeAwards(){
 // ── Trophy cabinet (More → Awards) ──
 let cabinetView='award';                 // 'award' | 'player'
 let cabinetOpen=new Set(['champion']);   // expanded cards (award types or player names)
-function toggleCabinet(k){cabinetOpen.has(k)?cabinetOpen.delete(k):cabinetOpen.add(k);renderAwards();}
+function toggleCabinet(k){const opening=!cabinetOpen.has(k);opening?cabinetOpen.add(k):cabinetOpen.delete(k);reveal(opening?k:null,renderAwards);}
 function setCabinetView(v){cabinetView=v;renderAwards();}
 // Winner names for a row: avatar + name for each
 const winners=a=>a.players.map(p=>`<span class="nm1">${av(p,26)}${p}</span>`).join('');
@@ -1471,7 +1568,7 @@ function renderAwards(){
       return `<div class="card aw-card"><button class="aw-head" aria-expanded="${open}" onclick="toggleCabinet('${t}')">${awIcon(t)}
         <span class="mid"><span class="nm" style="display:block">${AWARD_INFO[t].name}</span><span class="sub">${AWARD_INFO[t].rule}</span></span>
         ${side}<span class="sub">${icon(open?'up-chev':'open')}</span></button>
-        ${open?`<div class="aw-list">${list.length?list.map(a=>`<div class="aw-season"><span class="tagtxt">${awTag(a)}</span>
+        ${open?`<div class="aw-list${revealKey===t?' reveal':''}">${list.length?list.map(a=>`<div class="aw-season"><span class="tagtxt">${awTag(a)}</span>
           <span class="names">${winners(a)}</span>${a.status==='leading'?'<span class="aw-tag live">Leading</span>':''}</div>`).join('')
           :'<p class="note empty">Not won yet.</p>'}</div>`:''}</div>`;}).join('');
   }else{
@@ -1484,7 +1581,7 @@ function renderAwards(){
       return `<div class="card aw-card"><button class="aw-head" aria-expanded="${open}" onclick="toggleCabinet('p:${q(n)}')">${av(n,44)}
         <span class="mid"><span class="nm" style="display:block">${n}</span><span class="sub">${wonInPlay(l)}</span></span>
         <span class="sub">${icon(open?'up-chev':'open')}</span></button>
-        ${open?`<div class="aw-list">${awardPills(l)}${awardRows(l,n)}</div>`:''}</div>`;}).join('');
+        ${open?`<div class="aw-list${revealKey==='p:'+n?' reveal':''}">${awardPills(l)}${awardRows(l,n)}</div>`:''}</div>`;}).join('');
   }
   el.innerHTML=html;
 }
@@ -1557,7 +1654,7 @@ function setStake(id,v){
   HOUSE_STAKES[id]=Math.max(0,parseFloat(v)||0);
   document.querySelectorAll('.stk-'+id).forEach(e=>{e.textContent=gbp(HOUSE_STAKES[id]);});
 }
-function toggleHouse(id){houseOpen.has(id)?houseOpen.delete(id):houseOpen.add(id);renderHouse();}
+function toggleHouse(id){const opening=!houseOpen.has(id);opening?houseOpen.add(id):houseOpen.delete(id);reveal(opening?id:null,renderHouse);}
 
 function renderHouse(){
   document.getElementById('pnl-house').innerHTML=`<button class="link back" onclick="goTab('more')">${icon('left')}More</button>
@@ -1568,7 +1665,7 @@ function renderHouse(){
         <h2 class="hr-name">${r.name}</h2>${r.more?`<span class="sub" style="margin-left:auto">${icon(open?'up-chev':'open')}</span>`:''}`;
       return `<div class="card hr-card">
         ${r.more?`<button class="hr-head" aria-expanded="${open}" onclick="toggleHouse('${r.id}')">${head}</button>`:`<div class="hr-head">${head}</div>`}
-        <ul class="hr-lines">${r.lines.map(t=>houseLine(t,r.id)).join('')}${open&&r.more?r.more.map(t=>houseLine(t,r.id)).join(''):''}</ul>
+        <ul class="hr-lines">${r.lines.map(t=>houseLine(t,r.id)).join('')}${open&&r.more?r.more.map(t=>houseLine(t,r.id).replace('<li>',revealKey===r.id?'<li class="reveal">':'<li>')).join(''):''}</ul>
         ${r.more&&!open?`<button class="link" style="font-size:13px;margin-top:8px" onclick="toggleHouse('${r.id}')">Show the ${r.more.length} variants</button>`:''}
         ${r.stake?`<label class="hr-stake">Stake <span class="hr-input">£<input type="number" min="0" step="0.5" inputmode="decimal" value="${HOUSE_STAKES[r.id].toFixed(2)}" oninput="setStake('${r.id}',this.value)" aria-label="${r.name} stake in pounds"></span></label>`:''}
       </div>`;}).join('')}`;
