@@ -130,6 +130,7 @@ svg.i{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:1.75;str
 .card{background:var(--card);border:1px solid var(--border);border-radius:var(--r-card);padding:18px;margin-bottom:14px}
 .inset{background:var(--raised);border-radius:var(--r-ctl);padding:12px 14px}
 .inset+.inset{margin-top:10px}
+.two-col .inset{margin-top:0}
 .inset .lbl{font-size:12px;color:var(--muted);margin-bottom:4px}
 .two-col{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .row{display:flex;align-items:center;gap:10px;padding:11px 0;border-bottom:1px solid var(--border)}
@@ -190,7 +191,63 @@ input::placeholder{color:#6f675e}
 .fact{display:flex;align-items:center;gap:14px;padding:12px 0;border-bottom:1px solid var(--border)}
 .fact:last-child{border-bottom:none}
 .fact .ic{width:36px;height:36px;border-radius:10px;background:var(--raised);display:flex;align-items:center;justify-content:center;color:var(--copper);flex-shrink:0}
-@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+
+/* ── Table: hero cards ── */
+.hero{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:22px}
+.hero-card{position:relative;overflow:hidden;text-align:left;border-radius:var(--r-card);padding:16px 14px 14px;cursor:pointer;display:flex;flex-direction:column;align-items:flex-start;gap:10px;min-width:0}
+.hero-card.leader{background:#1B1714;border:1px solid #6E5137}
+.hero-card.loser{background:#191313;border:1px solid #5A2C2A}
+.hero-card .inlay{position:absolute;top:-12px;right:-30px;width:104px;height:104px;pointer-events:none;opacity:.8;overflow:visible}
+.loser .inlay{top:-2px;right:-12px}
+/* torn £: crack draws (1.2s in), then the halves drift apart and fade; forwards = stays gone until redrawn */
+.tear .crack{stroke-dasharray:100;stroke-dashoffset:100;animation:crack .6s ease-out 1.2s forwards,crack-fade 1.8s ease-in 2.2s forwards}
+@keyframes crack{to{stroke-dashoffset:0}}
+@keyframes crack-fade{to{opacity:0}}
+.tear .half{transform-box:fill-box;transform-origin:50% 100%}
+.tear .half.l{animation:tear-l 2.4s cubic-bezier(.4,0,.7,1) 2s forwards}
+.tear .half.r{animation:tear-r 2.4s cubic-bezier(.4,0,.7,1) 2s forwards}
+@keyframes tear-l{to{transform:translate(-10px,7px) rotate(-11deg);opacity:0}}
+@keyframes tear-r{to{transform:translate(10px,9px) rotate(9deg);opacity:0}}
+.hero-lbl{font-size:13px;font-weight:500;position:relative}
+.leader .hero-lbl{color:var(--link)}
+.loser .hero-lbl{color:var(--down)}
+.hero-who{display:flex;align-items:center;gap:8px;font-size:16px;font-weight:600;min-width:0;max-width:100%;position:relative}
+.hero-who span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.hero-num{font-size:clamp(22px,6.6vw,34px);line-height:1;position:relative}
+.loser .hero-num{color:var(--down)}
+.hero-badge{font-size:12px;font-weight:600;line-height:1.3;border-radius:10px;padding:5px 9px;position:relative}
+.leader .hero-badge{color:var(--gold);background:rgba(221,184,114,.1)}
+.loser .hero-badge{color:var(--down);background:rgba(224,113,95,.1)}
+.av.ring{box-shadow:0 0 0 2px #1B1714,0 0 0 3.5px var(--gold)}
+/* the gold glint: a short gold dash that runs round the inlay's diamond about every 6s */
+.glint{stroke-dasharray:9 91;animation:glint 6s linear infinite;filter:drop-shadow(0 0 3px var(--gold))}
+@keyframes glint{from{stroke-dashoffset:100}to{stroke-dashoffset:0}}
+
+/* ── Table: standings and recent sessions ── */
+.sec-head{display:flex;justify-content:space-between;align-items:baseline;margin:0 2px 10px}
+.sec-head .h2{margin:0}
+.standings{padding:6px 14px}
+.st-row{display:grid;grid-template-columns:20px 32px minmax(0,1fr) 30% 70px;align-items:center;gap:10px;width:100%;background:none;border:none;border-bottom:1px solid var(--border);padding:11px 0;text-align:left;cursor:pointer}
+.st-row:last-child{border-bottom:none}
+.st-name{font-size:15px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.st-bar{position:relative;height:10px}
+.st-bar.centred::before{content:"";position:absolute;left:50%;top:-6px;bottom:-6px;width:1px;background:var(--border)}
+.st-bar span{position:absolute;top:0;bottom:0;border-radius:5px;min-width:3px}
+.st-bar .up{background:var(--up)}.st-bar .down{background:var(--down)}.st-bar .flat{background:var(--muted)}.st-bar .pts{background:var(--copper)}
+.st-num{text-align:right;font-size:15px}
+.st-num.pts{color:var(--copper)}
+.sess-card{display:flex;align-items:center;gap:14px;width:100%;text-align:left;cursor:pointer;padding:14px}
+.date-tile{display:flex;flex-direction:column;align-items:center;justify-content:center;width:52px;height:52px;border-radius:12px;background:var(--raised);flex-shrink:0;line-height:1.1}
+.date-tile span{font-size:11px;color:var(--muted);text-transform:uppercase}
+.date-tile b{font:800 19px var(--display);font-variant-numeric:tabular-nums}
+.sess-mid{display:flex;flex-direction:column;min-width:0;flex:1}
+.sess-name{font-size:16px;font-weight:600}
+.sess-mid .sub{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sess-pot{font-size:17px}
+/* Stats: briefly highlight the card you jumped to from the Table */
+.player-card{scroll-margin-top:16px;transition:border-color .4s}
+.player-card.flash{border-color:var(--copper)}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}.glint,.tear .crack{display:none}}
 </style>
 </head>
 <body>
@@ -473,7 +530,7 @@ function sessionLabel(s){
 }
 function avIdx(n){const i=KNOWN.indexOf(n);return i<0?(hashName(n)%CB.length):i;}
 function hashName(n){let h=0;for(let i=0;i<n.length;i++)h=(h*31+n.charCodeAt(i))>>>0;return h;}
-function av(n,s=28){const i=avIdx(n);return `<div class="av" style="width:${s}px;height:${s}px;font-size:${Math.round(s*.38)}px;background:${CB[i]};color:${CF[i]}">${n.slice(0,2).toUpperCase()}</div>`;}
+function av(n,s=28,ring){const i=avIdx(n);return `<div class="av${ring?' ring':''}" style="width:${s}px;height:${s}px;font-size:${Math.round(s*.38)}px;background:${CB[i]};color:${CF[i]}">${n.slice(0,2).toUpperCase()}</div>`;}
 function rank(i){return `<span class="rank${i<3?' r'+(i+1):''}">${i+1}</span>`;}
 
 // Money. Every format drops ".00" on whole pounds.
@@ -528,76 +585,121 @@ function render(){
 let moreA2hsOpen=false;   // Add to Home Screen instructions expanded
 function renderMore(){
   document.getElementById('pnl-more').innerHTML=`<div class="card" style="padding-top:6px;padding-bottom:6px">
-    <button class="list-btn" onclick="goTab('rules')"><span class="ic">${icon('book')}</span>Rules and scoring<span class="chev">${icon('right')}</span></button>
+    <button class="list-btn" onclick="openRules()"><span class="ic">${icon('book')}</span>Rules and scoring<span class="chev">${icon('right')}</span></button>
     <button class="list-btn" onclick="moreA2hsOpen=!moreA2hsOpen;renderMore()" aria-expanded="${moreA2hsOpen}"><span class="ic">${icon('phone')}</span>Add to Home Screen<span class="chev">${icon(moreA2hsOpen?'open':'right')}</span></button>
     ${moreA2hsOpen?`<div class="inset prose" style="margin:0 0 14px;font-size:13px">${isInstalled()?'You’re already using the home-screen app.':A2HS_STEPS+' On Android, use the browser menu and choose <strong>Install app</strong>.'}</div>`:''}
   </div>`;
 }
 
-// ══════════════ LEADERBOARD ══════════════
+// ══════════════ TABLE (HOME) ══════════════
+// Hero cards (leader + season loser), standings with centre-line bars, latest two sessions.
+// Rankings come from ranked() on exact values; only the displayed numbers are rounded.
+const MONTHS=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+// Score as shown on the Table: 25p-rounded money, or points for the old system
+function score(v){return SYS==='pnl'?money25(v):v.toFixed(1)+' pts';}
+function gap(v){return SYS==='pnl'?gbp25(v):v.toFixed(1)+' pts';}
+function leaderLabel(){
+  if(isActiveSeason())return 'Chip leader';
+  if(VIEW==='all')return 'All-time leader';
+  if(isAllTime())return 'Chapter leader';
+  return 'Season winner';
+}
+function loserLabel(){
+  if(VIEW==='all')return 'All-time loser';
+  if(isAllTime())return 'Chapter loser';
+  return 'Season loser';
+}
+// Decorative Art Deco inlay for the leader card, with a gold glint travelling round the diamond
+const INLAY=`<svg class="inlay" viewBox="0 0 120 120" aria-hidden="true">
+  <rect x="30" y="18" width="84" height="84" fill="none" stroke="var(--copper)" stroke-width="1" opacity=".55"/>
+  <rect x="40" y="28" width="64" height="64" fill="none" stroke="var(--copper)" stroke-width="1" opacity=".35"/>
+  <path d="M72 0 132 60 72 120 12 60Z" fill="none" stroke="var(--copper)" stroke-width="1" opacity=".55"/>
+  <path class="glint" d="M72 0 132 60 72 120 12 60Z" pathLength="100" fill="none" stroke="var(--gold)" stroke-width="2" stroke-linecap="round"/>
+</svg>`;
+// A torn £ for the season loser. Each time the Table is drawn it plays once: a zigzag crack
+// runs down the middle, then the two halves drift apart and fade. Each half is the same £
+// clipped to one side of the zigzag, so they fit together exactly until they separate.
+const ZIG='66,2 58,15 68,28 56,41 68,54 57,67 67,80 60,94';
+const TORN=`<svg class="inlay tear" viewBox="0 0 120 120" aria-hidden="true">
+  <defs>
+    <clipPath id="tear-l"><polygon points="0,0 ${ZIG} 0,120"/></clipPath>
+    <clipPath id="tear-r"><polygon points="120,0 ${ZIG} 120,120"/></clipPath>
+  </defs>
+  <g class="half l"><text clip-path="url(#tear-l)" x="64" y="84" text-anchor="middle" font-family="Archivo, sans-serif" font-weight="800" font-size="92" fill="none" stroke="var(--down)" stroke-width="1.2" opacity=".6">£</text></g>
+  <g class="half r"><text clip-path="url(#tear-r)" x="64" y="84" text-anchor="middle" font-family="Archivo, sans-serif" font-weight="800" font-size="92" fill="none" stroke="var(--down)" stroke-width="1.2" opacity=".6">£</text></g>
+  <polyline class="crack" points="${ZIG}" pathLength="100" fill="none" stroke="var(--down)" stroke-width="1.4" stroke-linejoin="round"/>
+</svg>`;
+
 function renderLB(){
-  const total=curSessions().length;
-  if(total===0){
-    document.getElementById('pnl-lb').innerHTML=emptyCard(`No sessions yet${isAllTime()?'':' in '+seasons[curSeason].name}. Tap <strong>+</strong> to add one.`);
+  const el=document.getElementById('pnl-lb');
+  const SS=curSessions();
+  if(SS.length===0){
+    el.innerHTML=emptyCard(`No sessions yet${isAllTime()?'':' in '+seasons[curSeason].name}. Tap <strong>+</strong> to add the first one.`);
     return;
   }
-  const all=ranked();const isPnl=SYS==='pnl';
-  const maxAbs=Math.max(...all.map(p=>Math.abs(p.metric)),1);
-  const allTime=isAllTime();
-  let html=`<div class="card">
-    <h2 class="h2">${allTime?'All-time standings':'Standings'}</h2>
-    <p class="note">${isPnl
-      ? `Shrunk average PnL: total PnL ÷ (sessions + ${K})${allTime?', pooled across every season':''}. A player with few games sits closer to £0 until they've proven otherwise.`
-      : `Average bracket points (old system). Scores floor at 0.`}</p>`;
-  all.forEach((p,i)=>{
-    const headline=isPnl?`<span class="money ${cls(round25(p.metric))}" style="font-size:16px">${money25(p.metric)}</span>`:`<span class="pts" style="font-size:16px">${p.metric.toFixed(1)} pts</span>`;
-    const sub=isPnl?`${p.n}/${total} played · ${money25(p.pnlTot)} total`:`${p.n}/${total} played · ${p.oldTot} total pts`;
-    html+=`<div class="row">${rank(i)}${av(p.name,32)}
-      <div style="flex:1;min-width:0">
-        <div class="spread"><span style="font-size:15px;font-weight:500">${p.name}</span>${headline}</div>
-        <div class="sub" style="margin-top:2px">${sub}</div>
-      </div></div>`;
-  });
-  html+=`</div>`;
-  html+=`<div class="card"><h2 class="h2" style="margin-bottom:12px">${isPnl?'Shrunk avg PnL per session':'Avg points per session'}</h2>${isPnl?barCentred(all,maxAbs):barSimple(all,maxAbs)}</div>`;
-  html+=`<div class="card"><h2 class="h2" style="margin-bottom:12px">Form: ${isPnl?'PnL':'points'} per session${allTime?' (all seasons)':''}</h2>${formChart(all,isPnl)}
-    <div class="legend">
-      ${all.map(p=>{const c=CB[avIdx(p.name)];const act=formActive===p.name;const fade=formActive&&!act;
-        return `<button class="${act?'on':''}" onclick="toggleForm('${p.name}')" style="opacity:${fade?0.35:1}">
-          <span class="swatch" style="background:${c};height:${act?4:3}px"></span>${p.name}</button>`;}).join('')}
-    </div>${formActive?`<p class="sub" style="margin-top:6px;text-align:center">Tap ${formActive} again to reset</p>`:''}</div>`;
-  document.getElementById('pnl-lb').innerHTML=html;
-}
-function toggleForm(n){formActive=formActive===n?null:n;renderLB();}
+  const all=ranked();const n=all.length;
+  const first=all[0],second=all[1],last=all[n-1],aboveLast=all[n-2];
+  let html=`<div class="hero">
+    <button class="hero-card leader" onclick="showPlayer('${q(first.name)}')">
+      ${INLAY}
+      <div class="hero-lbl">${leaderLabel()}</div>
+      <div class="hero-who">${av(first.name,38,'ring')}<span>${first.name}</span></div>
+      <div class="hero-num money">${score(first.metric)}</div>
+      ${second?`<span class="hero-badge">${first.metric-second.metric<0.125?'Level with 2nd':`+${gap(first.metric-second.metric)} clear of&nbsp;2nd`}</span>`:''}
+    </button>
+    ${n>1?`<button class="hero-card loser" onclick="showPlayer('${q(last.name)}')">
+      ${TORN}
+      <div class="hero-lbl">${loserLabel()}</div>
+      <div class="hero-who">${av(last.name,38)}<span>${last.name}</span></div>
+      <div class="hero-num money">${score(last.metric)}</div>
+      <span class="hero-badge">${aboveLast.metric-last.metric<0.125?`Level with&nbsp;${n>2?'2nd‑last':'the&nbsp;leader'}`:`${gap(aboveLast.metric-last.metric)} adrift of&nbsp;${n>2?'2nd‑last':'the&nbsp;leader'}`}</span>
+    </button>`:''}
+  </div>`;
 
-const SVG_FONT=`font-family="Archivo, sans-serif"`;
-function barCentred(all,maxAbs){
-  const W=340,rowH=34,padT=18,padB=8,labelW=64;const H=padT+all.length*rowH+padB;
-  // leave 46 units at each end of the plot for the value label (e.g. "+£16.25"), so it never runs off the edge
-  const zone=W-labelW-10;const cx=labelW+zone/2;const scale=(zone/2-46)/maxAbs;
-  let s=`<svg viewBox="0 0 ${W} ${H}" style="width:100%;display:block">`;
-  s+=`<text x="${cx}" y="11" font-size="9" fill="var(--muted)" text-anchor="middle">£0</text>`;
-  s+=`<line x1="${cx}" x2="${cx}" y1="${padT-4}" y2="${H-padB}" stroke="var(--border)" stroke-width="1"/>`;
-  all.forEach((p,i)=>{const y=padT+i*rowH;const v=p.metric;const w=Math.abs(v)*scale;const x=v>=0?cx:cx-w;
-    const col=v>=0?'var(--up)':'var(--down)';
-    // name label pinned to far left, always clear of the plot zone
-    s+=`<text x="4" y="${y+16}" font-size="11" fill="var(--muted)" text-anchor="start">${p.name.slice(0,7)}</text>`;
-    s+=`<rect x="${x}" y="${y+6}" width="${Math.max(w,1.5)}" height="14" rx="7" fill="${col}"/>`;
-    // value label sits just past the bar end, on the outside
-    const tx=v>=0?cx+w+5:cx-w-5;const anc=v>=0?'start':'end';
-    s+=`<text x="${tx}" y="${y+17}" font-size="10.5" font-weight="700" ${SVG_FONT} fill="${col}" text-anchor="${anc}">${money25(v)}</text>`;});
-  return s+`</svg>`;
+  // Standings: bars grow right (green) or left (red) from a centre line, scaled to the biggest absolute score.
+  // The old points system has no negatives, so its bars all grow right from the left edge.
+  const isPnl=SYS==='pnl';
+  const maxAbs=Math.max(...all.map(p=>Math.abs(p.metric)),0.01);
+  html+=`<div class="sec-head"><h2 class="h2">${VIEW==='all'?'All-time standings':'Standings'}</h2><button class="link" onclick="openRules()">How it's scored</button></div>
+  <div class="card standings">
+    ${all.map((p,i)=>{
+      const w=Math.abs(p.metric)/maxAbs*(isPnl?50:100);
+      const bar=isPnl?(p.metric>=0?`left:50%;width:${w}%`:`right:50%;width:${w}%`):`left:0;width:${w}%`;
+      const c=isPnl?cls(round25(p.metric)):'pts';
+      return `<button class="st-row" onclick="showPlayer('${q(p.name)}')">
+        ${rank(i)}${av(p.name,32)}<span class="st-name">${p.name}</span>
+        <span class="st-bar${isPnl?' centred':''}"><span class="${c}" style="${bar}"></span></span>
+        <span class="money st-num ${c}">${score(p.metric)}</span></button>`;}).join('')}
+  </div>`;
+
+  // Recent sessions: the latest two, newest first
+  const recent=SS.slice(-2).reverse();
+  html+=`<div class="sec-head"><h2 class="h2">Recent sessions</h2><button class="link" onclick="goTab('hist')">See all</button></div>
+  ${recent.map(s=>{
+    const [dd,mm]=s.date.split('/');
+    const winner=[...s.results].sort((a,b)=>pnl(b)-pnl(a))[0];
+    const pot=s.results.reduce((a,r)=>a+r.buyin,0);
+    return `<button class="card sess-card" onclick="goTab('hist')">
+      <span class="date-tile"><span>${MONTHS[+mm-1]||''}</span><b>${dd}</b></span>
+      <span class="sess-mid"><span class="sess-name">${s.name}</span>
+        <span class="sub">${s.results.length} players · ${winner.player} took it</span></span>
+      <span class="money sess-pot">${gbp(pot)}</span></button>`;}).join('')}`;
+  el.innerHTML=html;
 }
-function barSimple(all,max){
-  const W=320,rowH=30,padT=8,padB=8,labelW=52;const H=padT+all.length*rowH+padB;
-  const zone=W-labelW-48;const scale=zone/max;
-  let s=`<svg viewBox="0 0 ${W} ${H}" style="width:100%;display:block">`;
-  all.forEach((p,i)=>{const y=padT+i*rowH;const w=p.metric*scale;
-    s+=`<text x="${labelW-6}" y="${y+15}" font-size="11" fill="var(--muted)" text-anchor="end">${p.name.slice(0,6)}</text>`;
-    s+=`<rect x="${labelW}" y="${y+5}" width="${Math.max(w,1.5)}" height="14" rx="7" fill="var(--copper)"/>`;
-    s+=`<text x="${labelW+w+5}" y="${y+16}" font-size="10.5" font-weight="700" ${SVG_FONT} fill="var(--text)">${p.metric.toFixed(1)}</text>`;});
-  return s+`</svg>`;
+// Escape a name for use inside an onclick='...' string
+function q(s){return s.replace(/\\/g,'\\\\').replace(/'/g,"\\'");}
+// Open Stats scrolled to one player's card
+function showPlayer(name){
+  goTab('stats');
+  const card=document.getElementById(playerCardId(name));
+  if(card){card.scrollIntoView({block:'start'});card.classList.add('flash');setTimeout(()=>card.classList.remove('flash'),1200);}
 }
+function playerCardId(name){return 'player-'+name.replace(/[^A-Za-z0-9]/g,'_');}
+// Rules can be opened from More or from the Table; its back link returns to where you came from
+let rulesFrom='more';
+function openRules(){rulesFrom=TAB;goTab('rules');}
+function toggleForm(n){formActive=formActive===n?null:n;render();}
+
 function formChart(all,isPnl){
   const SS=curSessions();const W=320,H=210,padL=34,padR=10,padT=10,padB=26;
   const iW=W-padL-padR,iH=H-padT-padB;const n=SS.length;
@@ -779,7 +881,13 @@ async function confirmDelete(){
 function renderStats(){
   const el=document.getElementById('pnl-stats');
   if(curSessions().length===0){el.innerHTML=emptyCard('No sessions yet.');return;}
-  const isPnl=SYS==='pnl';const all=ranked();let html='';
+  const isPnl=SYS==='pnl';const all=ranked();
+  let html=`<div class="card"><h2 class="h2" style="margin-bottom:12px">Form: ${isPnl?'PnL':'points'} per session${isAllTime()?' (all seasons)':''}</h2>${formChart(all,isPnl)}
+    <div class="legend">
+      ${all.map(p=>{const c=CB[avIdx(p.name)];const act=formActive===p.name;const fade=formActive&&!act;
+        return `<button class="${act?'on':''}" onclick="toggleForm('${q(p.name)}')" style="opacity:${fade?0.35:1}">
+          <span class="swatch" style="background:${c};height:${act?4:3}px"></span>${p.name}</button>`;}).join('')}
+    </div>${formActive?`<p class="sub" style="margin-top:6px;text-align:center">Tap ${formActive} again to reset</p>`:''}</div>`;
   all.forEach(p=>{
     const rows=p.rows;const key=r=>isPnl?r.p:r.o;
     const best=[...rows].sort((a,b)=>key(b)-key(a))[0];const worst=[...rows].sort((a,b)=>key(a)-key(b))[0];
@@ -791,7 +899,7 @@ function renderStats(){
     else{cLabel=sd<3?'Very consistent':sd<6?'Consistent':sd<9?'Mixed':sd<12?'Volatile':'Boom or bust';cCol=sd<6?'var(--up)':sd<9?'var(--text)':sd<12?'var(--copper)':'var(--down)';}
     const headline=isPnl?`<span class="money ${cls(round25(p.shrunk))}" style="font-size:22px">${money25(p.shrunk)}</span>`:`<span class="pts" style="font-size:22px">${p.oldAvg.toFixed(1)}</span>`;
     const val=(r,v)=>isPnl?`<span class="money ${cls(r.p)}">${money(r.p)}</span>`:`<span class="pts">${r.o} pts</span>`;
-    html+=`<div class="card">
+    html+=`<div class="card player-card" id="${playerCardId(p.name)}">
       <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px">${av(p.name,40)}
         <div><div style="font-size:17px;font-weight:600">${p.name}</div><div class="sub">${p.n}${isAllTime()?' sessions all-time':' of '+p.seasonTotal+' sessions'}</div></div></div>
       <div class="two-col">
@@ -854,7 +962,7 @@ function renderStats(){
 // ══════════════ RULES ══════════════
 function renderRules(){
   const el=document.getElementById('pnl-rules');const isPnl=SYS==='pnl';
-  let html=`<button class="link back" onclick="goTab('more')">${icon('left')}More</button>`;
+  let html=`<button class="link back" onclick="goTab(rulesFrom)">${icon('left')}${rulesFrom==='lb'?'Table':'More'}</button>`;
   if(isPnl){
     html+=`<div class="card"><h2 class="h2">How scoring works</h2>
       <p class="prose">Your score for a session is simply <strong>final chips − total buy-in</strong>. No multipliers, no brackets, no rebuy penalties. Win money, score positive. Lose money, score negative.</p></div>
