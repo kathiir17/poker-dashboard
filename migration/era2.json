@@ -1,0 +1,391 @@
+{
+  "_note": "Era 2 games since the Supabase backup. 10 games per season: games 1-10 are Season 1, game 11 starts Season 2.",
+  "seasons": [
+    {
+      "name": "Season 1",
+      "sessions": [
+        {
+          "name": "Session 1",
+          "date": "11/10/2026",
+          "results": [
+            {
+              "player": "Kathiir",
+              "buyin": 60,
+              "final": 32.25
+            },
+            {
+              "player": "Saje",
+              "buyin": 20,
+              "final": 12
+            },
+            {
+              "player": "Vittu",
+              "buyin": 20,
+              "final": 106.25
+            },
+            {
+              "player": "Ari",
+              "buyin": 90,
+              "final": 35
+            },
+            {
+              "player": "Aaron",
+              "buyin": 20,
+              "final": 21.5
+            },
+            {
+              "player": "Varunn",
+              "buyin": 60,
+              "final": 62.5
+            }
+          ]
+        },
+        {
+          "name": "Session 2",
+          "date": "11/10/2026",
+          "results": [
+            {
+              "player": "Kathiir",
+              "buyin": 55,
+              "final": 43.25
+            },
+            {
+              "player": "Vittu",
+              "buyin": 20,
+              "final": 20.5
+            },
+            {
+              "player": "Varunn",
+              "buyin": 20,
+              "final": 22.25
+            },
+            {
+              "player": "Saje",
+              "buyin": 40,
+              "final": 16
+            },
+            {
+              "player": "Aaron",
+              "buyin": 20,
+              "final": 51.5
+            },
+            {
+              "player": "Ari",
+              "buyin": 20,
+              "final": 21.5
+            }
+          ]
+        },
+        {
+          "name": "Session 3",
+          "date": "14/10/2026",
+          "results": [
+            {
+              "player": "Ami",
+              "buyin": 20,
+              "final": 29.25
+            },
+            {
+              "player": "Aaron",
+              "buyin": 40,
+              "final": 11.25
+            },
+            {
+              "player": "Vittu",
+              "buyin": 40,
+              "final": 22.25
+            },
+            {
+              "player": "Varunn",
+              "buyin": 20,
+              "final": 19.5
+            },
+            {
+              "player": "Sanj",
+              "buyin": 20,
+              "final": 57.75
+            }
+          ]
+        },
+        {
+          "name": "Session 4",
+          "date": "14/10/2026",
+          "results": [
+            {
+              "player": "Aaron",
+              "buyin": 20,
+              "final": 10
+            },
+            {
+              "player": "Vittu",
+              "buyin": 20,
+              "final": 55.75
+            },
+            {
+              "player": "Ami",
+              "buyin": 50,
+              "final": 16.25
+            },
+            {
+              "player": "Sanj",
+              "buyin": 20,
+              "final": 54
+            },
+            {
+              "player": "Varunn",
+              "buyin": 20,
+              "final": 34
+            },
+            {
+              "player": "Kev",
+              "buyin": 40,
+              "final": 0
+            }
+          ]
+        },
+        {
+          "name": "Session 5",
+          "date": "24/10/2026",
+          "results": [
+            {
+              "player": "Varunn",
+              "buyin": 20,
+              "final": 14
+            },
+            {
+              "player": "Kathiir",
+              "buyin": 65,
+              "final": 0
+            },
+            {
+              "player": "Saje",
+              "buyin": 20,
+              "final": 10.75
+            },
+            {
+              "player": "Ami",
+              "buyin": 65,
+              "final": 37.5
+            },
+            {
+              "player": "Aaron",
+              "buyin": 20,
+              "final": 18
+            },
+            {
+              "player": "Sanj",
+              "buyin": 20,
+              "final": 130
+            }
+          ]
+        },
+        {
+          "name": "Session 6",
+          "date": "24/10/2026",
+          "results": [
+            {
+              "player": "Ami",
+              "buyin": 50,
+              "final": 36.25
+            },
+            {
+              "player": "Aaron",
+              "buyin": 20,
+              "final": 0
+            },
+            {
+              "player": "Saje",
+              "buyin": 40,
+              "final": 10.75
+            },
+            {
+              "player": "Kathiir",
+              "buyin": 65,
+              "final": 73.75
+            },
+            {
+              "player": "Sanj",
+              "buyin": 20,
+              "final": 69
+            },
+            {
+              "player": "Varunn",
+              "buyin": 20,
+              "final": 23.25
+            }
+          ]
+        },
+        {
+          "name": "Session 7",
+          "date": "29/10/2026",
+          "results": [
+            {
+              "player": "Aaron",
+              "buyin": 40,
+              "final": 19.25
+            },
+            {
+              "player": "Ami",
+              "buyin": 50,
+              "final": 45.25
+            },
+            {
+              "player": "Varunn",
+              "buyin": 20,
+              "final": 20
+            },
+            {
+              "player": "Vittu",
+              "buyin": 20,
+              "final": 30.75
+            },
+            {
+              "player": "Sanj",
+              "buyin": 40,
+              "final": 54.75
+            }
+          ]
+        },
+        {
+          "name": "Session 8",
+          "date": "29/10/2026",
+          "results": [
+            {
+              "player": "Sanj",
+              "buyin": 20,
+              "final": 0
+            },
+            {
+              "player": "Vittu",
+              "buyin": 100,
+              "final": 0
+            },
+            {
+              "player": "Aaron",
+              "buyin": 50,
+              "final": 62
+            },
+            {
+              "player": "Ami",
+              "buyin": 65,
+              "final": 45.25
+            },
+            {
+              "player": "Varunn",
+              "buyin": 80,
+              "final": 206.75
+            }
+          ]
+        },
+        {
+          "name": "Session 9",
+          "date": "03/11/2026",
+          "results": [
+            {
+              "player": "Vittu",
+              "buyin": 60,
+              "final": 0
+            },
+            {
+              "player": "Aaron",
+              "buyin": 80,
+              "final": 53
+            },
+            {
+              "player": "Sanj",
+              "buyin": 20,
+              "final": 77.25
+            },
+            {
+              "player": "Varunn",
+              "buyin": 20,
+              "final": 49.75
+            }
+          ]
+        },
+        {
+          "name": "Session 10",
+          "date": "05/11/2026",
+          "results": [
+            {
+              "player": "Varunn",
+              "buyin": 20,
+              "final": 28.75
+            },
+            {
+              "player": "Vittu",
+              "buyin": 20,
+              "final": 16.25
+            },
+            {
+              "player": "Ami",
+              "buyin": 20,
+              "final": 6.5
+            },
+            {
+              "player": "Aaron",
+              "buyin": 20,
+              "final": 21.25
+            },
+            {
+              "player": "Ari",
+              "buyin": 20,
+              "final": 26
+            },
+            {
+              "player": "Sanj",
+              "buyin": 20,
+              "final": 22.75
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Season 2",
+      "sessions": [
+        {
+          "name": "Session 1",
+          "date": "05/11/2026",
+          "results": [
+            {
+              "player": "Varunn",
+              "buyin": 20,
+              "final": 0.5
+            },
+            {
+              "player": "Vittu",
+              "buyin": 40,
+              "final": 18
+            },
+            {
+              "player": "Aaron",
+              "buyin": 50,
+              "final": 34.75
+            },
+            {
+              "player": "Ari",
+              "buyin": 60,
+              "final": 0
+            },
+            {
+              "player": "Kathiir",
+              "buyin": 20,
+              "final": 48.75
+            },
+            {
+              "player": "Ami",
+              "buyin": 20,
+              "final": 84.75
+            },
+            {
+              "player": "Sanj",
+              "buyin": 40,
+              "final": 60
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

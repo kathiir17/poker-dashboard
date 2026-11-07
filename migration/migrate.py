@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
-"""One-off migration: Supabase backup + Era 2 Season 1 games  ->  Firestore.
+"""One-off migration: Supabase backup (Era 1) + Era 2 games (era2.json)  ->  Firestore.
 
 Writes:
-  config/app                               { activeSeasonNumber: 2 }
+  config/app                               { activeSeasonNumber }   (last Era 2 season)
   eras/era-1, eras/era-2                   { name, number }
   eras/{era}/seasons/s{n}                  { name, number, system }
   eras/{era}/seasons/s{n}/sessions/{seq}   { seq, name, date, results }
@@ -31,7 +31,7 @@ PROJECT_ID = "poker-dashboard-bf0db"
 HERE = os.path.dirname(os.path.abspath(__file__))
 DEFAULT_KEY = os.path.expanduser("~/code/secrets/poker-admin-key.json")
 DEFAULT_BACKUP = os.path.expanduser("~/code/backups/poker-supabase-2026-11-07.json")
-DEFAULT_ERA2 = os.path.join(HERE, "era2-season1.json")
+DEFAULT_ERA2 = os.path.join(HERE, "era2.json")
 DATE_RE = re.compile(r"^[0-3][0-9]/[01][0-9]/20[0-9][0-9]$")
 
 
@@ -85,12 +85,17 @@ def build_target(backup_path, era2_path):
             "id": f"s{n}", "name": se["name"], "number": n, "system": se["system"],
             "sessions": [clean_session(s, i, f"Legacy {se['name']}") for i, s in enumerate(se["sessions"], 1)],
         })
-    eras["era-2"]["seasons"].append({
-        "id": "s1", "name": "Season 1", "number": 1, "system": "pnl",
-        "sessions": [clean_session(s, i, "Era 2 Season 1") for i, s in enumerate(era2["sessions"], 1)],
-    })
-    eras["era-2"]["seasons"].append({"id": "s2", "name": "Season 2", "number": 2, "system": "pnl", "sessions": []})
+    for n, se in enumerate(era2["seasons"], 1):
+        eras["era-2"]["seasons"].append({
+            "id": f"s{n}", "name": se["name"], "number": n, "system": "pnl",
+            "sessions": [clean_session(s, i, f"Era 2 {se['name']}") for i, s in enumerate(se["sessions"], 1)],
+        })
     return eras
+
+
+def active_season_number(eras):
+    """The last Era 2 season is the current one."""
+    return len(eras["era-2"]["seasons"])
 
 
 def summarise(eras):
@@ -148,7 +153,7 @@ def connect(key_path):
 
 def write_all(db, eras):
     ops = []  # (doc_ref, data)
-    ops.append((db.document("config/app"), {"activeSeasonNumber": 2}))
+    ops.append((db.document("config/app"), {"activeSeasonNumber": active_season_number(eras)}))
     players = set()
     for era_id, era in eras.items():
         ops.append((db.document(f"eras/{era_id}"), {"name": era["name"], "number": era["number"]}))
@@ -208,7 +213,8 @@ def verify(expected, db):
         if not cond:
             problems.append(msg)
 
-    check(cfg == {"activeSeasonNumber": 2}, f"config/app is {cfg}, expected {{'activeSeasonNumber': 2}}")
+    want_cfg = {"activeSeasonNumber": active_season_number(expected)}
+    check(cfg == want_cfg, f"config/app is {cfg}, expected {want_cfg}")
     check(set(actual) == set(expected), f"eras in Firestore {sorted(actual)} != expected {sorted(expected)}")
 
     for era_id, era in expected.items():
