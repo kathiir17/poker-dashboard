@@ -400,9 +400,7 @@ div.hr-head{cursor:default}
 @keyframes bar-grow{from{transform:scaleX(0)}}
 .reveal{animation:reveal .22s ease-out both}
 @keyframes reveal{from{opacity:0;transform:translateY(-5px)}}
-.draw{stroke-dasharray:1;stroke-dashoffset:1;animation:draw .7s ease-out forwards}
-@keyframes draw{to{stroke-dashoffset:0}}
-.draw-dot{animation:fade-in .3s ease-out .45s both}
+.chart-fade{animation:fade-in .28s ease-out}
 @keyframes fade-in{from{opacity:0}}
 .modal{animation:pop .2s cubic-bezier(.2,.8,.2,1)}
 @keyframes pop{from{opacity:0;transform:scale(.96)}}
@@ -1161,9 +1159,9 @@ function renderStats(){
     <div class="sub">${h.sessions} session${h.sessions!==1?'s':''} · ${h.players} players</div></div>
     <div class="money" style="font-size:clamp(24px,7.5vw,34px)">${gbp(h.money)}</div></div>`;
 
-  const opt=(on,label,flip)=>`<button class="fit-btn${on?' on':''}" aria-pressed="${on}" ${chartSel.length?'':'disabled'} onclick="${flip};renderStats()">${on?icon('check'):''}${label}</button>`;
+  const opt=(on,label,flip)=>`<button class="fit-btn${on?' on':''}" aria-pressed="${on}" ${chartSel.length?'':'disabled'} onclick="changeChart(()=>{${flip}})">${on?icon('check'):''}${label}</button>`;
   html+=`<div class="sec-head chart-head">${chartToggle()}</div>
-  <div class="card chart-card" id="run-chart">${lineChart(ss,{mode:chartMode,sel:chartSel,fit:chartFit,ends:chartEnds,avg:chartAvg})}
+  <div class="card chart-card" id="run-chart">${lineChart(ss,statsOpts())}
     <div class="chart-opts">${opt(chartFit,'Fit to selected','chartFit=!chartFit')}${chartMode==='run'?opt(chartEnds,'End values','chartEnds=!chartEnds'):opt(chartAvg,'Show shrunk avg','chartAvg=!chartAvg')}</div>
     <div class="sub" style="margin-top:12px">Tap names to compare</div>
     <div class="pchips">${ps.map(p=>{const on=chartSel.includes(p.name);
@@ -1174,18 +1172,59 @@ function renderStats(){
     ${av(p.name,40)}<span class="mid"><span class="nm">${p.name}</span><span class="sub">#${p.rank} · ${p.n} session${p.n!==1?'s':''}</span></span>
     <span class="money ${cls(round25(p.shrunk))}">${money25(p.shrunk)}</span><span class="chev">${icon('right')}</span></button>`).join('')}</div>`;
   el.innerHTML=html;
+  statsView=lineChart.drawn;
 }
 
 // Tap a chip: colour that player's line, or grey it again
-let drawLine=null;   // the line just tapped on: it draws itself in
 function toggleLine(n){
-  const i=chartSel.indexOf(n);
-  if(i>=0)chartSel.splice(i,1);else{chartSel.push(n);drawLine=n;}
-  renderStats();drawLine=null;
+  changeChart(()=>{const i=chartSel.indexOf(n);if(i>=0)chartSel.splice(i,1);else chartSel.push(n);});
 }
+function statsOpts(){return {mode:chartMode,sel:[...chartSel],fit:chartFit,ends:chartEnds,avg:chartAvg};}
+// Change the Stats chart smoothly instead of jumping: the axes glide to their new range (0.5s), the
+// plot narrows or widens for the right-hand labels, End values / shrunk averages fade in or out, and
+// each newly coloured line draws itself in over its own 0.7s. These run side by side: tap three names
+// quickly and all three draw in together, each finishing in its own time. One loop redraws the chart
+// each frame while anything is still moving, then stops.
+let statsView=null;   // the view (zoom, plot width) of the Stats chart currently on screen
+let chartGlide=null;  // the axis glide in progress: {from, to, t0, endsOff, avgOff, extrasOn}
+const drawing=new Map();   // lines drawing themselves in: name → start time
+let chartLoop=false;  // the redraw loop is running
+const GLIDE_MS=500,DRAW_MS=700;
+function changeChart(apply){
+  const before=statsOpts(),from=statsView;
+  apply();renderStats();
+  const after=statsOpts(),to=lineChart.last,now=performance.now();
+  if(!from||matchMedia('(prefers-reduced-motion: reduce)').matches)return;
+  after.sel.filter(n=>!before.sel.includes(n)).forEach(n=>drawing.set(n,now));
+  chartGlide={from,to,t0:now,endsOff:before.ends&&!after.ends,avgOff:before.avg&&!after.avg,
+    extrasOn:(!before.ends&&after.ends)||(!before.avg&&after.avg)};
+  if(!chartLoop){chartLoop=true;chartFrame(now);}   // first frame straight away, so the new state never flashes
+}
+function chartFrame(now){
+  const svg=document.querySelector('#run-chart > svg');
+  if(!svg||TAB!=='stats'){chartLoop=false;chartGlide=null;drawing.clear();return;}
+  const o=statsOpts();
+  // the axis glide: ease in and out
+  if(chartGlide){
+    const g=chartGlide,k=Math.min((now-g.t0)/GLIDE_MS,1),t=k<.5?4*k*k*k:1-Math.pow(-2*k+2,3)/2;
+    if(k<1)Object.assign(o,{view:lerpView(g.from,g.to,t),ends:o.ends||g.endsOff,avg:o.avg||g.avgOff,
+      extraA:g.endsOff||g.avgOff?1-t:g.extrasOn?t:1});
+    else chartGlide=null;
+  }
+  // each drawing line: ease out, like a pen slowing at the end
+  const draws={};
+  drawing.forEach((t0,n)=>{const k=Math.min((now-t0)/DRAW_MS,1);
+    if(k>=1||!o.sel.includes(n))drawing.delete(n);else draws[n]=1-Math.pow(1-k,3);});
+  svg.outerHTML=lineChart(selSessions(),{...o,draws});
+  statsView=lineChart.drawn;
+  if(chartGlide||drawing.size)requestAnimationFrame(chartFrame);else chartLoop=false;
+}
+// In-between view, t of the way from a to b. The old gridlines (a.step) fade out as the new ones fade in.
+function lerpView(a,b,t){const v={...b,stepFrom:a.step,t};['padR','fa','fb','top','bot'].forEach(k=>{v[k]=a[k]+(b[k]-a[k])*t;});return v;}
 // Which chart Stats and the player page show: 'run' = running total, 'form' = PnL in each session
 let chartMode='run';
-function setChartMode(m){chartMode=m;render();}
+function setChartMode(m){chartMode=m;chartFade=true;render();chartFade=false;}   // the two charts are too different to morph, so crossfade
+let chartFade=false;
 // The Running total | Per session switch
 function chartToggle(){
   return `<div class="seg"><button class="${chartMode==='run'?'on':''}" aria-pressed="${chartMode==='run'}" onclick="setChartMode('run')">Running total</button>
@@ -1204,17 +1243,21 @@ function chartToggle(){
 //         edge, nudged apart so labels don't overlap.
 //   avg:  per session only. A dashed line in each coloured player's colour at their shrunk average
 //         (the number in the Players list), labelled in the same right-hand strip.
+// For animating (changeChart): view = the in-between view to draw instead of the one these options
+// would give; extraA = opacity of the End values / averages; draws = lines drawing themselves in,
+// {name: how far, 0–1}. lineChart.last = the view these options give; lineChart.drawn = what was drawn.
 // One season: x = session number, evenly spaced. A chapter or All time: x = real dates, with
 // month labels and a dashed copper line where each season starts. Sessions on the same day sit
 // a few pixels apart so a 4-session night shows as quick steps rather than one vertical jump.
 const GREY_LINE='#3A3633';
 let chartN=0;   // gives each chart's clipping area its own id
-function lineChart(ss,{mode='run',sel=[],only=null,fit=false,ends=false,avg=false}={}){
+function lineChart(ss,{mode='run',sel=[],only=null,fit=false,ends=false,avg=false,view=null,extraA=1,draws={}}={}){
   const run=mode==='run';
   const showEnds=ends&&run,showAvg=avg&&!run;
   const shrunk=showAvg?Object.fromEntries(playerStats(ss).map(p=>[p.name,p.shrunk])):{};
   const byDate=isAllTime();   // true for a chapter's All seasons and for the pooled All time view
-  const W=340,padL=42,padR=showEnds||showAvg?60:12,padT=byDate?20:10,padB=22,H=byDate?236:226;
+  const padRT=showEnds||showAvg?60:12;
+  const W=340,padL=42,padR=view?view.padR:padRT,padT=byDate?20:10,padB=22,H=byDate?236:226;
   const iW=W-padL-padR,iH=H-padT-padB;
 
   // xs[i] = x of session i, in px from the plot's left edge. x=0 is the start, before any session.
@@ -1237,7 +1280,6 @@ function lineChart(ss,{mode='run',sel=[],only=null,fit=false,ends=false,avg=fals
   // x range shown: everything, or just the focused players' span (widened if it's a single session)
   let xa=focus.length?Math.min(...focus.map(start)):0, xb=focus.length?Math.max(...focus.map(end)):xs.at(-1);
   if(xb-xa<1){xa-=12;xb+=12;}
-  const inX=x=>x>=xa-0.01&&x<=xb+0.01;
 
   // y scale: a round step so the top and bottom labels are tidy (+£150, −£100…)
   const vals=(focus.length?focus:names).flatMap(n=>lines[n].map(p=>p.v));
@@ -1245,17 +1287,29 @@ function lineChart(ss,{mode='run',sel=[],only=null,fit=false,ends=false,avg=fals
   const step=[2,5,10,20,25,50,100,150,200,250,500,1000,2000].find(s=>s*4>=hi-lo)||5000;
   let top=Math.ceil(hi/step)*step,bot=Math.floor(lo/step)*step;
   if(top===bot)top=step;
+  // the view: x range as fractions of the plot width (so it survives the plot changing width), y range, step
+  lineChart.last={padR:padRT,fa:xa/iW,fb:xb/iW,top,bot,step};
+  if(view){xa=view.fa*iW;xb=view.fb*iW;top=view.top;bot=view.bot;}
+  lineChart.drawn={padR,fa:xa/iW,fb:xb/iW,top,bot,step};
+  const inX=x=>x>=xa-0.01&&x<=xb+0.01;
   const X=x=>(padL+(x-xa)/(xb-xa)*iW).toFixed(1), Y=v=>(padT+(top-v)/(top-bot)*iH).toFixed(1);
   const lbl=v=>v>0?'+£'+amt(v):v<0?'−£'+amt(v):'£0';
   const txt=(x,y,t,a='end',extra='')=>`<text x="${x}" y="${y}" font-size="9" fill="var(--muted)" text-anchor="${a}" ${extra}>${t}</text>`;
 
-  let svg=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${run?'Running total':'Per session'} chart">`;
-  // a labelled line at every step (about 4 or 5 of them): solid at £0, faint and dashed elsewhere
-  for(let v=bot;v<=top+step/2;v+=step){
-    svg+=txt(padL-6,+Y(v)+3,lbl(v));
-    svg+=v===0?`<line x1="${padL}" x2="${W-padR}" y1="${Y(0)}" y2="${Y(0)}" stroke="var(--border)"/>`
-      :`<line x1="${padL}" x2="${W-padR}" y1="${Y(v)}" y2="${Y(v)}" stroke="var(--border)" stroke-opacity=".7" stroke-dasharray="2 4"/>`;
-  }
+  let svg=`<svg${chartFade?' class="chart-fade"':''} viewBox="0 0 ${W} ${H}" role="img" aria-label="${run?'Running total':'Per session'} chart">`;
+  // a labelled line at every step (about 4 or 5 of them): solid at £0, faint and dashed elsewhere.
+  // Mid-animation between two step sizes the sets crossfade (shared values like £0 stay solid):
+  const tickSet=st=>{const out=[];for(let v=Math.ceil(bot/st-1e-9)*st;v<=top+1e-9;v+=st)out.push(Math.round(v*100)/100);return out;};
+  const ticksNew=tickSet(step),ticksOld=view&&view.stepFrom&&view.stepFrom!==step?tickSet(view.stepFrom):[];
+  // old ones fade out over the first half, new ones fade in once the range is nearly there
+  const tt=view?view.t:1,oldA=Math.max(0,1-2*tt),newA=Math.min(1,Math.max(0,(tt-.4)/.6));
+  [...ticksNew.map(v=>[v,ticksOld.length&&!ticksOld.includes(v)?newA:1]),...ticksOld.filter(v=>!ticksNew.includes(v)).map(v=>[v,oldA])]
+    .forEach(([v,a])=>{
+      if(a<.02)return;
+      svg+=`<g opacity="${a.toFixed(2)}">`+txt(padL-6,+Y(v)+3,lbl(v));
+      svg+=(v===0?`<line x1="${padL}" x2="${W-padR}" y1="${Y(0)}" y2="${Y(0)}" stroke="var(--border)"/>`
+        :`<line x1="${padL}" x2="${W-padR}" y1="${Y(v)}" y2="${Y(v)}" stroke="var(--border)" stroke-opacity=".7" stroke-dasharray="2 4"/>`)+`</g>`;
+    });
 
   if(!byDate){
     // session numbers along the bottom (every other one if there are lots)
@@ -1294,7 +1348,10 @@ function lineChart(ss,{mode='run',sel=[],only=null,fit=false,ends=false,avg=fals
   // into runs of back-to-back sessions, and a run of one is drawn as a dot.
   const pt=p=>`${X(xs[p.o])},${Y(p.v)}`;
   const runs=n=>{const out=[];lines[n].forEach((p,i,l)=>{if(!i||(!run&&p.o!==l[i-1].o+1))out.push([]);out.at(-1).push(p);});return out;};
-  const draw=(n,colour,width,dotR,anim)=>{let g='';const a=anim?' class="draw" pathLength="1"':'',ad=anim?' class="draw-dot"':'';
+  // dT = how far a line has drawn itself in (undefined = fully drawn); its dots appear near the end
+  const dotA=dT=>dT===undefined?1:Math.min(Math.max((dT-.6)/.4,0),1);
+  const draw=(n,colour,width,dotR,dT)=>{let g='';const anim=dT!==undefined;
+    const a=anim?` pathLength="1" stroke-dasharray="1" stroke-dashoffset="${(1-dT).toFixed(3)}"`:'',ad=anim?` opacity="${dotA(dT).toFixed(3)}"`:'';
     runs(n).forEach((r,i)=>{
       const d=(run&&i===0?`M${X(start(n))},${Y(0)} L`:'M')+r.map(pt).join(' L');
       if(r.length>1||run)g+=`<path${a} d="${d}" fill="none" stroke="${colour}" stroke-width="${width}" stroke-linejoin="round" stroke-linecap="round"/>`;
@@ -1307,24 +1364,24 @@ function lineChart(ss,{mode='run',sel=[],only=null,fit=false,ends=false,avg=fals
       <feComponentTransfer in="b" result="s"><feFuncA type="linear" slope=".6"/></feComponentTransfer><feMerge><feMergeNode in="s"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
     <g clip-path="url(#${clip})">`;
   names.filter(n=>!sel.includes(n)).forEach(n=>{svg+=draw(n,GREY_LINE,1.3,1.8);});
-  sel.filter(n=>lines[n]).forEach(n=>{const c=lineCol(n),anim=n===drawLine,ad=anim?' class="draw-dot"':'';
-    svg+=`<g filter="url(#${clip}g)">`+draw(n,c,2.4,2.8,anim);
+  sel.filter(n=>lines[n]).forEach(n=>{const c=lineCol(n),dT=draws[n],anim=dT!==undefined,ad=anim?` opacity="${dotA(dT).toFixed(3)}"`:'';
+    svg+=`<g filter="url(#${clip}g)">`+draw(n,c,2.4,2.8,dT);
     // dots: just the end of a running total (with a soft halo); every session for per-session
-    if(run){const e=lines[n].at(-1);svg+=`<circle${ad} cx="${X(xs[e.o])}" cy="${Y(e.v)}" r="7.5" fill="${c}" opacity=".18"/>`;}
+    if(run){const e=lines[n].at(-1);svg+=`<circle cx="${X(xs[e.o])}" cy="${Y(e.v)}" r="7.5" fill="${c}" opacity="${(.18*dotA(dT)).toFixed(3)}"/>`;}
     (run?[lines[n].at(-1)]:lines[n]).forEach(p=>{svg+=`<circle${ad} cx="${X(xs[p.o])}" cy="${Y(p.v)}" r="${run?3.6:2.8}" fill="${c}"/>`;});
     svg+=`</g>`;
     // a running total that stopped early stays at its final value: a dotted line carries it to the edge
-    if(showEnds&&end(n)<xb)svg+=`<line x1="${X(end(n))}" x2="${W-padR}" y1="${Y(lines[n].at(-1).v)}" y2="${Y(lines[n].at(-1).v)}" stroke="${c}" stroke-opacity=".6" stroke-dasharray="1.5 3"/>`;});
+    if(showEnds&&end(n)<xb)svg+=`<line opacity="${extraA}" x1="${X(end(n))}" x2="${W-padR}" y1="${Y(lines[n].at(-1).v)}" y2="${Y(lines[n].at(-1).v)}" stroke="${c}" stroke-opacity=".6" stroke-dasharray="1.5 3"/>`;});
   // shrunk-average lines, across the whole plot
   if(showAvg)sel.filter(n=>lines[n]).forEach(n=>{
-    svg+=`<line x1="${padL}" x2="${W-padR}" y1="${Y(shrunk[n])}" y2="${Y(shrunk[n])}" stroke="${lineCol(n)}" stroke-width="1.4" stroke-dasharray="5 4"/>`;});
+    svg+=`<line opacity="${extraA}" x1="${padL}" x2="${W-padR}" y1="${Y(shrunk[n])}" y2="${Y(shrunk[n])}" stroke="${lineCol(n)}" stroke-width="1.4" stroke-dasharray="5 4"/>`;});
   svg+=`</g>`;
   if(showEnds||showAvg){
     // right-hand labels: start at each value, then push apart (at least 11px) and keep inside
     const labs=sel.filter(n=>lines[n]).map(n=>{const v=showEnds?lines[n].at(-1).v:shrunk[n];return {n,v,y:+Y(v)};}).sort((a,b)=>a.y-b.y);
     labs.forEach((l,i)=>{l.y=Math.max(l.y,padT+4,i?labs[i-1].y+11:0);});
     for(let i=labs.length-1;i>=0;i--)labs[i].y=Math.min(labs[i].y,H-padB-2-(labs.length-1-i)*11);
-    labs.forEach(l=>{svg+=`<text x="${W-padR+6}" y="${(l.y+3.5).toFixed(1)}" font-size="9.5" font-weight="600" fill="${lineCol(l.n)}">${money25(l.v)}</text>`;});
+    labs.forEach(l=>{svg+=`<text opacity="${extraA}" x="${W-padR+6}" y="${(l.y+3.5).toFixed(1)}" font-size="9.5" font-weight="600" fill="${lineCol(l.n)}">${money25(l.v)}</text>`;});
   }
   return svg+`</svg>`;
 }
