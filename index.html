@@ -43,6 +43,8 @@
 }
 *{box-sizing:border-box;margin:0;padding:0}
 [hidden]{display:none!important}  /* so el.hidden always wins over inline display:flex */
+/* Taps: no grey flash on iPhone, and no wait to check for a double-tap zoom (pinch zoom still works) */
+html{-webkit-tap-highlight-color:transparent;touch-action:manipulation}
 body{font-family:var(--body);font-size:14px;line-height:1.45;background:var(--base);color:var(--text);max-width:640px;margin:0 auto;-webkit-font-smoothing:antialiased;
   /* clear the notch at the top (full-screen app) and the bottom bar + home indicator at the bottom */
   padding-top:env(safe-area-inset-top,0px);padding-bottom:calc(var(--nav-h) + env(safe-area-inset-bottom,0px) + 16px)}
@@ -178,7 +180,7 @@ svg.i{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:1.75;str
 .who span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 
 /* ── Controls ── */
-input{background:var(--raised);color:var(--text);border:1px solid var(--border);border-radius:10px;padding:9px 10px;font:14px var(--body);width:100%}
+input{background:var(--raised);color:var(--text);border:1px solid var(--border);border-radius:10px;padding:9px 10px;font:16px var(--body);width:100%}   /* 16px+: iPhone Safari zooms the page into smaller inputs */
 input:focus{outline:none;border-color:var(--copper)}
 input::placeholder{color:#6f675e}
 .field-lbl{font-size:12px;color:var(--muted);margin-bottom:5px}
@@ -200,36 +202,36 @@ input::placeholder{color:#6f675e}
 /* ── Table: hero cards ── */
 .hero{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:22px}
 .hero-card{position:relative;overflow:hidden;text-align:left;border-radius:var(--r-card);padding:16px 14px 14px;cursor:pointer;display:flex;flex-direction:column;align-items:flex-start;gap:10px;min-width:0}
-.hero-card.leader{background:#1B1714;border:1px solid #6E5137;box-shadow:0 0 26px -8px rgba(221,184,114,.35)}
-/* a steady warm gold glow with a faint, uneven flicker, like the hum of a light bulb */
-.hero-card.leader{animation:hum 2.6s linear infinite}
+.hero-card.leader{background:#1B1714;border:1px solid #6E5137}
+/* A steady warm gold glow with a faint, uneven flicker, like the hum of a light bulb. The glow is its
+   own layer behind the leader card (the card clips its overflow for the inlay) and only its opacity
+   flickers, which phones do cheaply; animating the shadow itself redrew it every frame. */
+.hero{position:relative}
+.hero::before{content:"";position:absolute;left:0;top:0;bottom:0;width:calc(50% - 5px);border-radius:var(--r-card);pointer-events:none;
+  box-shadow:0 0 28px -5px rgb(221,184,114);opacity:.42;will-change:opacity;animation:hum 2.6s linear infinite}
 @keyframes hum{
-  0%,100%{box-shadow:0 0 28px -5px rgba(221,184,114,.42)}
-  13%{box-shadow:0 0 28px -5px rgba(221,184,114,.47)}  21%{box-shadow:0 0 28px -5px rgba(221,184,114,.4)}
-  34%{box-shadow:0 0 28px -5px rgba(221,184,114,.46)}  47%{box-shadow:0 0 28px -5px rgba(221,184,114,.41)}
-  58%{box-shadow:0 0 28px -5px rgba(221,184,114,.48)}  66%{box-shadow:0 0 28px -5px rgba(221,184,114,.42)}
-  79%{box-shadow:0 0 28px -5px rgba(221,184,114,.46)}  88%{box-shadow:0 0 28px -5px rgba(221,184,114,.4)}}
+  0%,100%{opacity:.42}  13%{opacity:.47}  21%{opacity:.4}  34%{opacity:.46}  47%{opacity:.41}
+  58%{opacity:.48}  66%{opacity:.42}  79%{opacity:.46}  88%{opacity:.4}}
 .hero-card.loser{background:#191313;border:1px solid #5A2C2A;box-shadow:0 0 26px -8px rgba(224,113,95,.3)}
 .hero-card .inlay{position:absolute;top:-12px;right:-30px;width:104px;height:104px;pointer-events:none;opacity:.8;overflow:visible}
 .loser .inlay{top:-2px;right:-12px}
 /* torn £: crack draws (1.2s in), then the halves drift apart and fade; forwards = stays gone until redrawn */
-/* One 8s cycle, repeating: the £ fades in (0–0.5s), the crack draws (2.5–3s: after the 1.6s
-   count-up, the 0.4s pence fade-in and a 0.5s pause), the halves drift apart and fade (3.1–5.1s),
+/* One 8s cycle, repeating: the £ fades in (0–0.5s), the crack draws (2.2–2.7s: after the
+   count-up and pence settle at 1.7s, plus a 0.5s pause), the halves drift apart and fade (2.8–4.8s),
    then nothing until 8s. Redrawing the Table restarts it from the top, so it always follows the count. */
 .tear .crack{stroke-dasharray:100;animation:crack 8s infinite}
-@keyframes crack{0%,31.25%{stroke-dashoffset:100;opacity:1;animation-timing-function:ease-out}37.5%,41.25%{stroke-dashoffset:0;opacity:1;animation-timing-function:ease-in}57.5%,100%{stroke-dashoffset:0;opacity:0}}
+@keyframes crack{0%,27.5%{stroke-dashoffset:100;opacity:1;animation-timing-function:ease-out}33.75%,37.5%{stroke-dashoffset:0;opacity:1;animation-timing-function:ease-in}53.75%,100%{stroke-dashoffset:0;opacity:0}}
 .tear .half{transform-box:fill-box;transform-origin:50% 100%}
 .tear .half.l{animation:tear-l 8s infinite}
 .tear .half.r{animation:tear-r 8s infinite}
-@keyframes tear-l{0%{opacity:0;transform:none}6%,38.75%{opacity:1;transform:none;animation-timing-function:cubic-bezier(.4,0,.7,1)}63.75%,100%{opacity:0;transform:translate(-10px,7px) rotate(-11deg)}}
-@keyframes tear-r{0%{opacity:0;transform:none}6%,38.75%{opacity:1;transform:none;animation-timing-function:cubic-bezier(.4,0,.7,1)}63.75%,100%{opacity:0;transform:translate(10px,9px) rotate(9deg)}}
+@keyframes tear-l{0%{opacity:0;transform:none}6%,35%{opacity:1;transform:none;animation-timing-function:cubic-bezier(.4,0,.7,1)}60%,100%{opacity:0;transform:translate(-10px,7px) rotate(-11deg)}}
+@keyframes tear-r{0%{opacity:0;transform:none}6%,35%{opacity:1;transform:none;animation-timing-function:cubic-bezier(.4,0,.7,1)}60%,100%{opacity:0;transform:translate(10px,9px) rotate(9deg)}}
 .hero-lbl{font-size:13px;font-weight:500;position:relative}
 .leader .hero-lbl{color:var(--link)}
 .loser .hero-lbl{color:var(--down)}
 .hero-who{display:flex;align-items:center;gap:8px;font-size:16px;font-weight:600;min-width:0;max-width:100%;position:relative}
 .hero-who span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .hero-num{font-size:clamp(22px,6.6vw,34px);line-height:1;position:relative}
-.hero-num .pence{display:inline-block;animation:pence-in .4s ease-out both}
 /* odometer: every character is 1em tall; each digit's reel slides up to its value (--to = how many digits up) */
 .odo{display:inline-flex;align-items:flex-start;height:1em;overflow:hidden}
 .odo-ch,.odo-col{display:block;height:1em;line-height:1em}
@@ -237,7 +239,10 @@ input::placeholder{color:#6f675e}
 .odo-reel{display:block;transition:transform 1.5s cubic-bezier(.16,1,.3,1)}
 .odo-reel span{display:block;height:1em;line-height:1em;text-align:center}
 .odo.go .odo-reel{transform:translateY(calc(var(--to) * -1em))}
-@keyframes pence-in{from{opacity:0;transform:translateX(-4px)}}
+/* pence: hidden until 0.7s in, then fade in and roll for 1s */
+.odo-p{opacity:0;transition:opacity .3s .7s}
+.odo.go .odo-p{opacity:1}
+.odo-p .odo-reel{transition-duration:1s;transition-delay:.7s}
 .loser .hero-num{color:var(--down)}
 .hero-badge{font-size:12px;font-weight:600;line-height:1.3;border-radius:10px;padding:5px 9px;position:relative}
 .leader .hero-badge{color:var(--gold);background:rgba(221,184,114,.1)}
@@ -384,19 +389,19 @@ div.hr-head{cursor:default}
 .hr-lines strong{color:var(--text);font-weight:600}
 .hr-stake{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:14px;padding-top:12px;border-top:1px solid var(--border);font-size:13px;color:var(--muted)}
 .hr-input{display:inline-flex;align-items:center;gap:4px;font:700 15px var(--display);color:var(--text)}
-.hr-input input{width:76px;text-align:right;font:600 15px var(--body)}
+.hr-input input{width:76px;text-align:right;font:600 16px var(--body)}
 .aw-season .nm1{display:inline-flex;align-items:center;gap:8px;font-weight:600}.rd-sum b.up{color:var(--up)}.rd-sum b.down{color:var(--down)}
 .rv-row .nm{display:block;font-size:15px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 /* ── Motion: screen entrances (only when you arrive), cascades, reveals, line draw-ins, presses ── */
-.pnl.in-rise{animation:in-rise .24s ease-out both}
-.pnl.in-push{animation:in-push .26s cubic-bezier(.2,.8,.2,1) both}
-.pnl.in-pop{animation:in-pop .26s cubic-bezier(.2,.8,.2,1) both}
-@keyframes in-rise{from{opacity:0;transform:translateY(8px)}}
-@keyframes in-push{from{opacity:0;transform:translateX(22px)}}
-@keyframes in-pop{from{opacity:0;transform:translateX(-22px)}}
-.pnl.entering :is(.st-row,.prow,.sess-card,.aw-card,.hr-card,.rv-row,.list-btn,.tile){animation:row-in .32s ease-out both;animation-delay:calc(var(--i,0)*28ms + 40ms)}
+.pnl.in-rise{animation:in-rise .21s ease-out both}
+.pnl.in-push{animation:in-push .23s cubic-bezier(.2,.8,.2,1) both}
+.pnl.in-pop{animation:in-pop .23s cubic-bezier(.2,.8,.2,1) both}
+@keyframes in-rise{from{opacity:.15;transform:translateY(7px)}}
+@keyframes in-push{from{opacity:.15;transform:translateX(19px)}}
+@keyframes in-pop{from{opacity:.15;transform:translateX(-19px)}}
+.pnl.entering :is(.st-row,.prow,.sess-card,.aw-card,.hr-card,.rv-row,.list-btn,.tile){animation:row-in .28s ease-out both;animation-delay:calc(var(--i,0)*22ms + 30ms)}
 @keyframes row-in{from{opacity:0;transform:translateY(6px)}}
-.pnl.entering .st-bar span{animation:bar-grow .55s cubic-bezier(.2,.7,.2,1) both;animation-delay:calc(var(--i,0)*28ms + 140ms)}
+.pnl.entering .st-bar span{animation:bar-grow .5s cubic-bezier(.2,.7,.2,1) both;animation-delay:calc(var(--i,0)*22ms + 110ms)}
 @keyframes bar-grow{from{transform:scaleX(0)}}
 .reveal{animation:reveal .22s ease-out both}
 @keyframes reveal{from{opacity:0;transform:translateY(-5px)}}
@@ -409,7 +414,7 @@ div.hr-head{cursor:default}
 @keyframes sheet-up{from{opacity:0;transform:translateY(18px)}}
 :is(.st-row,.prow,.rv-row,.hero-card,.sess-card,.list-btn,.aw-head,.hr-head,.btn,.btn-ghost,.btn-danger,.pchip,.fit-btn,.tag,.awards-btn,.nav-btn,.nav-add,.picker,.seg button){transition:transform .12s ease-out}
 :is(.st-row,.prow,.rv-row,.hero-card,.sess-card,.list-btn,.aw-head,.btn,.btn-ghost,.btn-danger,.pchip,.fit-btn,.tag,.awards-btn,.nav-btn,.nav-add,.picker,.seg button,button.hr-head):active{transform:scale(.97)}
-@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}.glint,.tear .crack{display:none}}
+@media (prefers-reduced-motion:reduce){*,.hero::before{transition:none!important;animation:none!important}.glint,.tear .crack{display:none}}
 </style>
 </head>
 <body>
@@ -440,7 +445,7 @@ div.hr-head{cursor:default}
   <div class="nav-in">
     <button class="nav-btn on" data-tab="lb" onclick="goTab('lb')"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><ellipse cx="12" cy="12" rx="9.5" ry="6.5"/><ellipse cx="12" cy="12" rx="5.5" ry="3.2"/></svg>Table</button>
     <button class="nav-btn" data-tab="stats" data-also="player" onclick="goTab('stats')"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>Stats</button>
-    <button class="nav-add" data-tab="scorer" onclick="goTab('scorer')" aria-label="New session"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></button>
+    <button class="nav-add" data-tab="scorer" onclick="openScorer()" aria-label="New session"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></button>
     <button class="nav-btn" data-tab="hist" onclick="goTab('hist')"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="17" rx="3"/><path d="M3 9h18M8 2v4M16 2v4"/></svg>Sessions</button>
     <button class="nav-btn" data-tab="more" data-also="rules colours rivals awards house" onclick="goTab('more')"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><circle cx="5" cy="12" r="1.3"/><circle cx="12" cy="12" r="1.3"/><circle cx="19" cy="12" r="1.3"/></svg>More</button>
   </div>
@@ -556,6 +561,8 @@ async function init(){
   showA2hsHint();
 }
 // db.js is a module and loads after this script, so wait for its "db-ready" event.
+// iPhone Safari only shows :active (the press shrink on buttons) if the page listens for touches
+document.addEventListener('touchstart',()=>{},{passive:true});
 function startWhenDbReady(){
   if(window.DB){init();return;}
   window.addEventListener('db-ready',init,{once:true});
@@ -572,6 +579,12 @@ function toast(m){const t=document.getElementById('toast');t.textContent=m;t.cla
 // ══════════════ SEASON BAR ══════════════
 // Switch between Chapter 2 (era-2), Chapter 1 (era-1) and All time (both pooled).
 function setView(v){
+  pointView(v);
+  scorerResult=null; editIdx=null;
+  renderSeasonBar(); render(); enterPanel('rise');
+}
+// Point VIEW / seasons / curSeason at a chapter (its current or latest season), without redrawing
+function pointView(v){
   VIEW=v;
   if(v==='all'){
     // pooled read-only view; Chapter 1 season names are prefixed so History can tell them apart
@@ -581,8 +594,6 @@ function setView(v){
     seasons=DATA.eras[v].seasons;
     curSeason=v==='era-2'?seasons.findIndex(s=>s.number===DATA.activeSeasonNumber):seasons.length-1;
   }
-  scorerResult=null; editIdx=null;
-  renderSeasonBar(); render(); enterPanel('rise');
 }
 
 // ── Chapter / Season pickers ──
@@ -648,15 +659,15 @@ function switchSeason(i){
 
 // In-app confirmation dialog. Resolves true if the user presses the confirm button.
 //   await confirmSheet({title:'Start Season 3?', body:'…', ok:'Start Season 3'})
-function confirmSheet({title,body,ok,cancel='Cancel'}){
+function confirmSheet({title,body,ok,cancel='Cancel',dismiss=false}){
   return new Promise(resolve=>{
     const bg=document.createElement('div');bg.className='sheet-bg';
     bg.innerHTML=`<div class="sheet" role="dialog" aria-modal="true" aria-labelledby="sheet-title">
       <h2 id="sheet-title">${title}</h2><p>${body}</p>
       <div class="actions"><button class="btn-ghost" data-r="0">${cancel}</button><button class="btn" data-r="1">${ok}</button></div></div>`;
     const done=r=>{bg.remove();document.removeEventListener('keydown',esc);resolve(r);};
-    const esc=e=>{if(e.key==='Escape')done(false);};
-    bg.addEventListener('click',e=>{if(e.target===bg)done(false);else if(e.target.dataset.r)done(e.target.dataset.r==='1');});
+    const esc=e=>{if(e.key==='Escape')done(dismiss);};
+    bg.addEventListener('click',e=>{if(e.target===bg)done(dismiss);else if(e.target.dataset.r)done(e.target.dataset.r==='1');});
     document.addEventListener('keydown',esc);
     document.body.appendChild(bg);
     bg.querySelector('[data-r="0"]').focus();
@@ -709,17 +720,19 @@ const CASCADE='.st-row,.prow,.sess-card,.aw-card,.hr-card,.rv-row,.list-btn,.til
 function enterPanel(how){
   const el=document.getElementById('pnl-'+TAB);if(!el)return;
   el.classList.remove('in-rise','in-push','in-pop','entering');void el.offsetWidth;   // restart
-  // number each row / card within its list, so they cascade in one after another (capped at 10)
-  el.querySelectorAll(CASCADE).forEach(e=>e.style.setProperty('--i',Math.min([...e.parentNode.children].indexOf(e),10)));
+  // number each row / card within its list, so they cascade in one after another (capped at 8,
+  // so even long lists are in place by ~0.5s)
+  el.querySelectorAll(CASCADE).forEach(e=>e.style.setProperty('--i',Math.min([...e.parentNode.children].indexOf(e),8)));
   el.classList.add('in-'+how,'entering');
-  clearTimeout(el._enterT);el._enterT=setTimeout(()=>el.classList.remove('in-'+how,'entering'),900);   // cascades are done by then
+  clearTimeout(el._enterT);el._enterT=setTimeout(()=>el.classList.remove('in-'+how,'entering'),800);   // cascades are done by then
   if(TAB==='lb')countUp();
 }
 // Hero amounts roll in like an odometer, the way finance apps do it: each digit is a reel of 0–9
 // that rolls up to its value, all easing to a stop together over 1.6s. Lower digits spin through
 // extra turns (a £16 lead: the units reel passes 0–9 once, then on to 6), so it reads as counting.
-// The number has its final width from the first frame, so nothing shifts sideways. Once the reels
-// settle, the plain number replaces them and the pence (if any) ease in.
+// The number has its final width from the first frame, so nothing shifts sideways. The pence (if any)
+// are reels too: they fade in and start rolling 0.7s in, one turn each, and land just after the
+// pounds (1.7s), so they're the last click into place. Then the plain number replaces the reels.
 function countUp(){
   if(matchMedia('(prefers-reduced-motion: reduce)').matches)return;
   document.querySelectorAll('#pnl-lb .hero-num[data-v]').forEach(el=>{
@@ -732,10 +745,12 @@ function countUp(){
       place--;
       const turns=Math.min(Math.floor(whole/10**(place+1)),2);   // full spins before landing (max 2)
       const reel=Array.from({length:(turns+1)*10},(_,i)=>`<span>${i%10}</span>`).join('');
-      return `<span class="odo-col"><span class="odo-reel" style="--to:${turns*10+(+c)}">${reel}</span></span>`;}).join('')}</span>`;
+      return `<span class="odo-col"><span class="odo-reel" style="--to:${turns*10+(+c)}">${reel}</span></span>`;}).join('')}${pence?
+      `<span class="odo-ch odo-p">.</span>${[...pence].map(c=>`<span class="odo-col odo-p"><span class="odo-reel" style="--to:${10+(+c)}">${
+        Array.from({length:20},(_,i)=>`<span>${i%10}</span>`).join('')}</span></span>`).join('')}`:''}</span>`;
     requestAnimationFrame(()=>requestAnimationFrame(()=>el.querySelector('.odo')?.classList.add('go')));   // start rolling next frame
     clearTimeout(el._odoT);
-    el._odoT=setTimeout(()=>{el.innerHTML=pounds+(pence?`<span class="pence">.${pence}</span>`:'');},1600);
+    el._odoT=setTimeout(()=>{el.textContent=pounds+(pence?'.'+pence:'');},1750);
   });
 }
 
@@ -975,6 +990,21 @@ let rulesFrom='more';
 function openRules(){rulesFrom=TAB;goTab('rules');}
 
 // ══════════════ SESSION SCORER ══════════════
+// The + button. New sessions always go into the current season, so if another season (or chapter)
+// is showing, switch to the current one, open the scorer, and say so. "Go back" returns to where
+// you were; tapping outside the notice keeps you on the scorer.
+async function openScorer(){
+  if(!DATA)return;
+  if(isActiveSeason()){goTab('scorer');return;}
+  const was=VIEW==='all'?'All time':`${VIEW==='era-1'?'Chapter 1':'Chapter 2'} · ${isAllTime()?'All seasons':seasons[curSeason].name}`;
+  const back={view:VIEW,season:curSeason,tab:TAB};
+  pointView('era-2');renderSeasonBar();goTab('scorer');
+  const stay=await confirmSheet({title:'Adding to the current season',
+    body:`You were viewing ${was}. This session goes into the current season, Chapter 2 · ${seasons[curSeason].name}.`,
+    ok:'Got it',cancel:'Go back',dismiss:true});
+  if(stay)return;
+  pointView(back.view);curSeason=back.season;renderSeasonBar();goTab(back.tab==='scorer'?'lb':back.tab);
+}
 function renderScorer(){
   const el=document.getElementById('pnl-scorer');
   if(!isActiveSeason()){
@@ -1003,8 +1033,8 @@ function renderScorer(){
       <div class="grid-res grid-scorer head"><span>Player</span><span class="c">Buy-in £</span><span class="c">Final £</span><span></span></div>
       ${scorerPlayers.map(p=>`<div class="grid-res grid-scorer">
         <div class="who">${av(p)}<span>${p}</span></div>
-        <input type="number" value="${scorerRows[p]?.buyin??20}" min="0" step="5" class="c" oninput="scorerRows['${q(p)}'].buyin=this.value">
-        <input type="number" value="${scorerRows[p]?.final??''}" min="0" step="0.25" placeholder="0" class="c" oninput="scorerRows['${q(p)}'].final=this.value">
+        <input type="number" value="${scorerRows[p]?.buyin??20}" min="0" step="5" inputmode="decimal" class="c" oninput="scorerRows['${q(p)}'].buyin=this.value">
+        <input type="number" value="${scorerRows[p]?.final??''}" min="0" step="0.25" inputmode="decimal" placeholder="0" class="c" oninput="scorerRows['${q(p)}'].final=this.value">
         <button class="icon-btn" style="width:32px;height:32px" onclick="rmP('${q(p)}')" aria-label="Remove ${p}">${icon('x')}</button></div>`).join('')}
       <div style="display:flex;gap:8px;margin-top:14px;flex-wrap:wrap">
         <button class="btn-ghost" onclick="calcScores()">Calculate</button>
@@ -1046,7 +1076,7 @@ async function saveSession(){
   se.sessions.push(s);
   rows.forEach(r=>{if(!DATA.players.includes(r.player))DATA.players.push(r.player);});
   scorerPlayers=[];scorerRows={};scorerName="";scorerResult=null;
-  renderScorer();toast('Session saved');
+  goTab('lb');toast('Session saved');
 }
 
 // ══════════════ HISTORY ══════════════
@@ -1091,8 +1121,8 @@ function renderEdit(el){
     <div class="grid-res grid-edit head"><span>Player</span><span class="c">Buy-in</span><span class="c">Final</span><span class="r">P&amp;L</span></div>
     ${s.results.map((r,i)=>`<div class="grid-res grid-edit">
       <div class="who">${av(r.player,22)}<span>${r.player}</span></div>
-      <input type="number" id="eb${i}" value="${r.buyin}" min="0" step="5" class="c" oninput="liveEdit(${i})">
-      <input type="number" id="ef${i}" value="${r.final}" min="0" step="0.25" class="c" oninput="liveEdit(${i})">
+      <input type="number" id="eb${i}" value="${r.buyin}" min="0" step="5" inputmode="decimal" class="c" oninput="liveEdit(${i})">
+      <input type="number" id="ef${i}" value="${r.final}" min="0" step="0.25" inputmode="decimal" class="c" oninput="liveEdit(${i})">
       <span id="ep${i}" class="money r ${cls(pnl(r))}">${money(pnl(r))}</span></div>`).join('')}
     <div id="edit-actions" style="display:flex;gap:8px;margin-top:16px;flex-wrap:wrap">
       <button class="btn-danger" onclick="askDelete(true)">Delete</button>
