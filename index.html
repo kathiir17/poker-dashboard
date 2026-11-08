@@ -102,6 +102,19 @@ svg.i{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:1.75;str
 .sheet h2{font-family:var(--display);font-weight:700;font-size:20px;margin-bottom:8px}
 .sheet p{color:var(--muted);line-height:1.6;margin-bottom:20px}
 .sheet .actions{display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap}
+.sheet .actions.stack{flex-direction:column-reverse}
+.sheet .actions.stack button{width:100%}
+.sheet p strong{color:var(--text);font-weight:600}
+/* Pot check line under the scorer / edit results: muted while finals are still being typed */
+.pot-line{display:flex;align-items:center;flex-wrap:wrap;gap:4px 8px;margin-top:12px;padding:10px 12px;border-radius:var(--r-ctl);background:var(--raised);font-size:13px;color:var(--muted);transition:color .2s}
+.pot-line svg.i{width:16px;height:16px;flex-shrink:0}
+.pot-line b{font-weight:600;white-space:nowrap;transition:color .2s}
+.pot-line.ok b{color:var(--up)}
+.pot-line.off b{color:var(--down)}
+.pot-line .sum{margin-left:auto;white-space:nowrap;font-variant-numeric:tabular-nums}
+/* Recently deleted rows */
+.del-row{display:flex;align-items:center;gap:14px;padding:14px}
+.del-row .btn-ghost{flex-shrink:0}
 .seg{display:flex;background:var(--card);border:1px solid var(--border);border-radius:var(--r-ctl);padding:3px}
 .seg button{border:none;background:none;font-size:13px;font-weight:500;padding:7px 12px;border-radius:9px;cursor:pointer;color:var(--muted);white-space:nowrap}
 .seg button.on{background:var(--raised);color:var(--text);box-shadow:inset 0 0 0 1px var(--copper)}
@@ -399,7 +412,7 @@ div.hr-head{cursor:default}
 @keyframes in-rise{from{opacity:.15;transform:translateY(7px)}}
 @keyframes in-push{from{opacity:.15;transform:translateX(19px)}}
 @keyframes in-pop{from{opacity:.15;transform:translateX(-19px)}}
-.pnl.entering :is(.st-row,.prow,.sess-card,.aw-card,.hr-card,.rv-row,.list-btn,.tile){animation:row-in .28s ease-out both;animation-delay:calc(var(--i,0)*22ms + 30ms)}
+.pnl.entering :is(.st-row,.prow,.sess-card,.del-row,.aw-card,.hr-card,.rv-row,.list-btn,.tile){animation:row-in .28s ease-out both;animation-delay:calc(var(--i,0)*22ms + 30ms)}
 @keyframes row-in{from{opacity:0;transform:translateY(6px)}}
 .pnl.entering .st-bar span{animation:bar-grow .5s cubic-bezier(.2,.7,.2,1) both;animation-delay:calc(var(--i,0)*22ms + 110ms)}
 @keyframes bar-grow{from{transform:scaleX(0)}}
@@ -408,6 +421,12 @@ div.hr-head{cursor:default}
 .chart-fade{animation:fade-in .28s ease-out}
 @keyframes fade-in{from{opacity:0}}
 .modal{animation:pop .2s cubic-bezier(.2,.8,.2,1)}
+.pot-line.just-ok{animation:pot-ok .9s ease-out}
+@keyframes pot-ok{from{box-shadow:0 0 0 1px rgba(111,191,138,.55),0 0 18px rgba(111,191,138,.28)}}
+input.fixed{animation:fixed-glow 1.6s ease-out}
+@keyframes fixed-glow{0%,35%{border-color:var(--gold);box-shadow:0 0 0 1px var(--gold),0 0 16px rgba(221,184,114,.35)}}
+.leaving{animation:leave .24s ease-in both}
+@keyframes leave{to{opacity:0;transform:translateX(24px)}}
 @keyframes pop{from{opacity:0;transform:scale(.96)}}
 .sheet-bg{animation:fade .16s ease-out}
 .sheet{animation:sheet-up .24s cubic-bezier(.2,.8,.2,1)}
@@ -437,6 +456,7 @@ div.hr-head{cursor:default}
 <div class="pnl" id="pnl-rivals"></div>
 <div class="pnl" id="pnl-awards"></div>
 <div class="pnl" id="pnl-house"></div>
+<div class="pnl" id="pnl-deleted"></div>
 <div class="toast" id="toast"></div>
 <div class="hint" id="a2hs-hint" hidden></div>
 
@@ -527,6 +547,8 @@ const ICON_PATHS={
   coinMinus:'<circle cx="12" cy="12" r="8.5"/><path d="M8.5 12h7"/>',
   house:'<path d="M3 11.5 12 4l9 7.5"/><path d="M5.5 10v10h13V10"/><path d="M10 20v-5h4v5"/>',
   plus:'<path d="M12 5v14M5 12h14"/>',
+  trash:'<path d="M4 7h16M10 11v6M14 11v6"/><path d="M6 7l1 13h10l1-13M9 7V4h6v3"/>',
+  restore:'<path d="M3 12a9 9 0 1 0 2.6-6.4L3 8"/><path d="M3 3v5h5"/>',
   check:'<path d="m5 12.5 4.5 4.5L19 7.5"/>',
   chip:'<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4.5"/><path d="M12 3v3M12 18v3M3 12h3M18 12h3"/>',
   book:'<path d="M4 4.5A1.5 1.5 0 0 1 5.5 3H20v15H5.5A1.5 1.5 0 0 0 4 19.5z"/><path d="M4 19.5A1.5 1.5 0 0 0 5.5 21H20v-3"/>',
@@ -657,21 +679,29 @@ function switchSeason(i){
   renderSeasonBar(); render(); enterPanel('rise');
 }
 
-// In-app confirmation dialog. Resolves true if the user presses the confirm button.
-//   await confirmSheet({title:'Start Season 3?', body:'…', ok:'Start Season 3'})
-function confirmSheet({title,body,ok,cancel='Cancel',dismiss=false}){
+// In-app dialog with any buttons. Resolves the pressed button's value (or `dismiss` if the user
+// taps outside or presses Esc). The first button gets focus; with 3+ buttons they stack full width,
+// the last one (the main action) on top.
+//   await choiceSheet({title, body, buttons:[{label:'Go back',value:'back'},{label:'Save',value:'save',main:true}]})
+function choiceSheet({title,body,buttons,dismiss=null}){
   return new Promise(resolve=>{
     const bg=document.createElement('div');bg.className='sheet-bg';
     bg.innerHTML=`<div class="sheet" role="dialog" aria-modal="true" aria-labelledby="sheet-title">
       <h2 id="sheet-title">${title}</h2><p>${body}</p>
-      <div class="actions"><button class="btn-ghost" data-r="0">${cancel}</button><button class="btn" data-r="1">${ok}</button></div></div>`;
+      <div class="actions${buttons.length>2?' stack':''}">${buttons.map((b,i)=>`<button class="${b.main?'btn':'btn-ghost'}" data-r="${i}">${b.label}</button>`).join('')}</div></div>`;
     const done=r=>{bg.remove();document.removeEventListener('keydown',esc);resolve(r);};
     const esc=e=>{if(e.key==='Escape')done(dismiss);};
-    bg.addEventListener('click',e=>{if(e.target===bg)done(dismiss);else if(e.target.dataset.r)done(e.target.dataset.r==='1');});
+    bg.addEventListener('click',e=>{if(e.target===bg)done(dismiss);else{const b=e.target.closest('[data-r]');if(b)done(buttons[+b.dataset.r].value);}});
     document.addEventListener('keydown',esc);
+    document.getElementById('toast').classList.remove('on');   // don't let a toast sit over the buttons
     document.body.appendChild(bg);
     bg.querySelector('[data-r="0"]').focus();
   });
+}
+// Yes/no version. Resolves true if the user presses the confirm button.
+//   await confirmSheet({title:'Start Season 3?', body:'…', ok:'Start Season 3'})
+function confirmSheet({title,body,ok,cancel='Cancel',dismiss=false}){
+  return choiceSheet({title,body,dismiss,buttons:[{label:cancel,value:false},{label:ok,value:true,main:true}]});
 }
 
 async function newSeason(){
@@ -697,7 +727,7 @@ async function newSeason(){
 const TITLE_TABS=['lb','stats','hist'], PICKER_TABS=[...TITLE_TABS,'rivals'];
 // How a screen arrives: deeper screens slide in from the right, going back slides the other way,
 // and moving between the main tabs fades up.
-const DEPTH={player:1,awards:1,house:1,rules:1,colours:1,rivals:2};
+const DEPTH={player:1,awards:1,house:1,rules:1,colours:1,deleted:1,rivals:2};
 function goTab(id){
   const from=TAB,d=DEPTH[id]||0,dFrom=DEPTH[from]||0;
   const how=d>dFrom||(id===from&&id==='player')?'push':d<dFrom?'pop':'rise';
@@ -716,7 +746,7 @@ function goTab(id){
 }
 // Animate the current screen arriving. Only called on arrival (a tab, Back, a new Chapter / Season),
 // never on the redraws from taps inside a screen, so toggling a chip doesn't replay everything.
-const CASCADE='.st-row,.prow,.sess-card,.aw-card,.hr-card,.rv-row,.list-btn,.tile';
+const CASCADE='.st-row,.prow,.sess-card,.del-row,.aw-card,.hr-card,.rv-row,.list-btn,.tile';
 function enterPanel(how){
   const el=document.getElementById('pnl-'+TAB);if(!el)return;
   el.classList.remove('in-rise','in-push','in-pop','entering');void el.offsetWidth;   // restart
@@ -830,6 +860,7 @@ function render(){
   if(TAB==='rivals')renderRivals();
   if(TAB==='awards')renderAwards();
   if(TAB==='house')renderHouse();
+  if(TAB==='deleted')renderDeleted();
 }
 
 // ══════════════ PLAYER COLOURS SCREEN ══════════════
@@ -875,9 +906,53 @@ function renderMore(){
     <button class="list-btn" onclick="openRivalAnalysis()"><span class="ic">${icon('users')}</span>Rival analysis<span class="chev">${icon('right')}</span></button>
     <button class="list-btn" onclick="openRules()"><span class="ic">${icon('book')}</span>Rules and scoring<span class="chev">${icon('right')}</span></button>
     <button class="list-btn" onclick="houseOpen=new Set();goTab('house')"><span class="ic">${icon('spade')}</span>House rules<span class="chev">${icon('right')}</span></button>
+    <button class="list-btn" onclick="goTab('deleted')"><span class="ic">${icon('trash')}</span>Recently deleted<span class="chev">${icon('right')}</span></button>
     <button class="list-btn" onclick="moreA2hsOpen=!moreA2hsOpen;renderMore()" aria-expanded="${moreA2hsOpen}"><span class="ic">${icon('phone')}</span>Add to Home Screen<span class="chev">${icon(moreA2hsOpen?'open':'right')}</span></button>
     ${moreA2hsOpen?`<div class="inset prose" style="margin:0 0 14px;font-size:13px">${isInstalled()?'You’re already using the home-screen app.':A2HS_STEPS+' On Android, use the browser menu and choose <strong>Install app</strong>.'}</div>`:''}
   </div>`;
+}
+
+// ══════════════ RECENTLY DELETED ══════════════
+// Deleting a session only marks it deleted (db.js), so it can be brought back here. Chapter 2 only:
+// Chapter 1 is archived and can't be changed. Newest first.
+function deletedList(){
+  return era2().seasons.flatMap(se=>(se.deleted||[]).map(s=>({s,se})))
+    .sort((a,b)=>dayNum(b.s.date)-dayNum(a.s.date)||b.se.number-a.se.number||(b.s.seq||0)-(a.s.seq||0));
+}
+function renderDeleted(){
+  const list=deletedList();
+  document.getElementById('pnl-deleted').innerHTML=`<button class="link back" onclick="goTab('more')">${icon('left')}More</button>
+  <div class="sec-head"><h2 class="h2">Recently deleted</h2></div>
+  ${list.length?`<p class="note">Deleted sessions are hidden from everything (standings, stats, awards) but kept, so you can bring them back.</p>`
+    :emptyCard('Nothing deleted. If you delete a session from Sessions, it shows up here so you can bring it back.')}
+  ${list.map(({s,se})=>{
+    const [dd,mm]=s.date.split('/');
+    const winner=[...s.results].sort((a,b)=>pnl(b)-pnl(a))[0];
+    const pot=s.results.reduce((a,r)=>a+r.buyin,0);
+    return `<div class="card del-row" id="del-${s.id}">
+      <span class="date-tile"><span>${MONTHS[+mm-1]||''}</span><b>${dd}</b></span>
+      <span class="sess-mid"><span class="sess-name">${s.name}</span>
+        <span class="sub">${se.name} · ${s.results.length} players · ${gbp(pot)} pot</span>
+        <span class="sub">${winner?`${winner.player} took it, ${money(pnl(winner))}`:''}</span></span>
+      <button class="btn-ghost btn-sm" onclick="restoreSession('${se.id}','${s.id}')">${icon('restore')}Restore</button></div>`;}).join('')}`;
+}
+async function restoreSession(seasonId,id){
+  if(busy)return;
+  const se=era2().seasons.find(x=>x.id===seasonId);const s=se&&(se.deleted||[]).find(x=>x.id===id);
+  if(!s)return;
+  const ok=await confirmSheet({title:`Restore ${s.name}?`,
+    body:`It goes back into Chapter 2 · ${se.name} (${s.date}) and counts in the standings, stats and awards again.`,ok:'Restore'});
+  if(!ok||busy)return;
+  busy=true;
+  try{await DB.restoreSession(se.id,s.id);}catch(e){saveFailed(e);return;}finally{busy=false;}
+  se.deleted=se.deleted.filter(x=>x!==s);
+  delete s.deleted;
+  se.sessions.push(s);se.sessions.sort((a,b)=>(a.seq||0)-(b.seq||0)||a.id.localeCompare(b.id));
+  toast(`${s.name} restored`);
+  // slide the row out, then redraw the list
+  const row=document.getElementById('del-'+s.id);
+  if(row&&TAB==='deleted'){row.classList.add('leaving');setTimeout(()=>{if(TAB==='deleted')renderDeleted();},240);}
+  else if(TAB==='deleted')renderDeleted();
 }
 
 // ══════════════ TABLE (HOME) ══════════════
@@ -1031,11 +1106,12 @@ function renderScorer(){
     ${scorerPlayers.length?`<div class="card">
       <h2 class="h2" style="margin-bottom:12px">Players and results</h2>
       <div class="grid-res grid-scorer head"><span>Player</span><span class="c">Buy-in £</span><span class="c">Final £</span><span></span></div>
-      ${scorerPlayers.map(p=>`<div class="grid-res grid-scorer">
+      ${scorerPlayers.map((p,i)=>`<div class="grid-res grid-scorer">
         <div class="who">${av(p)}<span>${p}</span></div>
-        <input type="number" value="${scorerRows[p]?.buyin??20}" min="0" step="5" inputmode="decimal" class="c" oninput="scorerRows['${q(p)}'].buyin=this.value">
-        <input type="number" value="${scorerRows[p]?.final??''}" min="0" step="0.25" inputmode="decimal" placeholder="0" class="c" oninput="scorerRows['${q(p)}'].final=this.value">
+        <input type="number" id="sb${i}" value="${scorerRows[p]?.buyin??20}" min="0" step="5" inputmode="decimal" class="c" oninput="scorerRows['${q(p)}'].buyin=this.value;updatePot()">
+        <input type="number" id="sf${i}" value="${scorerRows[p]?.final??''}" min="0" step="0.25" inputmode="decimal" placeholder="0" class="c" oninput="scorerRows['${q(p)}'].final=this.value;updatePot()">
         <button class="icon-btn" style="width:32px;height:32px" onclick="rmP('${q(p)}')" aria-label="Remove ${p}">${icon('x')}</button></div>`).join('')}
+      ${potLine('pot-scorer',readScorer(),scorerPlayers.some(p=>(scorerRows[p]?.final??'')===''))}
       <div style="display:flex;gap:8px;margin-top:14px;flex-wrap:wrap">
         <button class="btn-ghost" onclick="calcScores()">Calculate</button>
         <button class="btn" onclick="saveSession()">Save session</button></div>
@@ -1046,7 +1122,57 @@ function addPN(name){if(scorerPlayers.includes(name)){toast('Already added');ret
 function addP(){const v=document.getElementById('np').value.trim();if(!v)return;
   if(v.length>30||v.includes('/')){toast('Names: up to 30 characters, no "/"');return;}addPN(v);}
 function rmP(name){scorerPlayers=scorerPlayers.filter(p=>p!==name);delete scorerRows[name];renderScorer();}
+// ── Pot check ──
+// A live line under the results: "Pot balances" (green), "£35 unaccounted for" (red), or, while some
+// finals are still blank, just the running totals. Updated in place as you type (no redraw, so the
+// keyboard stays up); it glows green once when the pot comes into balance.
+// Loose change: a pot this close (in £) counts as balanced. Most past nights were a few coins out.
+const POT_SLACK=2;
+function potOff(c){return Math.abs(c.diff)>POT_SLACK+0.004;}
+function potLine(id,rows,typing){
+  const c=potCheck(rows),off=potOff(c),exact=Math.abs(c.diff)<0.005;
+  const state=typing?'':off?'off':'ok';
+  const msg=typing?'Pot so far':exact?'Pot balances':!off?`Near enough (${gbp(Math.abs(c.diff))} ${c.diff<0?'short':'over'})`
+    :c.diff<0?`${gbp(-c.diff)} unaccounted for`:`${gbp(c.diff)} too much cashed out`;
+  return `<div class="pot-line ${state}" id="${id}" data-state="${state}" aria-live="polite">
+    ${!typing?icon(off?'x':'check'):icon('coins')}<b>${msg}</b><span class="sum">${gbp(c.in)} in · ${gbp(c.out)} out</span></div>`;
+}
+function showPot(id,rows,typing){
+  const el=document.getElementById(id);if(!el)return;
+  const was=el.dataset.state;
+  el.outerHTML=potLine(id,rows,typing);
+  const now=document.getElementById(id);
+  if(now.dataset.state==='ok'&&was!=='ok')now.classList.add('just-ok');
+}
+function updatePot(){showPot('pot-scorer',readScorer(),scorerPlayers.some(p=>(scorerRows[p]?.final??'')===''));}
+// Before saving: if the pot is out by more than POT_SLACK, say by how much, offer a likely typo fix if there's
+// exactly one, and let them go back or save anyway. Resolves true to go ahead with the save.
+// fixIt(fix) applies a suggested fix to the form (it doesn't save).
+async function checkPot(rows,fixIt){
+  const c=potCheck(rows);
+  if(!potOff(c))return true;
+  const short=c.diff<0;
+  let body=`${gbp(c.in)} went in but ${short?'only ':''}${gbp(c.out)} came out, so <strong>${gbp(Math.abs(c.diff))} ${short?'is unaccounted for':'too much was cashed out'}</strong>.`;
+  const fix=suggestFix(rows);
+  if(fix){
+    const who=rows[fix.index].player;
+    body+=fix.kind==='zero'
+      ?`<br><br><strong>${who}</strong>’s final is empty. If they cashed out <strong>${gbp(fix.to)}</strong>, it balances exactly.`
+      :`<br><br>Maybe a typo: did <strong>${who}</strong> ${fix.field==='final'?'cash out':'buy in for'} <strong>${gbp(fix.to)}</strong>, not ${gbp(fix.from)}? That balances it exactly.`;
+  }else body+=' Check the amounts, or save anyway if that’s how the night went.';
+  const r=await choiceSheet({title:'The pot doesn’t balance',body,dismiss:'back',
+    buttons:[{label:'Go back',value:'back'},{label:'Save anyway',value:'save'},...(fix?[{label:`Change to ${gbp(fix.to)}`,value:'fix',main:true}]:[])]});
+  if(r==='fix'){fixIt(fix);toast(`${rows[fix.index].player}’s ${fix.field==='final'?'final':'buy-in'} changed. Save when ready`);}
+  return r==='save';
+}
+// An amount as you'd type it into a box: 84.30, 84 (not 84.3)
+function typed(v){return v%1?v.toFixed(2):String(v);}
+// Light up an input that a fix just changed
+function glowInput(id){const el=document.getElementById(id);if(!el)return;el.classList.remove('fixed');void el.offsetWidth;el.classList.add('fixed');}
+
 function readScorer(){return scorerPlayers.map(p=>{const b=parseFloat(scorerRows[p]?.buyin)||0;const f=parseFloat(scorerRows[p]?.final)||0;return{player:p,buyin:b,final:f};});}
+// Same, but marks finals left empty (blank:true) so the pot check can suggest filling one in
+function readScorerForCheck(){return readScorer().map((r,i)=>((scorerRows[scorerPlayers[i]]?.final??'')===''?{...r,blank:true}:r));}
 function calcScores(){
   if(!scorerPlayers.length){toast('Add players first');return;}
   const rows=readScorer().map(r=>({...r,p:pnl(r)})).sort((a,b)=>b.p-a.p);
@@ -1062,7 +1188,11 @@ async function saveSession(){
   if(busy)return;
   if(scorerPlayers.length<2){toast('Add at least 2 players');return;}
   const se=seasons[curSeason];
-  const rows=readScorer();const d=new Date();
+  const rows=readScorer();
+  if(!await checkPot(readScorerForCheck(),fix=>{scorerRows[scorerPlayers[fix.index]][fix.field]=typed(fix.to);scorerResult=null;renderScorer();
+    glowInput((fix.field==='final'?'sf':'sb')+fix.index);const pl=document.getElementById('pot-scorer');if(pl.dataset.state==='ok')pl.classList.add('just-ok');}))return;
+  if(busy||TAB!=='scorer')return;
+  const d=new Date();
   const date=`${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}/${d.getFullYear()}`;
   const name=(document.getElementById('sname').value.trim())||`Session ${se.sessions.length+1}`;
   const seq=se.sessions.reduce((m,s)=>Math.max(m,s.seq||0),0)+1;
@@ -1124,6 +1254,7 @@ function renderEdit(el){
       <input type="number" id="eb${i}" value="${r.buyin}" min="0" step="5" inputmode="decimal" class="c" oninput="liveEdit(${i})">
       <input type="number" id="ef${i}" value="${r.final}" min="0" step="0.25" inputmode="decimal" class="c" oninput="liveEdit(${i})">
       <span id="ep${i}" class="money r ${cls(pnl(r))}">${money(pnl(r))}</span></div>`).join('')}
+    ${potLine('pot-edit',s.results,false)}
     <div id="edit-actions" style="display:flex;gap:8px;margin-top:16px;flex-wrap:wrap">
       <button class="btn-danger" onclick="askDelete(true)">Delete</button>
       <span style="flex:1"></span>
@@ -1140,13 +1271,18 @@ function askDelete(on){
   document.getElementById('edit-actions').hidden=on;
 }
 function liveEdit(i){const b=parseFloat(document.getElementById('eb'+i).value)||0;const f=parseFloat(document.getElementById('ef'+i).value)||0;
-  const v=f-b;const el=document.getElementById('ep'+i);el.textContent=money(v);el.className='money r '+cls(v);}
+  const v=f-b;const el=document.getElementById('ep'+i);el.textContent=money(v);el.className='money r '+cls(v);
+  showPot('pot-edit',readEdit(),false);}
+// The edit form's current amounts (without changing editData until Save)
+function readEdit(){return editData.results.map((r,i)=>({player:r.player,buyin:parseFloat(document.getElementById('eb'+i).value)||0,final:parseFloat(document.getElementById('ef'+i).value)||0}));}
 async function saveEdit(){
   const s=editData;const n=document.getElementById('e-name').value.trim();const d=document.getElementById('e-date').value.trim();
   if(n)s.name=n;if(d)s.date=d;
   if(!DATE_RE.test(s.date)){toast('Date must be DD/MM/YYYY');return;}
-  s.results.forEach((r,i)=>{r.buyin=parseFloat(document.getElementById('eb'+i).value)||0;r.final=parseFloat(document.getElementById('ef'+i).value)||0;});
   if(busy)return;
+  if(!await checkPot(readEdit(),fix=>{const id=(fix.field==='final'?'ef':'eb')+fix.index;document.getElementById(id).value=typed(fix.to);liveEdit(fix.index);glowInput(id);}))return;
+  if(busy||editData!==s)return;
+  readEdit().forEach((r,i)=>{s.results[i].buyin=r.buyin;s.results[i].final=r.final;});
   const se=seasons[curSeason];
   busy=true;
   try{await DB.saveSession(se.id,s);}catch(e){saveFailed(e);return;}finally{busy=false;}
@@ -1157,7 +1293,8 @@ async function confirmDelete(){
   const se=seasons[curSeason];
   busy=true;
   try{await DB.deleteSession(se.id,se.sessions[editIdx].id);}catch(e){saveFailed(e);return;}finally{busy=false;}
-  se.sessions.splice(editIdx,1);editIdx=null;editData=null;renderHist();toast('Session deleted');
+  const [gone]=se.sessions.splice(editIdx,1);(se.deleted||(se.deleted=[])).push({...gone,deleted:true});
+  editIdx=null;editData=null;renderHist();toast('Session deleted. Restore it from More');
 }
 
 // ══════════════ STATS ══════════════

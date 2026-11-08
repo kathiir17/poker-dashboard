@@ -7,15 +7,15 @@
 <!-- Checks stats.js against the real data. Open http://localhost:8000/test.html (run the local server first).
      Read-only: it only loads data, never saves.
      Expected values were worked out separately (not with stats.js) from the data on 7 Nov 2026.
-     Closed seasons never change. Checks marked LIVE use the current season or All time, so they
-     go out of date after the next session; update the expected value then. -->
+     Checks on the current season and All time use the data as it stood that day (later sessions and
+     seasons left out; see asOf below), so nothing here goes out of date when new sessions are added.
+     They would only change if an old session were edited, deleted or restored. -->
 <style>
   body{font:14px/1.5 -apple-system,sans-serif;background:#0B0B0C;color:#EDEAE4;max-width:720px;margin:0 auto;padding:20px 16px}
   h1{font-size:20px;margin-bottom:4px}
   h2{font-size:15px;margin:18px 0 6px;color:#A39A8E}
   .row{display:flex;gap:8px;padding:3px 0;border-bottom:1px solid #2A2724}
   .ok{color:#6FBF8A}.fail{color:#E0715F}
-  .live{font-size:11px;color:#C08A5B;border:1px solid #2A2724;border-radius:6px;padding:0 5px;margin-left:4px}
   #sum{font-size:16px;font-weight:600;margin:10px 0}
 </style>
 </head>
@@ -35,24 +35,32 @@ function equal(a,b){
   if(Array.isArray(b))return Array.isArray(a)&&a.length===b.length&&b.every((x,i)=>equal(a[i],x));
   return JSON.stringify(a)===JSON.stringify(b);
 }
-function check(label,actual,expected,live){
+function check(label,actual,expected){
   const same=equal(actual,expected);
   same?pass++:fail++;
   out.insertAdjacentHTML('beforeend',`<div class="row"><span class="${same?'ok':'fail'}">${same?'✓':'✗'}</span>
-    <span>${label}${live?'<span class="live">LIVE</span>':''}${same?'':` — got <b>${JSON.stringify(actual)}</b>, expected <b>${JSON.stringify(expected)}</b>`}</span></div>`);
+    <span>${label}${same?'':` — got <b>${JSON.stringify(actual)}</b>, expected <b>${JSON.stringify(expected)}</b>`}</span></div>`);
 }
 const by=(list,name)=>list.find(p=>p.name===name);
+// The data as it stood at the end of `date` (DD/MM/YYYY): Chapter 2 seasons after `lastSeason` and
+// sessions dated later are left out, so checks on it never change as new sessions are played.
+function asOf(D,date,lastSeason){
+  const t=dayNum(date);
+  return {...D,activeSeasonNumber:lastSeason,eras:Object.fromEntries(Object.entries(D.eras).map(([id,e])=>[id,{...e,
+    seasons:e.seasons.filter(se=>id!=='era-2'||se.number<=lastSeason).map(se=>({...se,sessions:se.sessions.filter(s=>dayNum(s.date)<=t)}))}]))};
+}
 
 async function run(){
-  const D=await DB.loadAll();
+  const LIVE=await DB.loadAll();
+  const D=asOf(LIVE,'07/11/2026',2);   // everything below uses the data as of 7 Nov 2026
 
-  section('Chapter 2 · Season 2 (live season)');
+  section('Chapter 2 · Season 2 (as of 7 Nov 2026)');
   {const ss=selectSessions(D,'era-2',2),ps=playerStats(ss),h=headlines(ss);
-   check("Ami's best session is +£64.75",by(ps,'Ami').best.pnl,64.75,1);
-   check('Best session: Ami +£64.75',[h.best.player,h.best.pnl],['Ami',64.75],1);
-   check('Worst session: Ari −£60',[h.worst.player,h.worst.pnl],['Ari',-60],1);
-   check('Money in play £250',h.money,250,1);
-   check('Ami shrunk average = 64.75 ÷ (1+3) = 16.1875',by(ps,'Ami').shrunk,16.1875,1);}
+   check("Ami's best session is +£64.75",by(ps,'Ami').best.pnl,64.75);
+   check('Best session: Ami +£64.75',[h.best.player,h.best.pnl],['Ami',64.75]);
+   check('Worst session: Ari −£60',[h.worst.player,h.worst.pnl],['Ari',-60]);
+   check('Money in play £250',h.money,250);
+   check('Ami shrunk average = 64.75 ÷ (1+3) = 16.1875',by(ps,'Ami').shrunk,16.1875);}
 
   section('Chapter 2 · Season 1 (closed)');
   {const ss=selectSessions(D,'era-2',1),ps=playerStats(ss),h=headlines(ss),rv=rivals(ss);
@@ -82,10 +90,10 @@ async function run(){
    check('Sanj: 27 sessions, +£878.75, in profit 23, topped 16',[by(ps,'Sanj').n,by(ps,'Sanj').pnlTot,by(ps,'Sanj').inProfit,by(ps,'Sanj').topped],[27,878.75,23,16]);
    check('Kathiir total +£290.10 (pence survive)',by(ps,'Kathiir').pnlTot,290.1);}
 
-  section('All time');
+  section('All time (as of 7 Nov 2026)');
   {const ss=selectSessions(D,'all',-1),ps=playerStats(ss),h=headlines(ss);
-   check('45 sessions',h.sessions,45,1);
-   check('Sanj leads, Ari last',[ps[0].name,ps[ps.length-1].name],['Sanj','Ari'],1);
+   check('45 sessions',h.sessions,45);
+   check('Sanj leads, Ari last',[ps[0].name,ps[ps.length-1].name],['Sanj','Ari']);
    check('Sessions are in date order',ss.every((s,i)=>i===0||ss[i-1].t<=s.t),true);
    check('C2 S1 Session 10 comes before C2 S2 Session 1 (same date)',
      ss.findIndex(s=>s.chapter===2&&s.season===1&&s.name==='Session 10')<ss.findIndex(s=>s.chapter===2&&s.season===2),true);
@@ -97,9 +105,9 @@ async function run(){
    check("Rivals are mirror images (A vs B = −(B vs A))",Object.entries(rv).every(([a,l])=>l.every(r=>Math.abs(rv[r.opp].find(x=>x.opp===a).avg+r.avg)<1e-9)),true);
    check('Ranks run 1, 2, 3…',ps.every((p,i)=>p.rank===i+1),true);
    const sh=sharedSessions(ss,'Sanj','Saje');
-   check('Sanj vs Saje: 3 shared sessions, gaps +£20.75, +£119.25, +£78.25',sh.map(x=>x.gap),[20.75,119.25,78.25],1);
+   check('Sanj vs Saje: 3 shared sessions, gaps +£20.75, +£119.25, +£78.25',sh.map(x=>x.gap),[20.75,119.25,78.25]);
    check('Sanj vs Saje: Session 5 was £20 → £130 vs £20 → £10.75',[sh[1].a.buyin,sh[1].a.final,sh[1].b.buyin,sh[1].b.final],[20,130,20,10.75]);
-   check('Sanj vs Saje: average gap +£72.75',rv.Sanj.find(r=>r.opp==='Saje').avg,72.75,1);
+   check('Sanj vs Saje: average gap +£72.75',rv.Sanj.find(r=>r.opp==='Saje').avg,72.75);
    check("Every rival's average = the average of its shared-session gaps",Object.entries(rv).every(([a,l])=>l.every(r=>{
      const g=sharedSessions(ss,a,r.opp);return g.length===r.n&&Math.abs(g.reduce((t,x)=>t+x.gap,0)/g.length-r.avg)<0.005;})),true);
    const sp=sessionPnls(ss);
@@ -124,11 +132,11 @@ async function run(){
   check('C1 S1 Whale is a tie: Aaron and Vittu, £420 each',[who(1,1,'whale'),find(1,1,'whale').value],[['Aaron','Vittu'],420]);
   check('C1 S3 Full House: Aaron, Kathiir, Varunn',who(1,3,'fullHouse'),['Aaron','Kathiir','Varunn']);
   check('C1 S1 Comeback: Sanj, Fall-off: Ami',[who(1,1,'comeback'),who(1,1,'falloff')],[['Sanj'],['Ami']]);
-  section('Awards: Chapter 2 · Season 2 (live)');
-  check('Leading, not locked',aw.filter(a=>a.chapter===2&&a.season===2).every(a=>a.status==='leading'),true,1);
-  check('Champion (leading): Ami',who(2,2,'champion'),['Ami'],1);
-  check('No Comeback yet (needs 2+ sessions in each half)',find(2,2,'comeback'),undefined,1);
-  check('Newest season first in the list',[aw[0].chapter,aw[0].season],[2,2],1);
+  section('Awards: Chapter 2 · Season 2 (as of 7 Nov 2026)');
+  check('Leading, not locked',aw.filter(a=>a.chapter===2&&a.season===2).every(a=>a.status==='leading'),true);
+  check('Champion (leading): Ami',who(2,2,'champion'),['Ami']);
+  check('No Comeback yet (needs 2+ sessions in each half)',find(2,2,'comeback'),undefined);
+  check('Newest season first in the list',[aw[0].chapter,aw[0].season],[2,2]);
 
   // ── Awards, made-up seasons to test the rules (not real data) ──
   // fake([{A:10,B:-10}, …]) = one Chapter 2 season, one entry per session, values are each player's PnL
@@ -152,6 +160,24 @@ async function run(){
    check('Older season locked, newest leading',[seasonAwards(d,'era-2',1)[0].status,seasonAwards(d,'era-2',2)[0].status],['locked','leading']);}
   {const d=fake([{A:5,B:-5,C:0}],[]);
    check('Empty season (just started) has no awards',seasonAwards(d,'era-2',2),[]);}
+
+  // ── Pot check and typo suggestions (made-up sessions) ──
+  section('Pot check');
+  {const R=(...a)=>a.map(([player,buyin,final])=>({player,buyin,final}));
+   check('Balanced pot: diff £0',potCheck(R(['A',20,35.5],['B',20,4.5])).diff,0);
+   check('Pence survive (0.1 + 0.2 style sums still balance)',potCheck(R(['A',0.1,0.15],['B',0.2,0.15])).diff,0);
+   check('£35 short',potCheck(R(['A',40,45],['B',40,0])).diff,-35);
+   const f=rows=>{const x=suggestFix(rows);return x&&[rows[x.index].player,x.field,x.to,x.kind];};
+   check('Swapped digits: B typed £48.30 for £84.30',f(R(['A',50,0],['B',40,48.3],['C',30,35.7])),['B','final',84.3,'swap']);
+   check('Decimal point slip: £847.5 for £84.75',f(R(['A',50,5.25],['B',40,847.5])),['B','final',84.75,'point']);
+   check('Missed digit: £8.75 for £84.75',f(R(['A',50,5.25],['B',40,8.75])),['B','final',84.75,'length']);
+   check('Buy-in typo: £52 for £25',f(R(['A',25,40],['B',52,10])),['B','buyin',25,'swap']);
+   const blank=(rows,...i)=>rows.map((r,k)=>i.includes(k)?{...r,blank:true}:r);
+   check('One final left empty',f(blank(R(['A',20,0],['B',20,15],['C',20,10]),0)),['A','final',35,'zero']);
+   check('A final of £0 that was typed (busted) is not treated as empty',f(R(['A',20,0],['B',20,15],['C',20,10])),null);
+   check('Two finals left empty: no guess',f(blank(R(['A',20,0],['B',20,0],['C',20,25]),0,1)),null);
+   check('Two entries fit equally: no guess',f(R(['A',20,12],['B',20,23],['C',20,16])),null);
+   check('Balanced pot: nothing to fix',f(R(['A',20,30],['B',20,10])),null);}
 
   document.getElementById('sum').innerHTML=fail?`<span class="fail">${fail} failed</span>, ${pass} passed`:`<span class="ok">All ${pass} passed</span>`;
 }

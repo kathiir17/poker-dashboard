@@ -206,3 +206,55 @@ function allAwards(data){
   });
   return out;
 }
+
+// ══════════════ POT CHECK ══════════════
+// Chips only move between players, so a session's total cashed out should equal its total bought in.
+// results: [{player, buyin, final}]. Returns {in, out, diff} in £, diff = out − in (0 = balanced).
+// Worked in whole pence so float noise never makes a balanced pot look off.
+const toPence=v=>Math.round((+v||0)*100);
+function potCheck(results){
+  const i=results.reduce((a,r)=>a+toPence(r.buyin),0), o=results.reduce((a,r)=>a+toPence(r.final),0);
+  return {in:i/100,out:o/100,diff:(o-i)/100};
+}
+
+// If the pot is off, look for ONE typo that would balance it exactly, e.g. £48.30 typed for £84.30.
+// Returns {index, field:'final'|'buyin', from, to, kind} or null. Typo kinds, most likely first:
+//   swap   two neighbouring digits swapped        84.30 → 48.30
+//   point  decimal point in the wrong place       84.75 → 847.5
+//   digit  one digit wrong                        84.30 → 74.30
+//   length a digit missed out or typed twice      84.75 → 8.75, 84.75 → 844.75
+//   zero   one player's final left empty (results marked blank:true; only if exactly one is)
+// It only suggests a fix if exactly one entry fits the most likely kind that fits at all; if two
+// different entries would both balance it, it can't tell which is wrong, so it suggests nothing.
+function suggestFix(results){
+  const d=toPence(potCheck(results).diff);
+  if(!d)return null;
+  // the value each entry would need: lower a final by the excess, or raise a buy-in by it
+  const fields=[];
+  results.forEach((r,index)=>{
+    fields.push({index,field:'final',v:toPence(r.final),want:toPence(r.final)-d,blank:!!r.blank});
+    fields.push({index,field:'buyin',v:toPence(r.buyin),want:toPence(r.buyin)+d});
+  });
+  const swaps=s=>[...s].slice(1).map((_,i)=>s.slice(0,i)+s[i+1]+s[i]+s.slice(i+2));
+  const points=v=>[v*10,v*100,v%10?-1:v/10,v%100?-1:v/100];
+  const digits=s=>[...s].flatMap((c,i)=>[...'0123456789'].filter(x=>x!==c).map(x=>s.slice(0,i)+x+s.slice(i+1)));
+  const lengths=s=>[...[...s].map((_,i)=>s.slice(0,i)+s.slice(i+1)),
+    ...[...Array(s.length+1)].flatMap((_,i)=>[...'0123456789'].map(x=>s.slice(0,i)+x+s.slice(i)))];
+  // nobody types a leading zero (04.00 for 40.00), so typos that would need one don't count
+  const num=list=>list.filter(x=>x.length===1||x[0]!=='0').map(Number);
+  const kinds=[
+    ['swap',f=>num(swaps(String(f.v)))],
+    ['point',f=>points(f.v)],
+    ['digit',f=>num(digits(String(f.v)))],
+    ['length',f=>num(lengths(String(f.v)))],
+  ];
+  for(const [kind,gen] of kinds){
+    const hits=fields.filter(f=>f.want>=0&&f.want!==f.v&&gen(f).includes(f.want));
+    if(hits.length===1)return fix(hits[0],kind);
+    if(hits.length>1)return null;
+  }
+  const zeros=fields.filter(f=>f.blank);
+  if(d<0&&zeros.length===1)return fix(zeros[0],'zero');
+  return null;
+  function fix(f,kind){return {index:f.index,field:f.field,from:f.v/100,to:f.want/100,kind};}
+}

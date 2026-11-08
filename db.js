@@ -17,7 +17,7 @@
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import {
-  getFirestore, collection, doc, getDoc, getDocs, writeBatch, updateDoc, setDoc,
+  getFirestore, collection, doc, getDoc, getDocs, writeBatch, updateDoc, setDoc, deleteField,
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 // Public web config — safe to publish; access is controlled by firestore.rules.
@@ -35,16 +35,22 @@ const LIVE_ERA = "era-2"; // the only era the app ever writes to
 
 // ── Reads ────────────────────────────────────────────────────────────────
 
-// Sessions of one season, in play order. Sessions marked deleted are left out.
-async function loadSeason(eraId, seasonId) {
+// Sessions of one season, in play order, split into the live ones and the ones marked deleted.
+async function loadSessions(eraId, seasonId) {
   const snap = await getDocs(collection(db, "eras", eraId, "seasons", seasonId, "sessions"));
-  return snap.docs
+  const all = snap.docs
     .map(d => ({ id: d.id, ...d.data() }))
-    .filter(s => s.deleted !== true)
     .sort((a, b) => a.seq - b.seq || a.id.localeCompare(b.id));
+  return { sessions: all.filter(s => s.deleted !== true), deleted: all.filter(s => s.deleted === true) };
 }
 
-// One era with all its seasons and their sessions.
+// Sessions of one season, in play order. Sessions marked deleted are left out.
+async function loadSeason(eraId, seasonId) {
+  return (await loadSessions(eraId, seasonId)).sessions;
+}
+
+// One era with all its seasons and their sessions. Each season also gets `deleted`: its sessions
+// marked deleted (for More → Recently deleted).
 async function loadEra(eraId) {
   const [eraSnap, seasonsSnap] = await Promise.all([
     getDoc(doc(db, "eras", eraId)),
@@ -52,7 +58,7 @@ async function loadEra(eraId) {
   ]);
   if (!eraSnap.exists()) throw new Error(`Era ${eraId} not found`);
   const seasons = await Promise.all(seasonsSnap.docs.map(async s => ({
-    id: s.id, ...s.data(), sessions: await loadSeason(eraId, s.id),
+    id: s.id, ...s.data(), ...await loadSessions(eraId, s.id),
   })));
   seasons.sort((a, b) => a.number - b.number);
   return { id: eraId, ...eraSnap.data(), seasons };
@@ -100,9 +106,14 @@ async function saveSession(seasonId, session, colours) {
 }
 
 // "Delete" only marks the session deleted: the app stops showing it, but it stays in
-// Firestore so it can be restored (Firebase console: remove the `deleted` field).
+// Firestore so it can be restored (More → Recently deleted, which calls restoreSession).
 async function deleteSession(seasonId, sessionId) {
   await updateDoc(doc(db, "eras", LIVE_ERA, "seasons", seasonId, "sessions", sessionId), { deleted: true });
+}
+
+// Undo a delete: remove the `deleted` mark so the session shows again.
+async function restoreSession(seasonId, sessionId) {
+  await updateDoc(doc(db, "eras", LIVE_ERA, "seasons", seasonId, "sessions", sessionId), { deleted: deleteField() });
 }
 
 // Save the whole player→colour-id map (the rules check every id is a palette colour and none repeat).
@@ -118,8 +129,8 @@ async function startNewSeason(currentNumber) {
   batch.set(doc(db, "eras", LIVE_ERA, "seasons", `s${number}`), season);
   batch.update(doc(db, "config", "app"), { activeSeasonNumber: number });
   await batch.commit();
-  return { id: `s${number}`, ...season, sessions: [] };
+  return { id: `s${number}`, ...season, sessions: [], deleted: [] };
 }
 
-window.DB = { loadAll, loadEra, loadSeason, loadPlayers, saveSession, deleteSession, startNewSeason, saveColours };
+window.DB = { loadAll, loadEra, loadSeason, loadPlayers, saveSession, deleteSession, restoreSession, startNewSeason, saveColours };
 window.dispatchEvent(new Event("db-ready"));

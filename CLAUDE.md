@@ -8,7 +8,7 @@ A poker night dashboard for the Sivanehru family and friends: leaderboard, sessi
 - `index.html`: the app (inline CSS + vanilla JS): all screens and rendering.
 - `stats.js`: pure calculations (no DOM, no database): session selection, player stats, running totals, rivals, headlines, awards. A plain script, so its functions are globals.
 - `db.js`: the only file that talks to the database (Firebase Firestore, SDK loaded from Google's CDN).
-- `test.html`: checks `stats.js` against the live data (read-only). Open http://localhost:8000/test.html. Checks marked LIVE use the current season / All time and need their expected values updating after new sessions.
+- `test.html`: checks `stats.js` against the live data (read-only), plus made-up cases. Open http://localhost:8000/test.html. Current-season and All-time checks use the data as of 7 Nov 2026 (`asOf`), so they never go stale.
 
 ## Running and deploying
 
@@ -21,13 +21,15 @@ The `<script>` is divided into sections marked with `// ══════ NAME 
 
 **Persistence.** Firestore project `poker-dashboard-bf0db`, no auth. `db.js` exposes `window.DB` (`loadAll`, `saveSession`, `deleteSession`, `startNewSeason`, …) and fires `db-ready`; `index.html` never imports Firebase. Each save writes one session document. Write paths update in-memory state only after the write succeeds.
 
-**Firestore layout.** `config/app {activeSeasonNumber}` · `config/colours {colours:{playerName: colourId}}` · `eras/{era-1|era-2}` · `eras/{era}/seasons/s{n} {name, number, system}` (`system` is a leftover the app ignores; `firestore.rules` still require `"pnl"` on new seasons) · `.../sessions/{id} {seq, name, date:"DD/MM/YYYY", results:[{player, buyin, final}], deleted?}` (sessions are never removed: "Delete" sets `deleted:true` and `loadSeason` hides them; restore by removing the field in the Firebase console) · `players/{name}`. Money is in £. Era 1 is the pre-November 2026 data, archived read-only; Era 2 is live. **On screen they are called "Chapter 1" and "Chapter 2"** (the pooled view of both is "All time" in the Chapter picker); the ids `era-1`/`era-2` are internal only.
+**Firestore layout.** `config/app {activeSeasonNumber}` · `config/colours {colours:{playerName: colourId}}` · `eras/{era-1|era-2}` · `eras/{era}/seasons/s{n} {name, number, system}` (`system` is a leftover the app ignores; `firestore.rules` still require `"pnl"` on new seasons) · `.../sessions/{id} {seq, name, date:"DD/MM/YYYY", results:[{player, buyin, final}], deleted?}` (sessions are never removed: "Delete" sets `deleted:true`; `loadEra` puts them in each season's `deleted` list and More → Recently deleted restores them) · `players/{name}`. Money is in £. Era 1 is the pre-November 2026 data, archived read-only; Era 2 is live. **On screen they are called "Chapter 1" and "Chapter 2"** (the pooled view of both is "All time" in the Chapter picker); the ids `era-1`/`era-2` are internal only.
 
 **Security rules** live in `firestore.rules` and are applied by pasting into the Firebase console (Firestore → Rules → Publish); they are not deployed from the repo. They make Era 1 unwritable, let anyone add/edit Era 2 sessions (shape-checked, no real deletes), only allow a new season numbered active+1, make players add-only, and only allow palette colour ids in `config/colours` with no colour used twice. The app's client-side checks (DD/MM/YYYY date, 2–20 players, name ≤60) mirror them.
 
 **Admin key.** `~/code/secrets/poker-admin-key.json` (bypasses the security rules) — never copy it into the repo or print it.
 
 **Scoring.** A session's score is its PnL (`final − buyin`). Players are ranked by *shrunk* average PnL, `pnlTot / (n + K)` with `K=3` (in `stats.js`), which pulls players with few sessions toward zero. Summary amounts are shown rounded to 25p; entered amounts (in/out, a session's PnL) are exact.
+
+**Pot check.** Saving a session (+ screen or Edit) compares total in vs out (`potCheck` in `stats.js`). Gaps up to `POT_SLACK` (£2, loose change) count as balanced; bigger ones get a pop-up, with a one-typo fix from `suggestFix` when exactly one entry would balance it.
 
 **Awards** are computed per season by `seasonAwards()` / `allAwards()` in `stats.js`, never stored: locked once a newer season exists, "leading" for the current one; ties all win.
 
